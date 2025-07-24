@@ -82,29 +82,83 @@ async function loadComponent(id, file) {
     }
 }
 
+function attachNavbarEventListeners() {
+    // Add event listeners for all navigation buttons
+    const buttons = document.querySelectorAll(".btn, .giriş, .nav-link, .mobile-nav-link, .action-btn, .mobile-action-btn");
+    
+    buttons.forEach(item => {
+        // Remove existing event listeners to prevent duplicates
+        item.removeEventListener("click", handleNavigation);
+        
+        // Add new event listener
+        item.addEventListener("click", handleNavigation);
+    });
+    
+    console.log(`Attached event listeners to ${buttons.length} navigation buttons`);
+}
+
+function handleNavigation(event) {
+    event.preventDefault();
+    const page = this.getAttribute("data-page");
+    
+    if (page) {
+        console.log(`Loading page: ${page}`);
+        loadPage(page);
+        
+        // Update active states
+        updateActiveNavigation(this);
+        
+        // Close mobile menu if open
+        closeMobileMenu();
+    } else {
+        console.warn('No data-page attribute found on button:', this);
+    }
+}
+
+function updateActiveNavigation(activeElement) {
+    // Remove active class from all navigation links
+    const allNavLinks = document.querySelectorAll('.nav-link, .mobile-nav-link');
+    allNavLinks.forEach(link => link.classList.remove('active'));
+    
+    // Add active class to the clicked element or its corresponding link
+    const page = activeElement.getAttribute('data-page');
+    if (page) {
+        const correspondingLinks = document.querySelectorAll(`[data-page="${page}"].nav-link, [data-page="${page}"].mobile-nav-link`);
+        correspondingLinks.forEach(link => link.classList.add('active'));
+    }
+}
+
+function closeMobileMenu() {
+    const mobileToggle = document.getElementById('mobileToggle');
+    const mobileMenu = document.getElementById('mobileMenu');
+    
+    if (mobileToggle && mobileMenu) {
+        mobileToggle.classList.remove('active');
+        mobileMenu.classList.remove('active');
+        document.body.classList.remove('menu-open');
+    }
+}
+
 window.onload = async() => {
     try {
-        await loadComponent("navbar","../templates/navbar.html");
+        // Load the home page directly since navbar is now embedded in index.html
         loadPage("Home");
 
-        // Add event listeners with better error handling
-        const buttons = document.querySelectorAll(".btn, .giriş");
-        buttons.forEach(item => {
-            item.addEventListener("click", (event) => {
-                event.preventDefault();
-                const page = item.getAttribute("data-page");
-                if (page) {
-                    console.log(`Loading page: ${page}`);
-                    loadPage(page);
-                } else {
-                    console.warn('No data-page attribute found on button:', item);
-                }
-            });
-        });
+        // Attach event listeners after a short delay to ensure DOM is ready
+        setTimeout(() => {
+            attachNavbarEventListeners();
+        }, 100);
         
         console.log('Application initialized successfully');
     } catch (error) {
         console.error('Error during initialization:', error);
     }
 };
+
+// Re-attach event listeners when new content is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        attachNavbarEventListeners();
+    }, 200);
+});
 
