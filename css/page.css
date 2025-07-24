@@ -1,0 +1,38 @@
+body{
+    font-family: 'Fira Sans', sans-serif;
+    background-color: #fff;
+    margin: 0;
+    padding: 0;
+}
+.right{
+    background: rgb(23, 23, 23);
+    border-radius:  10px 0px 0px 10px;
+    position: absolute;
+    right: 0;
+    opacity: 0.8;
+    width: 40px;
+    height: 270px;
+    color: #fff;
+    font-weight: 900;
+}
+.left{
+    background: rgb(23, 23, 23);
+    border-radius:  0px 10px 10px 0px;
+    position: absolute;
+    left: 0;
+    opacity: 0.8;
+    left: 0%;
+    width: 40px;
+    height: 270px;
+    color: #fff;
+    font-weight: 900;
+}
+.row{
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+    padding: 0px 50px;
+}

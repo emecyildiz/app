@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="../templates/navbar.css">
+    <link rel="stylesheet" href="../css/sidebar.css">
+</head>
+<body>
+    <button id="menuToggle" class="sidebar-toggle">☰</button>
+    <div class="sidebar" id="sidebar">
+        <p class="logo">XXXSİTE</p>
+        <div class="profil-section">
+            <img src="../img/default.jpg"
+                class="profile-image"
+                onclick="uploadPhoto()"
+                id="profilePhoto">
+            <p class="profile-name">Kullanıcı Adı</p>
+            <label class="eposta">emecyildiz@gmail.com</label>
+        </div>
+        <input type="file" id="photoInput" accept="image/*" style="display: none;">
+        <div class="item">👤Kullanıcı Bilgileri</div>
+        <div class="item">⚙️Ayarlar</div>
+        <div class="space"></div>
+        <div class="out">
+            <div class="item">🚪Çıkış Yap</div>
+        </div>
+    </div>
+    <div class="content">
+
+    </div>
+
+    <script src="../js/man.js"></script>
+    <script src="../js/sidebar.js"></script>
+</body>
+</html>

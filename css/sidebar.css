@@ -1,0 +1,100 @@
+.sidebar{
+    position: fixed;
+    top: 70px;
+    height: calc(100vh - 70px);
+    width: 220px;
+    border: 1px solid black;
+    border-radius:  0px 10px 10px 0px;
+    left: 0%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: #eeededdb;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+    padding: 10;
+    transition: transform 0.3s ease;
+}
+.sidebar.closed{
+    transform: translateX(-100%);
+}
+.item{
+    cursor: pointer;
+    padding: 10px;
+    font-size: 14px;
+    font-size: 0.875rem;
+    font-weight: bold;
+    height: auto;
+    text-decoration: none;
+    width: auto;
+    margin: 0px 5px 0px 5px;
+    border-radius: 10px;
+}
+.item:hover{
+    border-bottom: 3px solid black;
+    box-shadow:  0 0 2px 0;
+}
+.content{
+    margin-left: 220px;
+    padding: 20px;
+    margin-top: 70px;
+    transition: margin-left 0.3s ease;
+}
+.sidebar.closed ~ .content {
+    margin-left: 0;
+}
+.sidebar-toggle{
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1100;
+    font-size: 24px;
+    background: none;
+    color: white;
+    cursor: pointer;
+}
+body:not(.Profil).sidebar-toggle{
+    display: none;
+}
+.profile-image{
+    position: relative;
+    border-radius: 50%;
+    display: flex;
+    top: 50%;
+    left: 50%;
+    top: 20px;
+    left: 45px;
+    margin-top: 5px;
+    width: 110px;
+    height: 110px;
+    cursor: pointer;
+}
+.profil-section{
+    width: 200px;
+    height: 170px;
+    margin: 0 0 25px 0;
+}
+.profile-name{
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+}
+.eposta{
+    display: flex;
+    justify-content: center;
+    margin-bottom: 70px;
+}
+.logo{
+    font-weight: bold;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    margin:8px;
+}
+.space{
+    flex: 1;
+}
+.out{
+    margin: 0 0 20px 0;
+}
