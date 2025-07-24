@@ -3,6 +3,7 @@ function initializeSidebar() {
     const toggleButton = document.getElementById("menuToggle");
     const sidebar = document.getElementById("sidebar");
     
+
     // Check if elements exist
     if (!toggleButton || !sidebar) {
         console.log('Sidebar elements not found, retrying...');
@@ -58,6 +59,7 @@ function initializeSidebar() {
         
         // Remove escape key listener
         document.removeEventListener('keydown', handleEscapeKey);
+
     }
 
     // Handle escape key
@@ -107,6 +109,7 @@ function initializeSidebar() {
     console.log('Sidebar initialized successfully');
     return true;
 }
+
 
 // Initialize sidebar with retry mechanism
 function initializeSidebarWithRetry(maxRetries = 10, delay = 100) {
@@ -341,3 +344,4 @@ window.sidebarUtils = {
     initializePhotoUpload: initializePhotoUploadWithRetry,
     initializeMenuItems: initializeMenuItemsWithRetry
 };
+
