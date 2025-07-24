@@ -14,50 +14,56 @@
         <!-- Hero Section -->
         <section class="hero-section">
             <div class="hero-content">
-                <h1 class="hero-title">Popüler Filmler</h1>
-                <p class="hero-subtitle">En çok izlenen ve beğenilen filmler</p>
+                <h1 class="hero-title">Film Değerlendirme</h1>
+                <p class="hero-subtitle">Filmleri puanla, yorum yap ve keşfet</p>
             </div>
         </section>
 
         <!-- Featured Films Grid -->
         <section class="featured-section">
             <div class="container">
-                <h2 class="section-title">Öne Çıkan Filmler</h2>
+                <h2 class="section-title">Popüler Filmler</h2>
                 <div class="featured-grid">
-                    <div class="featured-card">
+                    <div class="featured-card" data-film-id="1">
                         <div class="card-image">
                             <img src="../img/nine.png" alt="Film Posteri">
                             <div class="card-overlay">
                                 <div class="card-info">
                                     <h3>District 9</h3>
                                     <p class="genre">Bilim Kurgu • Aksiyon</p>
-                                    <div class="rating">
-                                        <i class="fas fa-star"></i>
-                                        <span>8.3</span>
+                                    <div class="rating-display">
+                                        <div class="average-rating">
+                                            <i class="fas fa-star"></i>
+                                            <span>8.3</span>
+                                            <small>(1,245 değerlendirme)</small>
+                                        </div>
                                     </div>
-                                    <button class="watch-btn">
-                                        <i class="fas fa-play"></i>
-                                        İzle
+                                    <button class="rate-btn" onclick="openRatingModal(1, 'District 9')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla & Yorum Yap
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="featured-card">
+                    <div class="featured-card" data-film-id="2">
                         <div class="card-image">
                             <img src="../img/terr.png" alt="Film Posteri">
                             <div class="card-overlay">
                                 <div class="card-info">
                                     <h3>Terrifier</h3>
                                     <p class="genre">Korku • Gerilim</p>
-                                    <div class="rating">
-                                        <i class="fas fa-star"></i>
-                                        <span>7.8</span>
+                                    <div class="rating-display">
+                                        <div class="average-rating">
+                                            <i class="fas fa-star"></i>
+                                            <span>7.8</span>
+                                            <small>(892 değerlendirme)</small>
+                                        </div>
                                     </div>
-                                    <button class="watch-btn">
-                                        <i class="fas fa-play"></i>
-                                        İzle
+                                    <button class="rate-btn" onclick="openRatingModal(2, 'Terrifier')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla & Yorum Yap
                                     </button>
                                 </div>
                             </div>
@@ -71,7 +77,7 @@
         <section class="slider-section">
             <div class="container">
                 <div class="section-header">
-                    <h2 class="section-title">Yeni Eklenenler</h2>
+                    <h2 class="section-title">Tüm Filmler</h2>
                     <div class="slider-controls">
                         <button class="slider-btn prev-btn" id="prevBtn">
                             <i class="fas fa-chevron-left"></i>
@@ -84,12 +90,13 @@
                 
                 <div class="slider-container">
                     <div class="film-slider" id="filmSlider">
-                        <div class="film-card">
+                        <div class="film-card" data-film-id="1">
                             <div class="film-poster">
                                 <img src="../img/nine.png" alt="Film Posteri">
                                 <div class="film-overlay">
-                                    <button class="play-btn">
-                                        <i class="fas fa-play"></i>
+                                    <button class="rate-btn-small" onclick="openRatingModal(1, 'District 9')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
                                     </button>
                                 </div>
                             </div>
@@ -97,18 +104,22 @@
                                 <h3 class="film-title">District 9</h3>
                                 <p class="film-genre">Bilim Kurgu</p>
                                 <div class="film-rating">
-                                    <i class="fas fa-star"></i>
-                                    <span>8.3</span>
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>8.3</span>
+                                    </div>
+                                    <span class="review-count">1,245 değerlendirme</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="film-card">
+                        <div class="film-card" data-film-id="3">
                             <div class="film-poster">
                                 <img src="../img/han.png" alt="Film Posteri">
                                 <div class="film-overlay">
-                                    <button class="play-btn">
-                                        <i class="fas fa-play"></i>
+                                    <button class="rate-btn-small" onclick="openRatingModal(3, 'Han Solo')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
                                     </button>
                                 </div>
                             </div>
@@ -116,18 +127,22 @@
                                 <h3 class="film-title">Han Solo</h3>
                                 <p class="film-genre">Aksiyon</p>
                                 <div class="film-rating">
-                                    <i class="fas fa-star"></i>
-                                    <span>7.5</span>
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>7.5</span>
+                                    </div>
+                                    <span class="review-count">678 değerlendirme</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="film-card">
+                        <div class="film-card" data-film-id="2">
                             <div class="film-poster">
                                 <img src="../img/terr.png" alt="Film Posteri">
                                 <div class="film-overlay">
-                                    <button class="play-btn">
-                                        <i class="fas fa-play"></i>
+                                    <button class="rate-btn-small" onclick="openRatingModal(2, 'Terrifier')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
                                     </button>
                                 </div>
                             </div>
@@ -135,18 +150,22 @@
                                 <h3 class="film-title">Terrifier</h3>
                                 <p class="film-genre">Korku</p>
                                 <div class="film-rating">
-                                    <i class="fas fa-star"></i>
-                                    <span>7.8</span>
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>7.8</span>
+                                    </div>
+                                    <span class="review-count">892 değerlendirme</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="film-card">
+                        <div class="film-card" data-film-id="1">
                             <div class="film-poster">
                                 <img src="../img/nine.png" alt="Film Posteri">
                                 <div class="film-overlay">
-                                    <button class="play-btn">
-                                        <i class="fas fa-play"></i>
+                                    <button class="rate-btn-small" onclick="openRatingModal(1, 'District 9')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
                                     </button>
                                 </div>
                             </div>
@@ -154,18 +173,22 @@
                                 <h3 class="film-title">District 9</h3>
                                 <p class="film-genre">Bilim Kurgu</p>
                                 <div class="film-rating">
-                                    <i class="fas fa-star"></i>
-                                    <span>8.3</span>
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>8.3</span>
+                                    </div>
+                                    <span class="review-count">1,245 değerlendirme</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="film-card">
+                        <div class="film-card" data-film-id="3">
                             <div class="film-poster">
                                 <img src="../img/han.png" alt="Film Posteri">
                                 <div class="film-overlay">
-                                    <button class="play-btn">
-                                        <i class="fas fa-play"></i>
+                                    <button class="rate-btn-small" onclick="openRatingModal(3, 'Han Solo')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
                                     </button>
                                 </div>
                             </div>
@@ -173,18 +196,22 @@
                                 <h3 class="film-title">Han Solo</h3>
                                 <p class="film-genre">Aksiyon</p>
                                 <div class="film-rating">
-                                    <i class="fas fa-star"></i>
-                                    <span>7.5</span>
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>7.5</span>
+                                    </div>
+                                    <span class="review-count">678 değerlendirme</span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="film-card">
+                        <div class="film-card" data-film-id="2">
                             <div class="film-poster">
                                 <img src="../img/terr.png" alt="Film Posteri">
                                 <div class="film-overlay">
-                                    <button class="play-btn">
-                                        <i class="fas fa-play"></i>
+                                    <button class="rate-btn-small" onclick="openRatingModal(2, 'Terrifier')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
                                     </button>
                                 </div>
                             </div>
@@ -192,8 +219,11 @@
                                 <h3 class="film-title">Terrifier</h3>
                                 <p class="film-genre">Korku</p>
                                 <div class="film-rating">
-                                    <i class="fas fa-star"></i>
-                                    <span>7.8</span>
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>7.8</span>
+                                    </div>
+                                    <span class="review-count">892 değerlendirme</span>
                                 </div>
                             </div>
                         </div>
@@ -201,6 +231,54 @@
                 </div>
             </div>
         </section>
+    </div>
+
+    <!-- Rating Modal -->
+    <div class="rating-modal" id="ratingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalFilmTitle">Film Puanla</h3>
+                <button class="close-modal" onclick="closeRatingModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="rating-section">
+                    <h4>Puanınız</h4>
+                    <div class="star-rating" id="starRating">
+                        <i class="fas fa-star" data-rating="1"></i>
+                        <i class="fas fa-star" data-rating="2"></i>
+                        <i class="fas fa-star" data-rating="3"></i>
+                        <i class="fas fa-star" data-rating="4"></i>
+                        <i class="fas fa-star" data-rating="5"></i>
+                        <i class="fas fa-star" data-rating="6"></i>
+                        <i class="fas fa-star" data-rating="7"></i>
+                        <i class="fas fa-star" data-rating="8"></i>
+                        <i class="fas fa-star" data-rating="9"></i>
+                        <i class="fas fa-star" data-rating="10"></i>
+                    </div>
+                    <div class="rating-text" id="ratingText">Puanınızı seçin</div>
+                </div>
+                
+                <div class="comment-section">
+                    <h4>Yorumunuz</h4>
+                    <textarea 
+                        id="commentText" 
+                        placeholder="Bu film hakkında düşüncelerinizi paylaşın..."
+                        maxlength="500"
+                    ></textarea>
+                    <div class="char-counter">
+                        <span id="charCount">0</span>/500
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="cancel-btn" onclick="closeRatingModal()">İptal</button>
+                <button class="submit-btn" onclick="submitRating()">Gönder</button>
+            </div>
+        </div>
     </div>
 
     <style>
@@ -272,6 +350,7 @@
             overflow: hidden;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
         }
 
         .featured-card:hover {
@@ -331,19 +410,27 @@
             margin-bottom: 1rem;
         }
 
-        .rating {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        .rating-display {
             margin-bottom: 1rem;
         }
 
-        .rating i {
+        .average-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .average-rating i {
             color: #fbbf24;
         }
 
-        .watch-btn {
-            background: linear-gradient(135deg, #3b82f6, #1e40af);
+        .average-rating small {
+            opacity: 0.7;
+            font-size: 0.8rem;
+        }
+
+        .rate-btn {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
             color: white;
             border: none;
             padding: 0.75rem 1.5rem;
@@ -356,7 +443,7 @@
             transition: transform 0.2s ease;
         }
 
-        .watch-btn:hover {
+        .rate-btn:hover {
             transform: scale(1.05);
         }
 
@@ -424,6 +511,7 @@
             overflow: hidden;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
+            cursor: pointer;
         }
 
         .film-card:hover {
@@ -466,24 +554,23 @@
             opacity: 1;
         }
 
-        .play-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
+        .rate-btn-small {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
             border: none;
-            background: rgba(255, 255, 255, 0.9);
-            color: #3b82f6;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
             cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
+            gap: 0.5rem;
             transition: transform 0.2s ease;
         }
 
-        .play-btn:hover {
+        .rate-btn-small:hover {
             transform: scale(1.1);
-            background: white;
         }
 
         .film-details {
@@ -506,15 +593,207 @@
 
         .film-rating {
             display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .stars {
+            display: flex;
             align-items: center;
             gap: 0.5rem;
             font-size: 0.9rem;
             color: #374151;
         }
 
-        .film-rating i {
+        .stars i {
             color: #fbbf24;
             font-size: 0.8rem;
+        }
+
+        .review-count {
+            font-size: 0.75rem;
+            color: #9ca3af;
+        }
+
+        /* Rating Modal */
+        .rating-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .rating-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .rating-modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: #6b7280;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: color 0.2s ease;
+        }
+
+        .close-modal:hover {
+            color: #374151;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .rating-section {
+            margin-bottom: 2rem;
+        }
+
+        .rating-section h4 {
+            margin: 0 0 1rem 0;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .star-rating {
+            display: flex;
+            gap: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .star-rating i {
+            font-size: 1.5rem;
+            color: #d1d5db;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .star-rating i:hover,
+        .star-rating i.active {
+            color: #fbbf24;
+        }
+
+        .rating-text {
+            font-size: 0.9rem;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        .comment-section h4 {
+            margin: 0 0 1rem 0;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .comment-section textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            resize: vertical;
+            transition: border-color 0.2s ease;
+        }
+
+        .comment-section textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .char-counter {
+            text-align: right;
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            padding: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .cancel-btn {
+            background: #f3f4f6;
+            color: #374151;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .cancel-btn:hover {
+            background: #e5e7eb;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
 
         /* Responsive Design */
@@ -544,6 +823,15 @@
             .container {
                 padding: 0 1rem;
             }
+
+            .modal-content {
+                width: 95%;
+                margin: 1rem;
+            }
+
+            .star-rating i {
+                font-size: 1.25rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -562,57 +850,169 @@
             .film-card {
                 flex: 0 0 160px;
             }
+
+            .modal-header {
+                padding: 1rem;
+            }
+
+            .modal-body {
+                padding: 1rem;
+            }
+
+            .modal-footer {
+                padding: 1rem;
+                flex-direction: column;
+            }
+
+            .star-rating {
+                justify-content: center;
+            }
         }
     </style>
 
     <script>
+        let currentFilmId = null;
+        let currentRating = 0;
+
+        function openRatingModal(filmId, filmTitle) {
+            currentFilmId = filmId;
+            document.getElementById('modalFilmTitle').textContent = filmTitle;
+            document.getElementById('ratingModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Reset form
+            resetRatingForm();
+        }
+
+        function closeRatingModal() {
+            document.getElementById('ratingModal').classList.remove('active');
+            document.body.style.overflow = '';
+            currentFilmId = null;
+            currentRating = 0;
+        }
+
+        function resetRatingForm() {
+            // Reset stars
+            const stars = document.querySelectorAll('.star-rating i');
+            stars.forEach(star => star.classList.remove('active'));
+            
+            // Reset text
+            document.getElementById('ratingText').textContent = 'Puanınızı seçin';
+            document.getElementById('commentText').value = '';
+            document.getElementById('charCount').textContent = '0';
+            
+            currentRating = 0;
+        }
+
+        // Star rating functionality
         document.addEventListener('DOMContentLoaded', function() {
-            const slider = document.getElementById('filmSlider');
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            
-            let currentPosition = 0;
-            const cardWidth = 220 + 24; // card width + gap
-            const visibleCards = Math.floor(slider.parentElement.offsetWidth / cardWidth);
-            const totalCards = slider.children.length;
-            const maxPosition = Math.max(0, totalCards - visibleCards);
-            
-            function updateSlider() {
-                slider.style.transform = `translateX(-${currentPosition * cardWidth}px)`;
+            const stars = document.querySelectorAll('.star-rating i');
+            const ratingText = document.getElementById('ratingText');
+            const commentText = document.getElementById('commentText');
+            const charCount = document.getElementById('charCount');
+
+            // Star hover and click events
+            stars.forEach((star, index) => {
+                star.addEventListener('mouseenter', () => {
+                    highlightStars(index + 1);
+                });
+
+                star.addEventListener('click', () => {
+                    currentRating = index + 1;
+                    setRatingText(currentRating);
+                    highlightStars(currentRating);
+                });
+            });
+
+            // Reset stars on mouse leave
+            document.querySelector('.star-rating').addEventListener('mouseleave', () => {
+                highlightStars(currentRating);
+            });
+
+            // Character counter
+            commentText.addEventListener('input', () => {
+                const count = commentText.value.length;
+                charCount.textContent = count;
                 
-                // Update button states
-                prevBtn.disabled = currentPosition === 0;
-                nextBtn.disabled = currentPosition >= maxPosition;
+                if (count > 450) {
+                    charCount.style.color = '#ef4444';
+                } else if (count > 400) {
+                    charCount.style.color = '#f59e0b';
+                } else {
+                    charCount.style.color = '#6b7280';
+                }
+            });
+
+            // Close modal on outside click
+            document.getElementById('ratingModal').addEventListener('click', (e) => {
+                if (e.target.classList.contains('rating-modal')) {
+                    closeRatingModal();
+                }
+            });
+
+            // Close modal on escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && document.getElementById('ratingModal').classList.contains('active')) {
+                    closeRatingModal();
+                }
+            });
+        });
+
+        function highlightStars(rating) {
+            const stars = document.querySelectorAll('.star-rating i');
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+        }
+
+        function setRatingText(rating) {
+            const ratingTexts = {
+                1: '1/10 - Berbat',
+                2: '2/10 - Çok Kötü',
+                3: '3/10 - Kötü',
+                4: '4/10 - Zayıf',
+                5: '5/10 - Orta',
+                6: '6/10 - İyi',
+                7: '7/10 - Güzel',
+                8: '8/10 - Çok İyi',
+                9: '9/10 - Mükemmel',
+                10: '10/10 - Harika'
+            };
+            
+            document.getElementById('ratingText').textContent = ratingTexts[rating] || 'Puanınızı seçin';
+        }
+
+        function submitRating() {
+            if (currentRating === 0) {
+                alert('Lütfen bir puan seçin!');
+                return;
             }
+
+            const comment = document.getElementById('commentText').value.trim();
             
-            prevBtn.addEventListener('click', () => {
-                if (currentPosition > 0) {
-                    currentPosition--;
-                    updateSlider();
-                }
-            });
-            
-            nextBtn.addEventListener('click', () => {
-                if (currentPosition < maxPosition) {
-                    currentPosition++;
-                    updateSlider();
-                }
-            });
-            
-            // Initialize
-            updateSlider();
-            
-            // Handle window resize
-            window.addEventListener('resize', () => {
-                const newVisibleCards = Math.floor(slider.parentElement.offsetWidth / cardWidth);
-                const newMaxPosition = Math.max(0, totalCards - newVisibleCards);
-                
-                if (currentPosition > newMaxPosition) {
-                    currentPosition = newMaxPosition;
-                }
-                
-                updateSlider();
-            });
+            // Simulate API call
+            const submitBtn = document.querySelector('.submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Gönderiliyor...';
+
+            setTimeout(() => {
+                alert(`Film puanlandı!\nPuan: ${currentRating}/10\nYorum: ${comment || 'Yorum yok'}`);
+                closeRatingModal();
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Gönder';
+            }, 1500);
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            const modal = document.getElementById('ratingModal');
+            if (e.target === modal) {
+                closeRatingModal();
+            }
         });
     </script>
 
