@@ -47,16 +47,21 @@
     font-size: 1.8rem;
     font-weight: 600;
     color: #1f2937;
+
     margin-bottom: 1rem;
+
 }
 
 /* Genre Sections */
 .genre-section {
+
     margin-bottom: 2.5rem;
+
 }
 
 .genre-section:last-of-type {
     margin-bottom: 2rem;
+
 }
 
 .section-header {
@@ -74,6 +79,7 @@
     position: relative;
     overflow: hidden;
     border-radius: 16px;
+
 }
 
 .slider-wrapper {
