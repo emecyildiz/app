@@ -14,149 +14,141 @@
         <!-- Hero Section -->
         <section class="hero-section">
             <div class="hero-content">
-
                 <h1 class="hero-title">Film Değerlendirme</h1>
                 <p class="hero-subtitle">Filmleri puanla, yorum yap ve keşfet</p>
-
             </div>
         </section>
 
-        <!-- Featured Films Grid -->
-        <section class="featured-section">
-            <div class="container">
-
-                <h2 class="section-title">Popüler Filmler</h2>
-                <div class="featured-grid">
-                    <div class="featured-card" data-film-id="1">
-
-                        <div class="card-image">
-                            <img src="../img/nine.png" alt="Film Posteri">
-                            <div class="card-overlay">
-                                <div class="card-info">
-                                    <h3>District 9</h3>
-                                    <p class="genre">Bilim Kurgu • Aksiyon</p>
-
-                                    <div class="rating-display">
-                                        <div class="average-rating">
-                                            <i class="fas fa-star"></i>
-                                            <span>8.3</span>
-                                            <small>(1,245 değerlendirme)</small>
-                                        </div>
-                                    </div>
-                                    <button class="rate-btn" onclick="openRatingModal(1, 'District 9')">
-                                        <i class="fas fa-star"></i>
-                                        Puanla & Yorum Yap
-
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-
-                    <div class="featured-card" data-film-id="2">
-
-                        <div class="card-image">
-                            <img src="../img/terr.png" alt="Film Posteri">
-                            <div class="card-overlay">
-                                <div class="card-info">
-                                    <h3>Terrifier</h3>
-                                    <p class="genre">Korku • Gerilim</p>
-
-                                    <div class="rating-display">
-                                        <div class="average-rating">
-                                            <i class="fas fa-star"></i>
-                                            <span>7.8</span>
-                                            <small>(892 değerlendirme)</small>
-                                        </div>
-                                    </div>
-                                    <button class="rate-btn" onclick="openRatingModal(2, 'Terrifier')">
-                                        <i class="fas fa-star"></i>
-                                        Puanla & Yorum Yap
-
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Modern Film Slider -->
-        <section class="slider-section">
+        <!-- Romantik Filmler -->
+        <section class="genre-section">
             <div class="container">
                 <div class="section-header">
-
-                    <h2 class="section-title">Tüm Filmler</h2>
-
+                    <h2 class="section-title">Romantik</h2>
                     <div class="slider-controls">
-                        <button class="slider-btn prev-btn" id="prevBtn">
+                        <button class="slider-btn prev-btn" onclick="slideGenre('romantik', 'prev')">
                             <i class="fas fa-chevron-left"></i>
                         </button>
-                        <button class="slider-btn next-btn" id="nextBtn">
+                        <button class="slider-btn next-btn" onclick="slideGenre('romantik', 'next')">
                             <i class="fas fa-chevron-right"></i>
                         </button>
                     </div>
                 </div>
                 
                 <div class="slider-container">
-                    <div class="film-slider" id="filmSlider">
-
-                        <div class="film-card" data-film-id="1">
+                    <div class="film-slider" id="romantik-slider">
+                        <div class="film-card" data-film-id="4">
                             <div class="film-poster">
-                                <img src="../img/nine.png" alt="Film Posteri">
+                                <img src="../img/kom.png" alt="Film Posteri">
                                 <div class="film-overlay">
-                                    <button class="rate-btn-small" onclick="openRatingModal(1, 'District 9')">
+                                    <button class="rate-btn-small" onclick="openRatingModal(4, 'Aşk Hikayesi')">
                                         <i class="fas fa-star"></i>
                                         Puanla
-
                                     </button>
                                 </div>
                             </div>
                             <div class="film-details">
-                                <h3 class="film-title">District 9</h3>
-                                <p class="film-genre">Bilim Kurgu</p>
+                                <h3 class="film-title">Aşk Hikayesi</h3>
+                                <p class="film-genre">Romantik</p>
                                 <div class="film-rating">
-
                                     <div class="stars">
                                         <i class="fas fa-star"></i>
-                                        <span>8.3</span>
+                                        <span>8.1</span>
                                     </div>
-                                    <span class="review-count">1,245 değerlendirme</span>
-
+                                    <span class="review-count">956 değerlendirme</span>
                                 </div>
                             </div>
                         </div>
 
-
-                        <div class="film-card" data-film-id="3">
+                        <div class="film-card" data-film-id="5">
                             <div class="film-poster">
                                 <img src="../img/han.png" alt="Film Posteri">
                                 <div class="film-overlay">
-                                    <button class="rate-btn-small" onclick="openRatingModal(3, 'Han Solo')">
+                                    <button class="rate-btn-small" onclick="openRatingModal(5, 'Kalp Çırpıntısı')">
                                         <i class="fas fa-star"></i>
                                         Puanla
-
                                     </button>
                                 </div>
                             </div>
                             <div class="film-details">
-                                <h3 class="film-title">Han Solo</h3>
-                                <p class="film-genre">Aksiyon</p>
+                                <h3 class="film-title">Kalp Çırpıntısı</h3>
+                                <p class="film-genre">Romantik</p>
                                 <div class="film-rating">
-
                                     <div class="stars">
                                         <i class="fas fa-star"></i>
-                                        <span>7.5</span>
+                                        <span>7.9</span>
                                     </div>
-                                    <span class="review-count">678 değerlendirme</span>
-
+                                    <span class="review-count">743 değerlendirme</span>
                                 </div>
                             </div>
                         </div>
 
+                        <div class="film-card" data-film-id="6">
+                            <div class="film-poster">
+                                <img src="../img/nine.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(6, 'Sonsuz Aşk')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Sonsuz Aşk</h3>
+                                <p class="film-genre">Romantik</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>8.5</span>
+                                    </div>
+                                    <span class="review-count">1,123 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
 
+                        <div class="film-card" data-film-id="7">
+                            <div class="film-poster">
+                                <img src="../img/terr.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(7, 'Aşkın Gücü')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Aşkın Gücü</h3>
+                                <p class="film-genre">Romantik</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>7.6</span>
+                                    </div>
+                                    <span class="review-count">621 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Korku Filmler -->
+        <section class="genre-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Korku</h2>
+                    <div class="slider-controls">
+                        <button class="slider-btn prev-btn" onclick="slideGenre('korku', 'prev')">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="slider-btn next-btn" onclick="slideGenre('korku', 'next')">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="film-slider" id="korku-slider">
                         <div class="film-card" data-film-id="2">
                             <div class="film-poster">
                                 <img src="../img/terr.png" alt="Film Posteri">
@@ -164,7 +156,6 @@
                                     <button class="rate-btn-small" onclick="openRatingModal(2, 'Terrifier')">
                                         <i class="fas fa-star"></i>
                                         Puanla
-
                                     </button>
                                 </div>
                             </div>
@@ -172,45 +163,444 @@
                                 <h3 class="film-title">Terrifier</h3>
                                 <p class="film-genre">Korku</p>
                                 <div class="film-rating">
-
                                     <div class="stars">
                                         <i class="fas fa-star"></i>
                                         <span>7.8</span>
                                     </div>
                                     <span class="review-count">892 değerlendirme</span>
-
                                 </div>
                             </div>
                         </div>
 
-
-                        <div class="film-card" data-film-id="1">
+                        <div class="film-card" data-film-id="8">
                             <div class="film-poster">
                                 <img src="../img/nine.png" alt="Film Posteri">
                                 <div class="film-overlay">
-                                    <button class="rate-btn-small" onclick="openRatingModal(1, 'District 9')">
+                                    <button class="rate-btn-small" onclick="openRatingModal(8, 'Karanlık Orman')">
                                         <i class="fas fa-star"></i>
                                         Puanla
-
                                     </button>
                                 </div>
                             </div>
                             <div class="film-details">
-                                <h3 class="film-title">District 9</h3>
-                                <p class="film-genre">Bilim Kurgu</p>
+                                <h3 class="film-title">Karanlık Orman</h3>
+                                <p class="film-genre">Korku</p>
                                 <div class="film-rating">
-
                                     <div class="stars">
                                         <i class="fas fa-star"></i>
-                                        <span>8.3</span>
+                                        <span>8.2</span>
                                     </div>
-                                    <span class="review-count">1,245 değerlendirme</span>
-
+                                    <span class="review-count">1,456 değerlendirme</span>
                                 </div>
                             </div>
                         </div>
 
+                        <div class="film-card" data-film-id="9">
+                            <div class="film-poster">
+                                <img src="../img/han.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(9, 'Gece Kabusu')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Gece Kabusu</h3>
+                                <p class="film-genre">Korku</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>7.4</span>
+                                    </div>
+                                    <span class="review-count">687 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
 
+                        <div class="film-card" data-film-id="10">
+                            <div class="film-poster">
+                                <img src="../img/kom.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(10, 'Hayalet Ev')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Hayalet Ev</h3>
+                                <p class="film-genre">Korku</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>8.0</span>
+                                    </div>
+                                    <span class="review-count">934 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Komedi Filmler -->
+        <section class="genre-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Komedi</h2>
+                    <div class="slider-controls">
+                        <button class="slider-btn prev-btn" onclick="slideGenre('komedi', 'prev')">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="slider-btn next-btn" onclick="slideGenre('komedi', 'next')">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="film-slider" id="komedi-slider">
+                        <div class="film-card" data-film-id="11">
+                            <div class="film-poster">
+                                <img src="../img/kom.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(11, 'Gülmece')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Gülmece</h3>
+                                <p class="film-genre">Komedi</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>8.7</span>
+                                    </div>
+                                    <span class="review-count">1,789 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="film-card" data-film-id="12">
+                            <div class="film-poster">
+                                <img src="../img/han.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(12, 'Kahkaha Tufanı')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Kahkaha Tufanı</h3>
+                                <p class="film-genre">Komedi</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>7.9</span>
+                                    </div>
+                                    <span class="review-count">1,234 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="film-card" data-film-id="13">
+                            <div class="film-poster">
+                                <img src="../img/nine.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(13, 'Komik Karışıklık')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Komik Karışıklık</h3>
+                                <p class="film-genre">Komedi</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>8.1</span>
+                                    </div>
+                                    <span class="review-count">987 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="film-card" data-film-id="14">
+                            <div class="film-poster">
+                                <img src="../img/terr.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(14, 'Eğlence Zamanı')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Eğlence Zamanı</h3>
+                                <p class="film-genre">Komedi</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>7.7</span>
+                                    </div>
+                                    <span class="review-count">756 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Anime Filmler -->
+        <section class="genre-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Anime</h2>
+                    <div class="slider-controls">
+                        <button class="slider-btn prev-btn" onclick="slideGenre('anime', 'prev')">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="slider-btn next-btn" onclick="slideGenre('anime', 'next')">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="film-slider" id="anime-slider">
+                        <div class="film-card" data-film-id="15">
+                            <div class="film-poster">
+                                <img src="../img/nine.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(15, 'Spirited Away')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Spirited Away</h3>
+                                <p class="film-genre">Anime</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>9.2</span>
+                                    </div>
+                                    <span class="review-count">2,456 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="film-card" data-film-id="16">
+                            <div class="film-poster">
+                                <img src="../img/kom.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(16, 'Your Name')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Your Name</h3>
+                                <p class="film-genre">Anime</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>8.9</span>
+                                    </div>
+                                    <span class="review-count">1,876 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="film-card" data-film-id="17">
+                            <div class="film-poster">
+                                <img src="../img/han.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(17, 'Princess Mononoke')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Princess Mononoke</h3>
+                                <p class="film-genre">Anime</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>8.8</span>
+                                    </div>
+                                    <span class="review-count">1,543 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="film-card" data-film-id="18">
+                            <div class="film-poster">
+                                <img src="../img/terr.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(18, 'Akira')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Akira</h3>
+                                <p class="film-genre">Anime</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>8.6</span>
+                                    </div>
+                                    <span class="review-count">1,321 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Macera Filmler -->
+        <section class="genre-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Macera</h2>
+                    <div class="slider-controls">
+                        <button class="slider-btn prev-btn" onclick="slideGenre('macera', 'prev')">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="slider-btn next-btn" onclick="slideGenre('macera', 'next')">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="film-slider" id="macera-slider">
+                        <div class="film-card" data-film-id="19">
+                            <div class="film-poster">
+                                <img src="../img/han.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(19, 'Hazine Avcıları')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Hazine Avcıları</h3>
+                                <p class="film-genre">Macera</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>8.4</span>
+                                    </div>
+                                    <span class="review-count">1,654 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="film-card" data-film-id="20">
+                            <div class="film-poster">
+                                <img src="../img/nine.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(20, 'Kayıp Dünya')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Kayıp Dünya</h3>
+                                <p class="film-genre">Macera</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>7.8</span>
+                                    </div>
+                                    <span class="review-count">1,098 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="film-card" data-film-id="21">
+                            <div class="film-poster">
+                                <img src="../img/kom.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(21, 'Uzak Yolculuk')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Uzak Yolculuk</h3>
+                                <p class="film-genre">Macera</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>8.0</span>
+                                    </div>
+                                    <span class="review-count">876 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="film-card" data-film-id="22">
+                            <div class="film-poster">
+                                <img src="../img/terr.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(22, 'Vahşi Doğa')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Vahşi Doğa</h3>
+                                <p class="film-genre">Macera</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>7.6</span>
+                                    </div>
+                                    <span class="review-count">654 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Aksiyon Filmler -->
+        <section class="genre-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Aksiyon</h2>
+                    <div class="slider-controls">
+                        <button class="slider-btn prev-btn" onclick="slideGenre('aksiyon', 'prev')">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="slider-btn next-btn" onclick="slideGenre('aksiyon', 'next')">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="film-slider" id="aksiyon-slider">
                         <div class="film-card" data-film-id="3">
                             <div class="film-poster">
                                 <img src="../img/han.png" alt="Film Posteri">
@@ -218,7 +608,6 @@
                                     <button class="rate-btn-small" onclick="openRatingModal(3, 'Han Solo')">
                                         <i class="fas fa-star"></i>
                                         Puanla
-
                                     </button>
                                 </div>
                             </div>
@@ -226,40 +615,193 @@
                                 <h3 class="film-title">Han Solo</h3>
                                 <p class="film-genre">Aksiyon</p>
                                 <div class="film-rating">
-
                                     <div class="stars">
                                         <i class="fas fa-star"></i>
                                         <span>7.5</span>
                                     </div>
                                     <span class="review-count">678 değerlendirme</span>
-
                                 </div>
                             </div>
                         </div>
 
-
-                        <div class="film-card" data-film-id="2">
+                        <div class="film-card" data-film-id="23">
                             <div class="film-poster">
-                                <img src="../img/terr.png" alt="Film Posteri">
+                                <img src="../img/nine.png" alt="Film Posteri">
                                 <div class="film-overlay">
-                                    <button class="rate-btn-small" onclick="openRatingModal(2, 'Terrifier')">
+                                    <button class="rate-btn-small" onclick="openRatingModal(23, 'Hızlı ve Öfkeli')">
                                         <i class="fas fa-star"></i>
                                         Puanla
-
                                     </button>
                                 </div>
                             </div>
                             <div class="film-details">
-                                <h3 class="film-title">Terrifier</h3>
-                                <p class="film-genre">Korku</p>
+                                <h3 class="film-title">Hızlı ve Öfkeli</h3>
+                                <p class="film-genre">Aksiyon</p>
                                 <div class="film-rating">
-
                                     <div class="stars">
                                         <i class="fas fa-star"></i>
-                                        <span>7.8</span>
+                                        <span>8.3</span>
                                     </div>
-                                    <span class="review-count">892 değerlendirme</span>
+                                    <span class="review-count">1,987 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
 
+                        <div class="film-card" data-film-id="24">
+                            <div class="film-poster">
+                                <img src="../img/terr.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(24, 'Süper Kahraman')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Süper Kahraman</h3>
+                                <p class="film-genre">Aksiyon</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>8.7</span>
+                                    </div>
+                                    <span class="review-count">2,345 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="film-card" data-film-id="25">
+                            <div class="film-poster">
+                                <img src="../img/kom.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(25, 'Savaşçı')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Savaşçı</h3>
+                                <p class="film-genre">Aksiyon</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>7.9</span>
+                                    </div>
+                                    <span class="review-count">1,234 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dram Filmler -->
+        <section class="genre-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Dram</h2>
+                    <div class="slider-controls">
+                        <button class="slider-btn prev-btn" onclick="slideGenre('dram', 'prev')">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="slider-btn next-btn" onclick="slideGenre('dram', 'next')">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="slider-container">
+                    <div class="film-slider" id="dram-slider">
+                        <div class="film-card" data-film-id="1">
+                            <div class="film-poster">
+                                <img src="../img/nine.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(1, 'District 9')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">District 9</h3>
+                                <p class="film-genre">Dram</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>8.3</span>
+                                    </div>
+                                    <span class="review-count">1,245 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="film-card" data-film-id="26">
+                            <div class="film-poster">
+                                <img src="../img/kom.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(26, 'Hayatın Anlamı')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Hayatın Anlamı</h3>
+                                <p class="film-genre">Dram</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>9.1</span>
+                                    </div>
+                                    <span class="review-count">2,876 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="film-card" data-film-id="27">
+                            <div class="film-poster">
+                                <img src="../img/han.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(27, 'Aile Bağları')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">Aile Bağları</h3>
+                                <p class="film-genre">Dram</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>8.5</span>
+                                    </div>
+                                    <span class="review-count">1,567 değerlendirme</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="film-card" data-film-id="28">
+                            <div class="film-poster">
+                                <img src="../img/terr.png" alt="Film Posteri">
+                                <div class="film-overlay">
+                                    <button class="rate-btn-small" onclick="openRatingModal(28, 'İnsan Doğası')">
+                                        <i class="fas fa-star"></i>
+                                        Puanla
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="film-details">
+                                <h3 class="film-title">İnsan Doğası</h3>
+                                <p class="film-genre">Dram</p>
+                                <div class="film-rating">
+                                    <div class="stars">
+                                        <i class="fas fa-star"></i>
+                                        <span>8.8</span>
+                                    </div>
+                                    <span class="review-count">1,987 değerlendirme</span>
                                 </div>
                             </div>
                         </div>
@@ -268,7 +810,6 @@
             </div>
         </section>
     </div>
-
 
     <!-- Rating Modal -->
     <div class="rating-modal" id="ratingModal">
@@ -318,10 +859,9 @@
         </div>
     </div>
 
-
     <link rel="stylesheet" href="../css/filmler.css">
-
     <script src="../js/filmler-rating.js"></script>
+    <script src="../js/genre-sliders.js"></script>
     <script src="../js/man.js"></script>
 </body>
 </html>
