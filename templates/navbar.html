@@ -3,56 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Modern Navbar</title>
     <link rel="stylesheet" href="navbar.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <div class="navbar">
-        <div class="nav">
-          <div class="container">
-            <div class="btn" data-page="Home">Home</div>
-            <div class="btn" data-page="Filmler">Filmler</div>
-            <div class="btn" data-page="Hakkinda">Hakkında</div>
-            <div class="btn" data-page="Profil">Profil</div>
-            <svg
-              class="outline"
-              overflow="visible"
-              width="400"
-              height="60"
-              viewBox="0 0 400 60"
-              xmlns="http://www.w3.org/2000/svg">
-              <rect
-                class="rect"
-                pathLength="100"
-                x="0"
-                y="0"
-                width="400"
-                height="60"
-                fill="transparent"
-                stroke-width="5"
-              ></rect>
-            </svg>
-          </div>
+    <!-- Modern Sticky Navbar -->
+    <nav class="modern-navbar" id="navbar">
+        <div class="navbar-container">
+            <!-- Logo/Brand Section -->
+            <div class="navbar-brand">
+                <div class="brand-icon">
+                    <i class="fas fa-film"></i>
+                </div>
+                <span class="brand-text">CinemaHub</span>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="navbar-nav">
+                <div class="nav-links">
+                    <a href="#" class="nav-link active" data-page="Home">
+                        <i class="fas fa-home"></i>
+                        <span>Ana Sayfa</span>
+                        <div class="nav-indicator"></div>
+                    </a>
+                    <a href="#" class="nav-link" data-page="Filmler">
+                        <i class="fas fa-video"></i>
+                        <span>Filmler</span>
+                        <div class="nav-indicator"></div>
+                    </a>
+                    <a href="#" class="nav-link" data-page="Hakkinda">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Hakkında</span>
+                        <div class="nav-indicator"></div>
+                    </a>
+                    <a href="#" class="nav-link" data-page="Profil">
+                        <i class="fas fa-user"></i>
+                        <span>Profil</span>
+                        <div class="nav-indicator"></div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right Side Actions -->
+            <div class="navbar-actions">
+                <!-- Search Bar -->
+                <div class="search-container">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" placeholder="Film ara..." id="searchInput">
+                        <div class="search-backdrop"></div>
+                    </div>
+                </div>
+
+                <!-- User Actions -->
+                <div class="user-actions">
+                    <button class="action-btn login-btn" data-page="Giriş">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Giriş</span>
+                    </button>
+                    <button class="action-btn register-btn" data-page="Kayıt">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Kayıt</span>
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Toggle -->
+                <div class="mobile-menu-toggle" id="mobileToggle">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </div>
+            </div>
         </div>
-        <div class="left-side">
-          <div class="group">
-            <svg viewBox="0 0 24 24" aria-hidden="true" class="search-icon">
-              <g>
-                <path
-                d="M21.53 20.47l-3.66-3.66C19.195 15.24 20 13.214 20 11c0-4.97-4.03-9-9-9s-9 4.03-9 9 4.03 9 9 9c2.215 0 4.24-.804 5.808-2.13l3.66 3.66c.147.146.34.22.53.22s.385-.073.53-.22c.295-.293.295-.767.002-1.06zM3.5 11c0-4.135 3.365-7.5 7.5-7.5s7.5 3.365 7.5 7.5-3.365 7.5-7.5 7.5-7.5-3.365-7.5-7.5z">
-                  
-                </path>
-              </g>
-            </svg>
-            <input id="query"
-            class="input"
-            type="search"
-            placeholder="Search..."
-            name="searchbar"> 
-          </div>
-          <button class="giriş" data-page="Giriş"> Giriş Yap</button>
-          <button class="giriş" data-page="Kayıt"> Kayıt Ol</button>
+
+        <!-- Mobile Menu Overlay -->
+        <div class="mobile-menu-overlay" id="mobileMenu">
+            <div class="mobile-nav-links">
+                <a href="#" class="mobile-nav-link active" data-page="Home">
+                    <i class="fas fa-home"></i>
+                    <span>Ana Sayfa</span>
+                </a>
+                <a href="#" class="mobile-nav-link" data-page="Filmler">
+                    <i class="fas fa-video"></i>
+                    <span>Filmler</span>
+                </a>
+                <a href="#" class="mobile-nav-link" data-page="Hakkinda">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Hakkında</span>
+                </a>
+                <a href="#" class="mobile-nav-link" data-page="Profil">
+                    <i class="fas fa-user"></i>
+                    <span>Profil</span>
+                </a>
+                <div class="mobile-actions">
+                    <button class="mobile-action-btn login-btn" data-page="Giriş">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Giriş Yap</span>
+                    </button>
+                    <button class="mobile-action-btn register-btn" data-page="Kayıt">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Kayıt Ol</span>
+                    </button>
+                </div>
+            </div>
         </div>
-      </div>
+    </nav>
+
+    <!-- Demo Content for Scroll Testing -->
+    <main class="demo-content">
+        <section class="hero-section">
+            <h1>Modern Navbar Demo</h1>
+            <p>Scroll down to see the sticky navbar effect</p>
+        </section>
+        
+        <section class="content-section">
+            <h2>Content Section 1</h2>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        </section>
+        
+        <section class="content-section">
+            <h2>Content Section 2</h2>
+            <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+        </section>
+        
+        <section class="content-section">
+            <h2>Content Section 3</h2>
+            <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+        </section>
+        
+        <section class="content-section">
+            <h2>Content Section 4</h2>
+            <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        </section>
+    </main>
+
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            if (scrollTop > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Mobile menu toggle
+        const mobileToggle = document.getElementById('mobileToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+        
+        mobileToggle.addEventListener('click', function() {
+            mobileToggle.classList.toggle('active');
+            mobileMenu.classList.toggle('active');
+            document.body.classList.toggle('menu-open');
+        });
+
+        // Navigation link interactions
+        const navLinks = document.querySelectorAll('.nav-link, .mobile-nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Remove active class from all links
+                navLinks.forEach(l => l.classList.remove('active'));
+                
+                // Add active class to clicked link
+                this.classList.add('active');
+                
+                // Close mobile menu if open
+                mobileToggle.classList.remove('active');
+                mobileMenu.classList.remove('active');
+                document.body.classList.remove('menu-open');
+            });
+        });
+
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const searchBox = document.querySelector('.search-box');
+        
+        searchInput.addEventListener('focus', function() {
+            searchBox.classList.add('focused');
+        });
+        
+        searchInput.addEventListener('blur', function() {
+            if (this.value === '') {
+                searchBox.classList.remove('focused');
+            }
+        });
+
+        // Smooth scroll for demo links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
