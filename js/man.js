@@ -6,7 +6,10 @@ function loadPage(page){
         
         // Handle specific page initializations
         if(page == "Filmler") {
-            loadScript("js/script.js");
+            // Initialize film slider after DOM is ready
+            setTimeout(() => {
+                initializeFilmSlider();
+            }, 100);
         } else if(page == "Profil"){
             // Load sidebar CSS if not already loaded
             if (!document.querySelector('link[href*="sidebar.css"]')) {
@@ -137,6 +140,63 @@ function closeMobileMenu() {
         mobileMenu.classList.remove('active');
         document.body.classList.remove('menu-open');
     }
+}
+
+// Film slider initialization function
+function initializeFilmSlider() {
+    const slider = document.getElementById('filmSlider');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    if (!slider || !prevBtn || !nextBtn) {
+        console.log('Film slider elements not found');
+        return;
+    }
+    
+    let currentPosition = 0;
+    const cardWidth = 220 + 24; // card width + gap
+    const visibleCards = Math.floor(slider.parentElement.offsetWidth / cardWidth);
+    const totalCards = slider.children.length;
+    const maxPosition = Math.max(0, totalCards - visibleCards);
+    
+    function updateSlider() {
+        slider.style.transform = `translateX(-${currentPosition * cardWidth}px)`;
+        
+        // Update button states
+        prevBtn.disabled = currentPosition === 0;
+        nextBtn.disabled = currentPosition >= maxPosition;
+    }
+    
+    prevBtn.addEventListener('click', () => {
+        if (currentPosition > 0) {
+            currentPosition--;
+            updateSlider();
+        }
+    });
+    
+    nextBtn.addEventListener('click', () => {
+        if (currentPosition < maxPosition) {
+            currentPosition++;
+            updateSlider();
+        }
+    });
+    
+    // Initialize
+    updateSlider();
+    
+    // Handle window resize
+    window.addEventListener('resize', () => {
+        const newVisibleCards = Math.floor(slider.parentElement.offsetWidth / cardWidth);
+        const newMaxPosition = Math.max(0, totalCards - newVisibleCards);
+        
+        if (currentPosition > newMaxPosition) {
+            currentPosition = newMaxPosition;
+        }
+        
+        updateSlider();
+    });
+    
+    console.log('Film slider initialized successfully');
 }
 
 window.onload = async() => {
