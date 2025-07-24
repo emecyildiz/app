@@ -41,9 +41,9 @@ function slideGenre(genre, direction) {
 }
 
 function updateSliderButtons(genre, currentIndex, totalCards, itemsPerView) {
-    const section = document.querySelector(`#${genre}-slider`).closest('.genre-section');
-    const prevBtn = section.querySelector('.prev-btn');
-    const nextBtn = section.querySelector('.next-btn');
+    const sliderContainer = document.querySelector(`#${genre}-slider`).closest('.slider-container');
+    const prevBtn = sliderContainer.querySelector('.prev-btn');
+    const nextBtn = sliderContainer.querySelector('.next-btn');
 
     // Update prev button
     if (currentIndex === 0) {
