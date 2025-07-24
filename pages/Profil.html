@@ -1,34 +1,90 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Profil - XXXSİTE</title>
     <link rel="stylesheet" href="../templates/navbar.css">
     <link rel="stylesheet" href="../css/sidebar.css">
 </head>
 <body>
+    <!-- Sidebar Toggle Button -->
     <button id="menuToggle" class="sidebar-toggle">☰</button>
+    
+    <!-- Modern Sidebar -->
     <div class="sidebar" id="sidebar">
         <p class="logo">XXXSİTE</p>
+        
         <div class="profil-section">
             <img src="../img/default.jpg"
                 class="profile-image"
                 onclick="uploadPhoto()"
-                id="profilePhoto">
+                id="profilePhoto"
+                alt="Profil Fotoğrafı">
             <p class="profile-name">Kullanıcı Adı</p>
             <label class="eposta">emecyildiz@gmail.com</label>
         </div>
+        
         <input type="file" id="photoInput" accept="image/*" style="display: none;">
-        <div class="item">👤Kullanıcı Bilgileri</div>
-        <div class="item">⚙️Ayarlar</div>
+        
+        <!-- Menu Items -->
+        <div class="item">👤 Kullanıcı Bilgileri</div>
+        <div class="item">⚙️ Ayarlar</div>
+        
+        <!-- Spacer -->
         <div class="space"></div>
+        
+        <!-- Logout Section -->
         <div class="out">
-            <div class="item">🚪Çıkış Yap</div>
+            <div class="item">🚪 Çıkış Yap</div>
         </div>
     </div>
-    <div class="content">
 
+    <!-- Main Content Area -->
+    <div class="content">
+        <h1>Profil Sayfası</h1>
+        <p>Bu sayfa sidebar'ın nasıl çalıştığını göstermek için örnek içerik içermektedir.</p>
+        
+        <div style="margin: 20px 0;">
+            <h2>Özellikler:</h2>
+            <ul>
+                <li>✨ Modern ve şık tasarım</li>
+                <li>🎨 Gradient arka plan ve animasyonlar</li>
+                <li>📱 Responsive tasarım (mobil uyumlu)</li>
+                <li>🖱️ Overlay ile sayfa üzerinde gösterim</li>
+                <li>⌨️ Escape tuşu ile kapatma</li>
+                <li>🔄 Smooth slide animasyonları</li>
+                <li>📸 Profil fotoğrafı yükleme</li>
+                <li>🎯 Hover efektleri ve micro-interactions</li>
+            </ul>
+        </div>
+
+        <div style="margin: 20px 0;">
+            <h2>Nasıl Kullanılır:</h2>
+            <ol>
+                <li>Sol üst köşedeki hamburger menü butonuna tıklayın</li>
+                <li>Sidebar soldan kayarak açılacak</li>
+                <li>Profil fotoğrafına tıklayarak yeni fotoğraf yükleyebilirsiniz</li>
+                <li>Menu öğelerine tıklayarak farklı sayfalara gidebilirsiniz</li>
+                <li>Sidebar'ı kapatmak için:</li>
+                <ul>
+                    <li>Hamburger menü butonuna tekrar tıklayın</li>
+                    <li>Sidebar dışındaki alana tıklayın</li>
+                    <li>Escape tuşuna basın</li>
+                </ul>
+            </ol>
+        </div>
+
+        <!-- Demo content to show overlay effect -->
+        <div style="background: #f5f5f5; padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <h3>Demo İçerik</h3>
+            <p>Bu içerik sidebar açıldığında arka planda kalacak ve sidebar'ın üstünde bir overlay gösterilecektir.</p>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+        </div>
+
+        <div style="height: 500px; background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin: 20px 0;">
+            <h2 style="color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">Güzel Gradient Arka Plan</h2>
+        </div>
     </div>
 
     <script src="../js/man.js"></script>
