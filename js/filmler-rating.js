@@ -1,4 +1,5 @@
 let currentFilmId = null;
+
 let currentRating = 0;
 
 function openRatingModal(filmId, filmTitle) {
@@ -141,3 +142,4 @@ window.addEventListener('click', (e) => {
         closeRatingModal();
     }
 });
+
