@@ -3,179 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil - XXXSİTE</title>
-    <link rel="stylesheet" href="../templates/navbar.css">
-    <link rel="stylesheet" href="../css/sidebar.css">
+    <title>Profil</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body, html { margin: 0; padding: 0; width: 100vw; min-height: 100vh; font-family: 'Inter', sans-serif; background: #f8fafc; }
+        .profile-app-cover {
+            width: 100vw; height: 220px; position: relative; background: #e0e7ef;
+        }
+        .profile-app-cover img {
+            width: 100vw; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 1;
+        }
+        .profile-app-container {
+            max-width: 900px; margin: 0 auto; position: relative; z-index: 2;
+        }
+        .profile-app-photo {
+            width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 5px solid #fff;
+            box-shadow: 0 4px 24px rgba(59,130,246,0.10); background: #fff; position: absolute; left: 50%; top: 150px; transform: translateX(-50%);
+        }
+        .profile-app-card {
+            background: #fff; border-radius: 18px; box-shadow: 0 6px 32px rgba(59,130,246,0.10);
+            margin-top: 80px; padding: 2.2rem 2rem 2rem 2rem; display: flex; flex-direction: column; align-items: center;
+        }
+        .profile-app-username {
+            font-size: 1.5rem; font-weight: 700; color: #1e293b; margin-top: 60px;
+        }
+        .profile-app-bio {
+            font-size: 1.08rem; color: #64748b; margin: 0.5rem 0 1.2rem 0; text-align: center; max-width: 500px;
+        }
+        .profile-app-stats {
+            display: flex; gap: 2.5rem; margin: 1.2rem 0 1.7rem 0; justify-content: center;
+        }
+        .profile-app-stat {
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .profile-app-stat-number {
+            font-size: 1.3rem; font-weight: 600; color: #3b82f6;
+        }
+        .profile-app-stat-label {
+            font-size: 0.95rem; color: #64748b;
+        }
+        .profile-app-favorites {
+            width: 100%; margin: 1.2rem 0 1.7rem 0; display: flex; flex-direction: column; align-items: flex-start;
+        }
+        .profile-app-favorites-title {
+            font-size: 1.08rem; font-weight: 600; color: #1e293b; margin-bottom: 0.5rem;
+        }
+        .profile-app-favorites-list {
+            display: flex; gap: 1.2rem; flex-wrap: wrap;
+        }
+        .profile-app-favorite-movie {
+            display: flex; flex-direction: column; align-items: center; gap: 0.3rem; background: #f1f5f9;
+            border-radius: 10px; padding: 0.5rem 0.7rem; min-width: 70px; box-shadow: 0 1px 4px rgba(59,130,246,0.06);
+        }
+        .profile-app-favorite-movie img {
+            width: 48px; height: 68px; object-fit: cover; border-radius: 6px; margin-bottom: 0.2rem;
+        }
+        .profile-app-favorite-movie span { font-size: 0.95rem; color: #334155; text-align: center; }
+        .profile-app-recent {
+            width: 100%; margin: 1.2rem 0 1.7rem 0; display: flex; flex-direction: column; align-items: flex-start;
+        }
+        .profile-app-recent-title {
+            font-size: 1.08rem; font-weight: 600; color: #1e293b; margin-bottom: 0.5rem;
+        }
+        .profile-app-recent-list {
+            display: flex; flex-direction: column; gap: 1.1rem; width: 100%;
+        }
+        .profile-app-recent-item {
+            background: #f8fafc; border-radius: 8px; padding: 0.7rem 1.1rem; color: #334155; font-size: 1.01rem; box-shadow: 0 1px 4px rgba(59,130,246,0.06);
+        }
+        .profile-app-recent-item .recent-movie {
+            font-weight: 600; color: #3b82f6; margin-right: 0.5rem;
+        }
+        .profile-app-social {
+            width: 100%; margin: 1.2rem 0 1.7rem 0; display: flex; flex-direction: column; align-items: flex-start;
+        }
+        .profile-app-social-title {
+            font-size: 1.08rem; font-weight: 600; color: #1e293b; margin-bottom: 0.5rem;
+        }
+        .profile-app-social-list {
+            display: flex; flex-wrap: wrap; gap: 0.7rem 1.2rem;
+        }
+        .profile-app-social-link {
+            display: flex; align-items: center; gap: 0.5rem; font-size: 1.05rem; color: #64748b; background: #f1f5f9;
+            border-radius: 8px; padding: 0.35rem 0.9rem; text-decoration: none; transition: background 0.2s, color 0.2s; font-weight: 500;
+        }
+        .profile-app-social-link i { font-size: 1.2rem; }
+        .profile-app-social-link.instagram { color: #e1306c; }
+        .profile-app-social-link.instagram:hover { background: #e1306c; color: #fff; }
+        .profile-app-social-link.facebook { color: #1877f3; }
+        .profile-app-social-link.facebook:hover { background: #1877f3; color: #fff; }
+        .profile-app-social-link.gmail { color: #ea4335; }
+        .profile-app-social-link.gmail:hover { background: #ea4335; color: #fff; }
+        @media (max-width: 1000px) {
+            .profile-app-container { max-width: 99vw; }
+            .profile-app-card { padding: 1.2rem 0.5rem 1.2rem 0.5rem; }
+        }
+        @media (max-width: 700px) {
+            .profile-app-card { padding: 0.5rem 0.1rem 0.5rem 0.1rem; border-radius: 8px; }
+            .profile-app-photo { width: 70px; height: 70px; top: 90px; }
+            .profile-app-favorites-list { gap: 0.5rem; }
+            .profile-app-recent-list { gap: 0.5rem; }
+            .profile-app-social-list { gap: 0.4rem 0.7rem; }
+        }
+        @media (max-width: 500px) {
+            .profile-app-photo { width: 44px; height: 44px; top: 60px; }
+        }
+    </style>
 </head>
 <body>
-    <!-- Sidebar Toggle Button -->
-    <button id="menuToggle" class="sidebar-toggle">☰</button>
-    
-    <!-- Modern Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <p class="logo">XXXSİTE</p>
-        
-        <div class="profil-section">
-            <img src="../img/default.jpg"
-                class="profile-image"
-                onclick="uploadPhoto()"
-                id="profilePhoto"
-                alt="Profil Fotoğrafı">
-            <p class="profile-name">Kullanıcı Adı</p>
-            <label class="eposta">emecyildiz@gmail.com</label>
-        </div>
-        
-        <input type="file" id="photoInput" accept="image/*" style="display: none;">
-        
-        <!-- Menu Items -->
-        <div class="item">👤 Kullanıcı Bilgileri</div>
-        <div class="item">⚙️ Ayarlar</div>
-        
-        <!-- Spacer -->
-        <div class="space"></div>
-        
-        <!-- Logout Section -->
-        <div class="out">
-            <div class="item">🚪 Çıkış Yap</div>
+    <div class="profile-app-cover">
+        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80" alt="Kapak Resmi">
+        <div class="profile-app-container">
+            <img src="../img/default.jpg" class="profile-app-photo" alt="Profil Fotoğrafı">
         </div>
     </div>
-
-    <div class="profile-cover-wrapper">
-        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80" class="profile-cover-image" alt="Kapak Resmi">
-        <div class="profile-header-flex">
-            <div class="profile-header-left">
-                <img src="../img/default.jpg" class="profile-image-huge" alt="Profil Fotoğrafı">
-                <div class="profile-header-maininfo">
-                    <div class="profile-username">kullanici_adi</div>
-                    <div class="profile-fullname">İsim Soyisim</div>
-                    <div class="profile-join-date">Kayıt Tarihi: <span>12.03.2023</span></div>
+    <div class="profile-app-container">
+        <div class="profile-app-card">
+            <div class="profile-app-username">kullanici_adi</div>
+            <div class="profile-app-bio">Film tutkunuyum. Bilim kurgu ve animasyon filmlerine bayılırım. Burada favori filmlerimi ve yorumlarımı paylaşıyorum.</div>
+            <div class="profile-app-stats">
+                <div class="profile-app-stat">
+                    <span class="profile-app-stat-number">23</span>
+                    <span class="profile-app-stat-label">Filme Oy Verdi</span>
+                </div>
+                <div class="profile-app-stat">
+                    <span class="profile-app-stat-number">12</span>
+                    <span class="profile-app-stat-label">Filme Yorum Yaptı</span>
                 </div>
             </div>
-            <div class="profile-header-right">
-                <div class="profile-badges-section">
-                    <div class="profile-section-title">Rozetler</div>
-                    <div class="profile-badges-list">
-                        <div class="profile-badge">
-                            <i class="fas fa-trophy"></i>
-                            <span class="badge-title">100 Film Puanlandı</span>
-                        </div>
-                        <div class="profile-badge">
-                            <i class="fas fa-comment-dots"></i>
-                            <span class="badge-title">50 Yorum Rozeti</span>
-                        </div>
-                        <div class="profile-badge">
-                            <i class="fas fa-star"></i>
-                            <span class="badge-title">Favori Koleksiyoner</span>
-                        </div>
+            <div class="profile-app-favorites">
+                <div class="profile-app-favorites-title">Favori Filmler</div>
+                <div class="profile-app-favorites-list">
+                    <div class="profile-app-favorite-movie">
+                        <img src="../img/kom.png" alt="Favori Film 1">
+                        <span>Film 1</span>
                     </div>
+                    <div class="profile-app-favorite-movie">
+                        <img src="../img/han.png" alt="Favori Film 2">
+                        <span>Film 2</span>
+                    </div>
+                    <div class="profile-app-favorite-movie">
+                        <img src="../img/nine.png" alt="Favori Film 3">
+                        <span>Film 3</span>
+                    </div>
+                </div>
+            </div>
+            <div class="profile-app-recent">
+                <div class="profile-app-recent-title">Son Yorumlarım</div>
+                <div class="profile-app-recent-list">
+                    <div class="profile-app-recent-item"><span class="recent-movie">Film 1:</span> Harika bir film, kesinlikle izlenmeli!</div>
+                    <div class="profile-app-recent-item"><span class="recent-movie">Film 2:</span> Görsel efektler çok iyiydi, konusu biraz zayıftı.</div>
+                    <div class="profile-app-recent-item"><span class="recent-movie">Film 3:</span> Animasyonlar ve müzikler mükemmeldi.</div>
+                </div>
+            </div>
+            <div class="profile-app-social">
+                <div class="profile-app-social-title">Sosyal Bağlantılar</div>
+                <div class="profile-app-social-list">
+                    <a href="#" class="profile-app-social-link instagram" title="Instagram"><i class="fab fa-instagram"></i> instagram.com/kullanici</a>
+                    <a href="#" class="profile-app-social-link facebook" title="Facebook"><i class="fab fa-facebook"></i> facebook.com/kullanici</a>
+                    <a href="mailto:kullanici@gmail.com" class="profile-app-social-link gmail" title="Gmail"><i class="fas fa-envelope"></i> kullanici@gmail.com</a>
                 </div>
             </div>
         </div>
     </div>
-    <div class="profile-fullpage-wrapper">
-        <div class="profile-fullpage-card">
-            <div class="profile-main-toprow">
-                <div class="profile-stats-section">
-                    <div class="profile-section-title">Profil Bilgileri</div>
-                    <div class="profile-stats">
-                        <div class="profile-stat">
-                            <span class="stat-number" id="oySayisi">23</span>
-                            <span class="stat-label">Filme Oy Verdi</span>
-                        </div>
-                        <div class="profile-stat">
-                            <span class="stat-number" id="yorumSayisi">12</span>
-                            <span class="stat-label">Filme Yorum Yaptı</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="profile-favorites-section">
-                    <div class="profile-section-title">Favori Filmler</div>
-                    <div class="profile-favorites-list">
-                        <div class="favorite-movie">
-                            <img src="../img/kom.png" alt="Favori Film 1">
-                            <span>Film 1</span>
-                        </div>
-                        <div class="favorite-movie">
-                            <img src="../img/han.png" alt="Favori Film 2">
-                            <span>Film 2</span>
-                        </div>
-                        <div class="favorite-movie">
-                            <img src="../img/nine.png" alt="Favori Film 3">
-                            <span>Film 3</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="profile-mid-row">
-                <div class="profile-friends-section">
-                    <div class="profile-section-title">Arkadaşlar <span class="profile-private-label">Gizli</span></div>
-                    <div class="profile-friends-list">
-                        <div class="friend-avatar">
-                            <img src="../img/default.jpg" alt="Arkadaş 1">
-                        </div>
-                        <div class="friend-avatar">
-                            <img src="../img/default.jpg" alt="Arkadaş 2">
-                        </div>
-                        <div class="friend-avatar">
-                            <img src="../img/default.jpg" alt="Arkadaş 3">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="profile-about-section">
-                <div class="profile-section-title">Hakkımda</div>
-                <div class="profile-about-box">
-                    Merhaba! Sinema tutkunu bir yazılımcıyım. Bilim kurgu ve animasyon filmlerine bayılırım. Burada favori filmlerimi ve yorumlarımı paylaşıyorum.
-                </div>
-            </div>
-            <div class="profile-social-section">
-                <div class="profile-section-title">Sosyal Bağlantılar</div>
-                <div class="profile-social-list">
-                    <a href="#" class="social-link instagram" title="Instagram"><i class="fab fa-instagram"></i> instagram.com/kullanici</a>
-                    <a href="#" class="social-link facebook" title="Facebook"><i class="fab fa-facebook"></i> facebook.com/kullanici</a>
-                    <a href="mailto:kullanici@gmail.com" class="social-link gmail" title="Gmail"><i class="fas fa-envelope"></i> kullanici@gmail.com</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="../js/man.js"></script>
-    <script src="../js/sidebar.js"></script>
-    <script>
-    // Arka plan resmi yükleme
-    const bgInput = document.getElementById('profileBgInput');
-    bgInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(ev) {
-            let bgImg = document.querySelector('.profile-bg-image');
-            if (!bgImg) {
-                bgImg = document.createElement('img');
-                bgImg.className = 'profile-bg-image';
-                document.querySelector('.profile-fullpage-wrapper').prepend(bgImg);
-                // overlay ekle
-                if (!document.querySelector('.profile-bg-overlay')) {
-                    const overlay = document.createElement('div');
-                    overlay.className = 'profile-bg-overlay';
-                    document.querySelector('.profile-fullpage-wrapper').prepend(overlay);
-                }
-            }
-            bgImg.src = ev.target.result;
-        };
-        reader.readAsDataURL(file);
-    });
-    // Kapak resmi yükleme
-    const coverInput = document.getElementById('profileCoverInput');
-    coverInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(ev) {
-            document.getElementById('profileCoverImage').src = ev.target.result;
-        };
-        reader.readAsDataURL(file);
-    });
-    </script>
 </body>
 </html>
