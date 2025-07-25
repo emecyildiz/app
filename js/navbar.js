@@ -43,6 +43,48 @@ document.addEventListener('DOMContentLoaded', function() {
                     mobileMenu.classList.remove('active');
                     document.body.classList.remove('menu-open');
                 }
+
+                // Dinamik Filmler sayfası yükleme
+                if (this.dataset.page === 'Filmler') {
+                    const content = document.getElementById('content');
+                    if (content) {
+                        fetch('pages/Filmler.html')
+                            .then(res => res.text())
+                            .then(html => {
+                                // Sadece <body> içeriğini al
+                                const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+                                content.innerHTML = bodyMatch ? bodyMatch[1] : html;
+                                // Gerekli CSS'i ekle
+                                if (!document.getElementById('filmler-css')) {
+                                    const css = document.createElement('link');
+                                    css.rel = 'stylesheet';
+                                    css.href = 'css/filmler.css';
+                                    css.id = 'filmler-css';
+                                    document.head.appendChild(css);
+                                }
+                                // Önce eski scriptleri kaldır
+                                ['filmler-rating-js','genre-sliders-js','man-js'].forEach(id => {
+                                    const oldScript = document.getElementById(id);
+                                    if (oldScript) oldScript.remove();
+                                });
+                                // Scriptleri sırayla yükle
+                                const scripts = [
+                                    {src: 'js/filmler-rating.js', id: 'filmler-rating-js'},
+                                    {src: 'js/genre-sliders.js', id: 'genre-sliders-js'},
+                                    {src: 'js/man.js', id: 'man-js'}
+                                ];
+                                function loadScript(i) {
+                                    if (i >= scripts.length) return;
+                                    const s = document.createElement('script');
+                                    s.src = scripts[i].src;
+                                    s.id = scripts[i].id;
+                                    s.onload = () => loadScript(i+1);
+                                    document.body.appendChild(s);
+                                }
+                                loadScript(0);
+                            });
+                    }
+                }
             });
         });
 

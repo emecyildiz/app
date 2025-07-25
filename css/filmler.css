@@ -48,7 +48,7 @@
     font-weight: 600;
     color: #1f2937;
 
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
 
 }
 
@@ -68,7 +68,7 @@
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
 }
 
 .slider-controls {
@@ -76,10 +76,22 @@
 }
 
 .slider-container {
+    width: calc(100vw - 20px);
+    padding-left: 10px;
+    padding-right: 10px;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    border-radius: 0;
+    overflow-x: auto;
+    overflow-y: visible;
     position: relative;
-    overflow: hidden;
-    border-radius: 16px;
-
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 10+ */
+}
+.slider-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
 }
 
 .slider-wrapper {
@@ -109,11 +121,11 @@
 }
 
 .slider-btn.prev-btn {
-    left: -22px;
+    left: 0;
 }
 
 .slider-btn.next-btn {
-    right: -22px;
+    right: 0;
 }
 
 .slider-btn:hover {
@@ -139,8 +151,10 @@
 .film-slider {
     display: flex;
     gap: 1.5rem;
-    transition: transform 0.4s ease;
-    padding: 1rem 0;
+    transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0.5rem 0;
+    min-width: fit-content;
+    overflow-x: visible;
 }
 
 .film-card {
@@ -435,6 +449,48 @@
     transform: none;
 }
 
+/* Tür Navbarı */
+.film-genre-navbar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    background: #f1f5f9;
+    padding: 1rem 0.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+}
+.film-genre-navbar .genre-tab {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #64748b;
+    padding: 0.5rem 1.2rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+.film-genre-navbar .genre-tab.active,
+.film-genre-navbar .genre-tab:hover {
+    background: linear-gradient(135deg, #3b82f6 60%, #1e40af 100%);
+    color: #fff;
+}
+@media (max-width: 600px) {
+    .film-genre-navbar {
+        gap: 0.5rem;
+        padding: 0.5rem 0.2rem;
+        font-size: 0.95rem;
+    }
+    .film-genre-navbar .genre-tab {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.95rem;
+    }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .hero-title {
@@ -468,12 +524,18 @@
         font-size: 1.25rem;
     }
 
+    .slider-container {
+        width: calc(100vw - 10px);
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
     .slider-btn.prev-btn {
-        left: -15px;
+        left: 0;
     }
 
     .slider-btn.next-btn {
-        right: -15px;
+        right: 0;
     }
 }
 
@@ -517,5 +579,25 @@
 
     .slider-btn.next-btn {
         right: -10px;
+    }
+}
+
+/* Tekli tür grid görünümü */
+.film-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 2rem 1.5rem;
+    padding: 1.5rem 0 0.5rem 0;
+}
+@media (max-width: 900px) {
+    .film-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.2rem 0.7rem;
+    }
+}
+@media (max-width: 600px) {
+    .film-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.7rem 0.5rem;
     }
 }
