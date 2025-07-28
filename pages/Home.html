@@ -3,17 +3,348 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ana</title>
+    <title>Ana Sayfa | CinemaHub</title>
     <link rel="stylesheet" href="../templates/navbar.css">
     <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Component-specific styles only - body styles handled by JavaScript */
+        .hero-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            min-height: 80vh;
+        }
+        
+        .hero-content {
+            flex: 1;
+            max-width: 600px;
+        }
+        
+        .hero-title {
+            font-size: 3.5rem !important;
+            font-weight: 800 !important;
+            margin-bottom: 1.5rem !important;
+            background: linear-gradient(135deg, #fff 0%, #e0e7ff 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            background-clip: text !important;
+            line-height: 1.2 !important;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem !important;
+            font-weight: 400 !important;
+            margin-bottom: 2rem !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+            line-height: 1.6 !important;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .cta-button {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .cta-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+            color: white !important;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4) !important;
+        }
+        
+        .cta-primary:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 25px rgba(59, 130, 246, 0.6) !important;
+        }
+        
+        .cta-secondary {
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+            border: 2px solid rgba(255, 255, 255, 0.3) !important;
+            backdrop-filter: blur(10px) !important;
+        }
+        
+        .cta-secondary:hover {
+            background: rgba(255, 255, 255, 0.2) !important;
+            transform: translateY(-2px) !important;
+        }
+        
+        .hero-image {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .hero-image img {
+            max-width: 500px;
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
+        }
+        
+        .features-section {
+            background: rgba(255, 255, 255, 0.05) !important;
+            backdrop-filter: blur(10px) !important;
+            padding: 4rem 2rem !important;
+            margin: 2rem auto !important;
+            max-width: 1200px !important;
+            border-radius: 20px !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border-radius: 16px !important;
+            padding: 2rem !important;
+            text-align: center !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px) !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+        }
+        
+        .feature-icon {
+            font-size: 3rem !important;
+            margin-bottom: 1rem !important;
+            color: #3b82f6 !important;
+        }
+        
+        .feature-title {
+            font-size: 1.5rem !important;
+            font-weight: 600 !important;
+            margin-bottom: 1rem !important;
+            color: #fff !important;
+        }
+        
+        .feature-description {
+            color: rgba(255, 255, 255, 0.8) !important;
+            line-height: 1.6 !important;
+        }
+        
+        .stats-section {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin: 3rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem !important;
+            font-weight: 700 !important;
+            color: #3b82f6 !important;
+            display: block !important;
+        }
+        
+        .stat-label {
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-size: 1rem !important;
+            margin-top: 0.5rem !important;
+        }
+        
+        .section-title {
+            text-align: center !important;
+            font-size: 2.5rem !important;
+            font-weight: 700 !important;
+            margin-bottom: 1rem !important;
+            color: #fff !important;
+        }
+        
+        .section-subtitle {
+            text-align: center !important;
+            font-size: 1.2rem !important;
+            color: rgba(255, 255, 255, 0.8) !important;
+            margin-bottom: 3rem !important;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-section {
+                flex-direction: column;
+                text-align: center;
+                padding: 2rem 1rem;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .cta-button {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-section {
+                gap: 2rem;
+            }
+        }
+        
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+    </style>
 </head>
 <body>
-    <div class="tanıtım">
-        <img src="../img/movie.svg">
-        <p>Film ve dizi keyfini organize edin: İzlediklerinizi puanlayın, yeni öneriler keşfedin ve arkadaşlarınızla paylaşın.</p>
-        <img src="../img/rating.svg">
-        <p>Puanla, paylaş. Film zevkini arkadaşlarınla buluştur!</p>
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">Film Dünyasına Hoş Geldiniz</h1>
+            <p class="hero-subtitle">
+                CinemaHub ile film deneyiminizi keşfedin. Binlerce film arasından seçim yapın, 
+                puanlayın ve arkadaşlarınızla paylaşın. Kişisel film listenizi oluşturun ve 
+                yeni favorilerinizi keşfedin.
+            </p>
+            <div class="hero-buttons">
+                <a href="#" class="cta-button cta-primary btn" data-page="Filmler">
+                    <i class="fas fa-play"></i>
+                    Filmleri Keşfet
+                </a>
+                <a href="#" class="cta-button cta-secondary btn" data-page="Kayıt">
+                    <i class="fas fa-user-plus"></i>
+                    Ücretsiz Kayıt Ol
+                </a>
+            </div>
+            <div class="stats-section">
+                <div class="stat-item">
+                    <span class="stat-number">10K+</span>
+                    <span class="stat-label">Film</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">50K+</span>
+                    <span class="stat-label">Kullanıcı</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">100K+</span>
+                    <span class="stat-label">Değerlendirme</span>
+                </div>
+            </div>
+        </div>
+        <div class="hero-image">
+            <img src="../img/movie.svg" alt="CinemaHub" class="floating-animation">
+        </div>
     </div>
+    
+    <div class="features-section">
+        <h2 class="section-title">Neden CinemaHub?</h2>
+        <p class="section-subtitle">Film tutkunları için tasarlanmış modern platform</p>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3 class="feature-title">Kolay Keşif</h3>
+                <p class="feature-description">
+                    Tür, yıl, oyuncu ve daha fazlasına göre film arayın. 
+                    Kişiselleştirilmiş önerilerle yeni favorilerinizi bulun.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h3 class="feature-title">Puanlama Sistemi</h3>
+                <p class="feature-description">
+                    İzlediğiniz filmleri puanlayın ve yorumlarınızı paylaşın. 
+                    Topluluk puanlarıyla en iyi filmleri keşfedin.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3 class="feature-title">Sosyal Deneyim</h3>
+                <p class="feature-description">
+                    Arkadaşlarınızla film listelerinizi paylaşın. 
+                    Favori filmlerinizi keşfedin ve tartışın.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3 class="feature-title">Her Yerde Erişim</h3>
+                <p class="feature-description">
+                    Mobil uyumlu tasarım ile her cihazdan erişin. 
+                    Film listenizi her zaman yanınızda taşıyın.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <h3 class="feature-title">Kişisel Koleksiyon</h3>
+                <p class="feature-description">
+                    İzlediğiniz, izlemek istediğiniz ve favori filmlerinizi 
+                    organize edin. Kişisel film arşivinizi oluşturun.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3 class="feature-title">Detaylı İstatistikler</h3>
+                <p class="feature-description">
+                    Film izleme alışkanlıklarınızı analiz edin. 
+                    Hangi türleri tercih ettiğinizi keşfedin.
+                </p>
+            </div>
+        </div>
+    </div>
+    
     <script src="../js/man.js"></script>
 </body>
 </html>

@@ -8,6 +8,34 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="templates/navbar.css">
     <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Default content area styling */
+        #content {
+            margin-top: 70px;
+            min-height: calc(100vh - 70px);
+            background: transparent;
+        }
+        
+        /* Loading state */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 50vh;
+            font-size: 1.2rem;
+            color: #64748b;
+        }
+        
+        /* Override navbar.css body styles to let JavaScript handle them */
+        body {
+            font-family: 'Inter', sans-serif !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow-x: hidden !important;
+            /* Background will be set by JavaScript for each page */
+        }
+    </style>
 </head>
 <body>
     <!-- Modern Sticky Navbar -->
@@ -118,7 +146,12 @@
     </nav>
 
     <!-- Main Content Area -->
-    <div id="content"></div>
+    <div id="content">
+        <div class="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span style="margin-left: 10px;">Yükleniyor...</span>
+        </div>
+    </div>
 
     <script src="js/navbar.js"></script>
     <script src="js/man.js"></script>
