@@ -48,59 +48,90 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (this.dataset.page === 'Filmler') {
                     const content = document.getElementById('content');
                     if (content) {
+                        // Önce content'i temizle
+                        content.innerHTML = '';
+                        
                         fetch('pages/Filmler.html')
                             .then(res => res.text())
                             .then(html => {
                                 // Sadece <body> içeriğini al
                                 const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
                                 content.innerHTML = bodyMatch ? bodyMatch[1] : html;
-                                // Gerekli CSS'i ekle
-                                if (!document.getElementById('filmler-css')) {
-                                    const css = document.createElement('link');
-                                    css.rel = 'stylesheet';
-                                    css.href = 'css/filmler.css';
-                                    css.id = 'filmler-css';
-                                    document.head.appendChild(css);
-                                }
+                                
+                                // Önce eski CSS'i kaldır
+                                const oldCss = document.getElementById('filmler-css');
+                                if (oldCss) oldCss.remove();
+                                
+                                // Yeni CSS'i ekle
+                                const css = document.createElement('link');
+                                css.rel = 'stylesheet';
+                                css.href = 'css/filmler.css';
+                                css.id = 'filmler-css';
+                                document.head.appendChild(css);
+                                
                                 // Önce eski scriptleri kaldır
                                 ['filmler-rating-js','genre-sliders-js','man-js'].forEach(id => {
                                     const oldScript = document.getElementById(id);
                                     if (oldScript) oldScript.remove();
                                 });
+                                
                                 // Scriptleri sırayla yükle
                                 const scripts = [
                                     {src: 'js/filmler-rating.js', id: 'filmler-rating-js'},
                                     {src: 'js/genre-sliders.js', id: 'genre-sliders-js'},
                                     {src: 'js/man.js', id: 'man-js'}
                                 ];
+                                
                                 function loadScript(i) {
-                                    if (i >= scripts.length) return;
+                                    if (i >= scripts.length) {
+                                        // Tüm scriptler yüklendikten sonra sayfayı yenile
+                                        setTimeout(() => {
+                                            // Film kartlarının düzgün yüklenmesi için kısa bir bekleme
+                                            if (typeof initializeFilmCards === 'function') {
+                                                initializeFilmCards();
+                                            } else {
+                                                console.log('initializeFilmCards function not found, trying alternative initialization');
+                                                // Alternative initialization
+                                                if (typeof fillAllGenreSliders === 'function') {
+                                                    fillAllGenreSliders();
+                                                    initializeSliders();
+                                                    showGenre('all');
+                                                    attachGenreTabEvents();
+                                                }
+                                            }
+                                        }, 200);
+                                        return;
+                                    }
                                     const s = document.createElement('script');
                                     s.src = scripts[i].src;
                                     s.id = scripts[i].id;
                                     s.onload = () => loadScript(i+1);
                                     document.body.appendChild(s);
                                 }
+                                
                                 loadScript(0);
+                            })
+                            .catch(error => {
+                                console.error('Filmler sayfası yüklenirken hata:', error);
                             });
                     }
                 }
             });
         });
 
-        // Search functionality
-        const searchInput = document.getElementById('searchInput');
-        const searchBox = document.querySelector('.search-box');
+        // Search functionality for new hover search
+        const searchForm = document.querySelector('.navbar-actions form');
+        const searchInput = document.querySelector('.mini-input');
         
-        if (searchInput && searchBox) {
+        if (searchForm && searchInput) {
+            // Search form hover effect is handled by CSS
+            // Additional functionality can be added here if needed
             searchInput.addEventListener('focus', function() {
-                searchBox.classList.add('focused');
+                // Focus effect is handled by CSS :focus-within
             });
             
             searchInput.addEventListener('blur', function() {
-                if (this.value === '') {
-                    searchBox.classList.remove('focused');
-                }
+                // Blur effect is handled by CSS
             });
         }
     }, 100);
