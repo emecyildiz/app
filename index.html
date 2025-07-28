@@ -50,12 +50,10 @@
             <!-- Right Side Actions -->
             <div class="navbar-actions">
                 <!-- Search Bar -->
-                <div class="search-container">
-                    <div class="search-box">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" class="search-input" placeholder="Film ara..." id="searchInput">
-                    </div>
-                </div>
+                <form action="">
+                    <input class="mini-input" type="search" placeholder="Film ara...">
+                    <i class="fa fa-search"></i>
+                </form>
 
                 <!-- User Actions -->
                 <div class="user-actions">
@@ -81,6 +79,14 @@
         <!-- Mobile Menu Overlay -->
         <div class="mobile-menu-overlay" id="mobileMenu">
             <div class="mobile-nav-links">
+                <!-- Mobile Search Bar -->
+                <div class="mobile-search-container">
+                    <form class="mobile-search-form">
+                        <input class="mobile-search-input" type="search" placeholder="Film ara...">
+                        <i class="fa fa-search"></i>
+                    </form>
+                </div>
+                
                 <a href="#" class="mobile-nav-link active btn" data-page="Home">
                     <i class="fas fa-home"></i>
                     <span>Ana Sayfa</span>

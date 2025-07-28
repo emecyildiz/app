@@ -366,13 +366,26 @@ function handleSwipe() {
     }
 }
 
+// Global initialize function for film cards
+function initializeFilmCards() {
+    console.log('Initializing film cards...');
+    
+    // Fill all genre sliders
+    fillAllGenreSliders();
+    
+    // Initialize sliders
+    initializeSliders();
+    
+    // Show all genres by default
+    showGenre('all');
+    
+    // Attach genre tab events
+    attachGenreTabEvents();
+    
+    console.log('Film cards initialized successfully');
+}
+
 // Eğer script dinamik yüklendiyse ve DOM zaten hazırsa sliderları başlat
 if (document.readyState === "complete" || document.readyState === "interactive") {
-    Object.keys(filmData).forEach(genre => {
-        const slider = document.getElementById(`${genre}-slider`);
-        if (slider) {
-            slider.innerHTML = filmData[genre].map(createFilmCard).join('');
-        }
-    });
-    initializeSliders();
+    initializeFilmCards();
 }
