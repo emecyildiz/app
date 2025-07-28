@@ -1,15 +1,51 @@
 function loadPage(page){
+    // Prevent multiple simultaneous page loads
+    if (window.isLoadingPage) {
+        console.log('Page load already in progress, ignoring request');
+        return;
+    }
+    
+    window.isLoadingPage = true;
+    
+    // Clear content first to prevent stacking
+    const content = document.getElementById("content");
+    content.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i><span style="margin-left: 10px;">Yükleniyor...</span></div>';
+    
     fetch(`/pages/${page}.html`)
     .then(res => res.text())
     .then(data => {
-        document.getElementById("content").innerHTML = data;
+        // Clear content completely before loading new page
+        content.innerHTML = '';
+        
+        // Load new page content
+        content.innerHTML = data;
+        
+        // Apply page-specific styles
+        applyPageStyles(page);
         
         // Handle specific page initializations
         if(page == "Filmler") {
+            // Clear any existing film-related scripts to prevent conflicts
+            const existingScripts = document.querySelectorAll('script[src*="filmler"], script[src*="genre"]');
+            existingScripts.forEach(script => script.remove());
+            
+            // Clear any existing film-related event listeners
+            const filmCards = document.querySelectorAll('.film-card, .rating-btn, .genre-filter');
+            filmCards.forEach(card => {
+                card.replaceWith(card.cloneNode(true));
+            });
+            
             // Initialize film slider after DOM is ready
             setTimeout(() => {
                 initializeFilmSlider();
-            }, 100);
+            }, 150);
+            
+            // Load filmler-specific scripts after a delay
+            setTimeout(() => {
+                loadScript("js/filmler.js");
+                loadScript("js/filmler-rating.js");
+                loadScript("js/genre-sliders.js");
+            }, 300);
         } else if(page == "Profil"){
             // Load sidebar CSS if not already loaded
             if (!document.querySelector('link[href*="sidebar.css"]')) {
@@ -32,18 +68,76 @@ function loadPage(page){
                 }
             }, 100);
         }
+        
+        // Re-attach event listeners for all buttons including newly loaded ones
+        setTimeout(() => {
+            attachNavbarEventListeners();
+            window.isLoadingPage = false; // Allow new page loads
+        }, 300);
     })
     .catch(error => {
         console.error('Error loading page:', error);
-        document.getElementById("content").innerHTML = '<h1>Sayfa yüklenirken bir hata oluştu</h1>';
+        content.innerHTML = '<h1>Sayfa yüklenirken bir hata oluştu</h1>';
+        window.isLoadingPage = false; // Allow new page loads even on error
     });
 }
 
+// Apply page-specific styles to fix color conflicts
+function applyPageStyles(page) {
+    const body = document.body;
+    const content = document.getElementById("content");
+    
+    // Clear all existing inline styles first to prevent accumulation
+    body.removeAttribute('style');
+    content.removeAttribute('style');
+    
+    // Reset body styles
+    body.style.fontFamily = "'Inter', sans-serif";
+    body.style.margin = "0";
+    body.style.padding = "0";
+    body.style.overflowX = "hidden";
+    
+    // Reset content styles
+    content.style.background = "transparent";
+    content.style.marginTop = "70px";
+    content.style.minHeight = "calc(100vh - 70px)";
+    
+    // Apply page-specific background colors
+    switch(page) {
+        case "Home":
+            body.style.background = "linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%)";
+            body.style.color = "#fff";
+            break;
+        case "Filmler":
+            body.style.background = "linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%)";
+            body.style.color = "#fff";
+            break;
+        case "Hakkinda":
+            body.style.background = "linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)";
+            body.style.color = "#1e293b";
+            break;
+        case "Profil":
+            body.style.background = "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)";
+            body.style.color = "#1e293b";
+            break;
+        case "Kayıt":
+        case "Giriş":
+            body.style.background = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+            body.style.color = "#fff";
+            break;
+        default:
+            body.style.background = "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+            body.style.color = "#fff";
+            break;
+    }
+}
+
 function loadScript(src){
-    // Check if script is already loaded
-    if (document.querySelector(`script[src="${src}"]`)) {
-        console.log(`Script ${src} already loaded`);
-        return;
+    // Remove existing script if it exists to prevent conflicts
+    const existingScript = document.querySelector(`script[src="${src}"]`);
+    if (existingScript) {
+        console.log(`Removing existing script: ${src}`);
+        existingScript.remove();
     }
     
     const script = document.createElement("script");
@@ -65,6 +159,16 @@ function loadScript(src){
                 window.sidebarUtils.initializePhotoUpload();
                 window.sidebarUtils.initializeMenuItems();
             }, 50);
+        }
+        
+        // Special handling for filmler scripts
+        if (src.includes('filmler.js')) {
+            setTimeout(() => {
+                // Re-initialize film slider after script loads
+                if (typeof initializeFilmSlider === 'function') {
+                    initializeFilmSlider();
+                }
+            }, 100);
         }
     };
     
@@ -93,8 +197,23 @@ function attachNavbarEventListeners() {
         // Remove existing event listeners to prevent duplicates
         item.removeEventListener("click", handleNavigation);
         
-        // Add new event listener
-        item.addEventListener("click", handleNavigation);
+        // Add new event listener with stronger binding
+        item.addEventListener("click", handleNavigation, true);
+        
+        // Also add a backup event listener for buttons that might be dynamically added
+        if (item.classList.contains('btn')) {
+            item.addEventListener("click", function(e) {
+                const page = this.getAttribute("data-page");
+                if (page) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log(`Button clicked: ${page}`);
+                    loadPage(page);
+                    updateActiveNavigation(this);
+                    closeMobileMenu();
+                }
+            }, true);
+        }
     });
     
     console.log(`Attached event listeners to ${buttons.length} navigation buttons`);
@@ -102,6 +221,19 @@ function attachNavbarEventListeners() {
 
 function handleNavigation(event) {
     event.preventDefault();
+    event.stopPropagation();
+    
+    // Prevent multiple rapid clicks
+    if (this.disabled) {
+        return;
+    }
+    
+    // Disable button temporarily
+    this.disabled = true;
+    setTimeout(() => {
+        this.disabled = false;
+    }, 1000);
+    
     const page = this.getAttribute("data-page");
     
     if (page) {
