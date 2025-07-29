@@ -1,35 +1,51 @@
 let currentFilmId = null;
 let currentRating = 0;
 
-// Rating sistemi başlatma fonksiyonu
+// Rating sistemi başlatma fonksiyonu (Event delegation ile)
 function initializeRating() {
-    console.log('Rating sistemi başlatılıyor...');
+    console.log('Rating sistemi event delegation ile başlatılıyor...');
     
-    const stars = document.querySelectorAll('.star-rating i');
     const ratingText = document.getElementById('ratingText');
     const commentText = document.getElementById('commentText');
     const charCount = document.getElementById('charCount');
 
-    // Star hover and click events
-    stars.forEach((star, index) => {
-        star.addEventListener('mouseenter', () => {
-            highlightStars(index + 1);
-        });
-
-        star.addEventListener('click', () => {
+    // Event delegation for star rating
+    document.addEventListener('click', function(event) {
+        const target = event.target;
+        
+        // Star click events
+        if (target.closest('.star-rating i')) {
+            const stars = document.querySelectorAll('.star-rating i');
+            const clickedStar = target.closest('.star-rating i');
+            const index = Array.from(stars).indexOf(clickedStar);
+            
             currentRating = index + 1;
             setRatingText(currentRating);
             highlightStars(currentRating);
-        });
+        }
+    });
+
+    // Event delegation for star hover
+    document.addEventListener('mouseenter', function(event) {
+        const target = event.target;
+        
+        if (target.closest('.star-rating i')) {
+            const stars = document.querySelectorAll('.star-rating i');
+            const hoveredStar = target.closest('.star-rating i');
+            const index = Array.from(stars).indexOf(hoveredStar);
+            
+            highlightStars(index + 1);
+        }
     });
 
     // Reset stars on mouse leave
-    const starRating = document.querySelector('.star-rating');
-    if (starRating) {
-        starRating.addEventListener('mouseleave', () => {
+    document.addEventListener('mouseleave', function(event) {
+        const target = event.target;
+        
+        if (target.closest('.star-rating')) {
             highlightStars(currentRating);
-        });
-    }
+        }
+    });
 
     // Character counter
     if (commentText) {
@@ -48,14 +64,13 @@ function initializeRating() {
     }
 
     // Close modal on outside click
-    const ratingModal = document.getElementById('ratingModal');
-    if (ratingModal) {
-        ratingModal.addEventListener('click', (e) => {
-            if (e.target.classList.contains('rating-modal')) {
-                closeRatingModal();
-            }
-        });
-    }
+    document.addEventListener('click', function(event) {
+        const target = event.target;
+        
+        if (target.closest('.rating-modal') && target.classList.contains('rating-modal')) {
+            closeRatingModal();
+        }
+    });
 
     // Close modal on escape key
     document.addEventListener('keydown', (e) => {
@@ -64,7 +79,7 @@ function initializeRating() {
         }
     });
     
-    console.log('Rating sistemi başlatma tamamlandı');
+    console.log('Rating sistemi event delegation ile başlatma tamamlandı');
 }
 
 function openRatingModal(filmId, filmTitle) {
@@ -97,48 +112,71 @@ function resetRatingForm() {
     currentRating = 0;
 }
 
-// Star rating functionality
+// Star rating functionality with event delegation
 document.addEventListener('DOMContentLoaded', function() {
-    const stars = document.querySelectorAll('.star-rating i');
     const ratingText = document.getElementById('ratingText');
     const commentText = document.getElementById('commentText');
     const charCount = document.getElementById('charCount');
 
-    // Star hover and click events
-    stars.forEach((star, index) => {
-        star.addEventListener('mouseenter', () => {
-            highlightStars(index + 1);
-        });
-
-        star.addEventListener('click', () => {
+    // Event delegation for star rating
+    document.addEventListener('click', function(event) {
+        const target = event.target;
+        
+        // Star click events
+        if (target.closest('.star-rating i')) {
+            const stars = document.querySelectorAll('.star-rating i');
+            const clickedStar = target.closest('.star-rating i');
+            const index = Array.from(stars).indexOf(clickedStar);
+            
             currentRating = index + 1;
             setRatingText(currentRating);
             highlightStars(currentRating);
-        });
-    });
-
-    // Reset stars on mouse leave
-    document.querySelector('.star-rating').addEventListener('mouseleave', () => {
-        highlightStars(currentRating);
-    });
-
-    // Character counter
-    commentText.addEventListener('input', () => {
-        const count = commentText.value.length;
-        charCount.textContent = count;
-        
-        if (count > 450) {
-            charCount.style.color = '#ef4444';
-        } else if (count > 400) {
-            charCount.style.color = '#f59e0b';
-        } else {
-            charCount.style.color = '#6b7280';
         }
     });
 
-    // Close modal on outside click
-    document.getElementById('ratingModal').addEventListener('click', (e) => {
-        if (e.target.classList.contains('rating-modal')) {
+    // Event delegation for star hover
+    document.addEventListener('mouseenter', function(event) {
+        const target = event.target;
+        
+        if (target.closest('.star-rating i')) {
+            const stars = document.querySelectorAll('.star-rating i');
+            const hoveredStar = target.closest('.star-rating i');
+            const index = Array.from(stars).indexOf(hoveredStar);
+            
+            highlightStars(index + 1);
+        }
+    });
+
+    // Reset stars on mouse leave
+    document.addEventListener('mouseleave', function(event) {
+        const target = event.target;
+        
+        if (target.closest('.star-rating')) {
+            highlightStars(currentRating);
+        }
+    });
+
+    // Character counter with event delegation
+    if (commentText) {
+        commentText.addEventListener('input', () => {
+            const count = commentText.value.length;
+            charCount.textContent = count;
+            
+            if (count > 450) {
+                charCount.style.color = '#ef4444';
+            } else if (count > 400) {
+                charCount.style.color = '#f59e0b';
+            } else {
+                charCount.style.color = '#6b7280';
+            }
+        });
+    }
+
+    // Close modal on outside click with event delegation
+    document.addEventListener('click', function(event) {
+        const target = event.target;
+        
+        if (target.closest('.rating-modal') && target.classList.contains('rating-modal')) {
             closeRatingModal();
         }
     });

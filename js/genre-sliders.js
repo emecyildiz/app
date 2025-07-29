@@ -274,13 +274,18 @@ function createFilmCard(film) {
 }
 
 function attachGenreTabEvents() {
-    document.querySelectorAll('.film-genre-navbar .genre-tab').forEach(btn => {
-        // Önce eski event'ı kaldırmak için cloneNode kullan
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-        newBtn.addEventListener('click', function() {
-            showGenre(this.dataset.genre);
-        });
+    // Event delegation for genre tabs
+    document.addEventListener('click', function(event) {
+        const target = event.target;
+        const genreTab = target.closest('.film-genre-navbar .genre-tab');
+        
+        if (genreTab) {
+            event.preventDefault();
+            event.stopPropagation();
+            const genre = genreTab.dataset.genre;
+            console.log(`Genre tab clicked: ${genre}`);
+            showGenre(genre);
+        }
     });
 }
 

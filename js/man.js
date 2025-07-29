@@ -30,78 +30,21 @@
             // Restore body opacity
             document.body.style.opacity = '1';
             
-                    // Handle specific page initializations
-        if(page == "Filmler") {
-            console.log('Initializing Filmler page...');
+            // Initialize page-specific functionality
+            initializePageContent(page);
             
-            // Clear any existing film-related scripts to prevent conflicts
-            const existingScripts = document.querySelectorAll('script[src*="filmler"], script[src*="genre"]');
-            existingScripts.forEach(script => {
-                console.log('Removing existing script:', script.src);
-                script.remove();
-            });
-            
-            // Clear any existing film-related event listeners by cloning elements
-            const filmCards = document.querySelectorAll('.film-card, .rating-btn, .genre-filter, .film-item, .rating-star, .genre-btn, .film-slider');
-            filmCards.forEach(card => {
-                const newCard = card.cloneNode(true);
-                card.parentNode.replaceChild(newCard, card);
-            });
-            
-            // Initialize film slider after DOM is ready
+            // Re-attach event listeners for all buttons including newly loaded ones
             setTimeout(() => {
-                console.log('Initializing film slider...');
-                initializeFilmSlider();
-            }, 200);
-            
-            // Load filmler-specific scripts after a delay
-            setTimeout(() => {
-                console.log('Loading filmler scripts...');
-                loadScript("js/filmler.js");
-                loadScript("js/filmler-rating.js");
-                loadScript("js/genre-sliders.js");
-                
-                // Re-attach film-specific event listeners after scripts load
-                setTimeout(() => {
-                    console.log('Attaching film event listeners...');
-                    attachFilmEventListeners();
-                }, 500);
-            }, 400);
-        } else if(page == "Profil"){
-            // Load sidebar CSS if not already loaded
-            if (!document.querySelector('link[href*="sidebar.css"]')) {
-                const sidebarCSS = document.createElement('link');
-                sidebarCSS.rel = 'stylesheet';
-                sidebarCSS.href = 'css/sidebar.css';
-                document.head.appendChild(sidebarCSS);
-            }
-            
-            // Initialize sidebar functionality after a short delay to ensure DOM is ready
-            setTimeout(() => {
-                if (window.sidebarUtils) {
-                    // Use the exported utility functions
-                    window.sidebarUtils.initializeSidebar();
-                    window.sidebarUtils.initializePhotoUpload();
-                    window.sidebarUtils.initializeMenuItems();
-                } else {
-                    // Fallback: load the script if not already loaded
-                    loadScript("js/sidebar.js");
-                }
-            }, 100);
-        }
-        
-        // Re-attach event listeners for all buttons including newly loaded ones
-        setTimeout(() => {
-            attachNavbarEventListeners();
-            window.isLoadingPage = false; // Allow new page loads
-        }, 300);
-    })
-    .catch(error => {
-        console.error('Error loading page:', error);
-        content.innerHTML = '<h1>Sayfa yüklenirken bir hata oluştu</h1>';
-        window.isLoadingPage = false; // Allow new page loads even on error
-    });
-}
+                attachNavbarEventListeners();
+                window.isLoadingPage = false; // Allow new page loads
+            }, 300);
+        })
+        .catch(error => {
+            console.error('Error loading page:', error);
+            content.innerHTML = '<h1>Sayfa yüklenirken bir hata oluştu</h1>';
+            window.isLoadingPage = false; // Allow new page loads even on error
+        });
+    }
 
 // Apply page-specific styles to fix color conflicts
 function applyPageStyles(page) {
@@ -151,6 +94,89 @@ function applyPageStyles(page) {
             body.style.color = "#fff";
             break;
     }
+}
+
+// Sayfa içeriğini başlatma fonksiyonu
+function initializePageContent(page) {
+    console.log(`Initializing page content for: ${page}`);
+    
+    switch(page) {
+        case "Filmler":
+            initializeFilmlerPage();
+            break;
+        case "Profil":
+            initializeProfilPage();
+            break;
+        case "Home":
+            initializeHomePage();
+            break;
+        case "Hakkinda":
+            initializeHakkindaPage();
+            break;
+        default:
+            console.log(`No specific initialization for page: ${page}`);
+            break;
+    }
+}
+
+// Filmler sayfası başlatma
+function initializeFilmlerPage() {
+    console.log('Initializing Filmler page...');
+    
+    // Load required scripts
+    loadScript("js/filmler.js");
+    loadScript("js/filmler-rating.js");
+    loadScript("js/genre-sliders.js");
+    
+    // Initialize after scripts are loaded
+    setTimeout(() => {
+        if (typeof initializeFilms === 'function') {
+            initializeFilms();
+        }
+        if (typeof initializeRating === 'function') {
+            initializeRating();
+        }
+        if (typeof initializeGenreSliders === 'function') {
+            initializeGenreSliders();
+        }
+    }, 500);
+}
+
+// Profil sayfası başlatma
+function initializeProfilPage() {
+    console.log('Initializing Profil page...');
+    
+    // Load sidebar CSS if not already loaded
+    if (!document.querySelector('link[href*="sidebar.css"]')) {
+        const sidebarCSS = document.createElement('link');
+        sidebarCSS.rel = 'stylesheet';
+        sidebarCSS.href = 'css/sidebar.css';
+        document.head.appendChild(sidebarCSS);
+    }
+    
+    // Load sidebar script
+    loadScript("js/sidebar.js");
+    
+    // Initialize sidebar functionality
+    setTimeout(() => {
+        if (window.sidebarUtils) {
+            window.sidebarUtils.initializeSidebar();
+            window.sidebarUtils.initializePhotoUpload();
+            window.sidebarUtils.initializeMenuItems();
+        }
+    }, 300);
+}
+
+// Ana sayfa başlatma
+function initializeHomePage() {
+    console.log('Initializing Home page...');
+    // Ana sayfa için özel başlatma işlemleri
+}
+
+// Hakkında sayfası başlatma
+function initializeHakkindaPage() {
+    console.log('Initializing Hakkinda page...');
+    // Hakkında sayfası için özel başlatma işlemleri
 }
 
 function loadScript(src){
@@ -232,33 +258,28 @@ async function loadComponent(id, file) {
 }
 
 function attachNavbarEventListeners() {
-    // Add event listeners for all navigation buttons
-    const buttons = document.querySelectorAll(".btn, .giriş, .nav-link, .mobile-nav-link, .action-btn, .mobile-action-btn, .cta-button");
-    
-    buttons.forEach(item => {
-        // Remove existing event listeners to prevent duplicates
-        item.removeEventListener("click", handleNavigation);
+    // Event delegation for navigation buttons
+    document.addEventListener('click', function(event) {
+        const target = event.target;
         
-        // Add new event listener with stronger binding
-        item.addEventListener("click", handleNavigation, true);
+        // Check if clicked element or its parent has navigation classes
+        const navElement = target.closest('.btn, .giriş, .nav-link, .mobile-nav-link, .action-btn, .mobile-action-btn, .cta-button');
         
-        // Also add a backup event listener for buttons that might be dynamically added
-        if (item.classList.contains('btn') || item.classList.contains('cta-button')) {
-            item.addEventListener("click", function(e) {
-                const page = this.getAttribute("data-page");
-                if (page) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log(`Button clicked: ${page}`);
-                    loadPage(page);
-                    updateActiveNavigation(this);
-                    closeMobileMenu();
-                }
-            }, true);
+        if (navElement) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const page = navElement.getAttribute("data-page");
+            if (page) {
+                console.log(`Navigation clicked: ${page} from ${navElement.className}`);
+                loadPage(page);
+                updateActiveNavigation(navElement);
+                closeMobileMenu();
+            }
         }
     });
     
-    console.log(`Attached event listeners to ${buttons.length} navigation buttons`);
+    console.log('Event delegation attached for navigation buttons');
 }
 
 function handleNavigation(event) {
@@ -422,44 +443,54 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function attachFilmEventListeners() {
-    console.log('Attaching film event listeners...');
+    console.log('Attaching film event listeners using delegation...');
     
-    // Rating stars
-    const ratingStars = document.querySelectorAll('.rating-star');
-    ratingStars.forEach(star => {
-        star.removeEventListener('click', handleRatingClick);
-        star.addEventListener('click', handleRatingClick);
+    // Event delegation for film-related interactions
+    document.addEventListener('click', function(event) {
+        const target = event.target;
+        
+        // Rating stars
+        if (target.closest('.rating-star')) {
+            event.preventDefault();
+            event.stopPropagation();
+            console.log('Rating star clicked');
+            handleRatingClick(event);
+        }
+        
+        // Genre filters and buttons
+        if (target.closest('.genre-filter, .genre-btn, .genre-button, .genre-tab')) {
+            event.preventDefault();
+            event.stopPropagation();
+            console.log('Genre filter clicked');
+            handleGenreFilter(event);
+        }
+        
+        // Film cards
+        if (target.closest('.film-card, .film-item, .movie-card')) {
+            event.preventDefault();
+            event.stopPropagation();
+            console.log('Film card clicked');
+            handleFilmCardClick(event);
+        }
+        
+        // Rating buttons
+        if (target.closest('.rating-btn, .star-btn')) {
+            event.preventDefault();
+            event.stopPropagation();
+            console.log('Rating button clicked');
+            handleRatingButtonClick(event);
+        }
+        
+        // Film slider navigation
+        if (target.closest('.slider-btn, .prev-btn, .next-btn')) {
+            event.preventDefault();
+            event.stopPropagation();
+            console.log('Slider button clicked');
+            handleSliderButtonClick(event);
+        }
     });
     
-    // Genre filters and buttons
-    const genreFilters = document.querySelectorAll('.genre-filter, .genre-btn, .genre-button');
-    genreFilters.forEach(filter => {
-        filter.removeEventListener('click', handleGenreFilter);
-        filter.addEventListener('click', handleGenreFilter);
-    });
-    
-    // Film cards
-    const filmCards = document.querySelectorAll('.film-card, .film-item, .movie-card');
-    filmCards.forEach(card => {
-        card.removeEventListener('click', handleFilmCardClick);
-        card.addEventListener('click', handleFilmCardClick);
-    });
-    
-    // Rating buttons
-    const ratingButtons = document.querySelectorAll('.rating-btn, .star-btn');
-    ratingButtons.forEach(btn => {
-        btn.removeEventListener('click', handleRatingButtonClick);
-        btn.addEventListener('click', handleRatingButtonClick);
-    });
-    
-    // Film slider navigation
-    const sliderButtons = document.querySelectorAll('.slider-btn, .prev-btn, .next-btn');
-    sliderButtons.forEach(btn => {
-        btn.removeEventListener('click', handleSliderButtonClick);
-        btn.addEventListener('click', handleSliderButtonClick);
-    });
-    
-    console.log(`Attached event listeners to ${ratingStars.length} stars, ${genreFilters.length} filters, ${filmCards.length} cards, ${ratingButtons.length} rating buttons, ${sliderButtons.length} slider buttons`);
+    console.log('Event delegation attached for film interactions');
 }
 
 function handleRatingClick(event) {
