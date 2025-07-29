@@ -150,7 +150,6 @@
         <section class="hero-section">
             <div class="hero-content">
                 <h1 class="hero-title">Film Değerlendirme</h1>
-                <p class="hero-subtitle">Filmleri puanla, yorum yap ve keşfet</p>
             </div>
         </section>
         <!-- Tüm türler görünümü -->
@@ -280,58 +279,11 @@
         </section>
     </div>
 
-    <!-- Rating Modal -->
-    <div class="rating-modal" id="ratingModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalFilmTitle">Film Puanla</h3>
-                <button class="close-modal" onclick="closeRatingModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="modal-body">
-                <div class="rating-section">
-                    <h4>Puanınız</h4>
-                    <div class="star-rating" id="starRating">
-                        <i class="fas fa-star" data-rating="1"></i>
-                        <i class="fas fa-star" data-rating="2"></i>
-                        <i class="fas fa-star" data-rating="3"></i>
-                        <i class="fas fa-star" data-rating="4"></i>
-                        <i class="fas fa-star" data-rating="5"></i>
-                        <i class="fas fa-star" data-rating="6"></i>
-                        <i class="fas fa-star" data-rating="7"></i>
-                        <i class="fas fa-star" data-rating="8"></i>
-                        <i class="fas fa-star" data-rating="9"></i>
-                        <i class="fas fa-star" data-rating="10"></i>
-                    </div>
-                    <div class="rating-text" id="ratingText">Puanınızı seçin</div>
-                </div>
-                
-                <div class="comment-section">
-                    <h4>Yorumunuz</h4>
-                    <textarea 
-                        id="commentText" 
-                        placeholder="Bu film hakkında düşüncelerinizi paylaşın..."
-                        maxlength="500"
-                    ></textarea>
-                    <div class="char-counter">
-                        <span id="charCount">0</span>/500
-                    </div>
-                </div>
-            </div>
-            
-            <div class="modal-footer">
-                <button class="cancel-btn" onclick="closeRatingModal()">İptal</button>
-                <button class="submit-btn" onclick="submitRating()">Gönder</button>
-            </div>
-        </div>
-    </div>
+
 
     <link rel="stylesheet" href="../css/filmler.css">
     <script src="../js/navbar.js"></script>
     <script src="../js/filmler.js"></script>
-    <script src="../js/filmler-rating.js"></script>
     <script src="../js/genre-sliders.js"></script>
     <script src="../js/man.js"></script>
     

@@ -5,26 +5,26 @@
     box-sizing: border-box;
 }
 
-/* Root Variables for Elegant Design */
+/* Root Variables for Elegant Design - Mor-Mavi Tema */
 :root {
-    --primary-color: #3b82f6;
-    --primary-hover: #2563eb;
-    --secondary-color: #1e40af;
-    --accent-color: #06b6d4;
-    --text-primary: #1f2937;
-    --text-secondary: #6b7280;
+    --primary-color: #667eea;
+    --primary-hover: #5a67d8;
+    --secondary-color: #764ba2;
+    --accent-color: #9f7aea;
+    --text-primary: #2d3748;
+    --text-secondary: #4a5568;
     --text-light: #ffffff;
     --text-muted: rgba(255, 255, 255, 0.75);
     --bg-primary: #ffffff;
-    --bg-secondary: #f8fafc;
-    --bg-dark: #1e293b;
-    --bg-glass: rgba(30, 41, 59, 0.85);
-    --bg-glass-hover: rgba(30, 41, 59, 0.9);
+    --bg-secondary: #f7fafc;
+    --bg-dark: #667eea;
+    --bg-glass: rgba(102, 126, 234, 0.85);
+    --bg-glass-hover: rgba(102, 126, 234, 0.9);
     --bg-glass-light: rgba(255, 255, 255, 0.08);
     --border-color: rgba(255, 255, 255, 0.12);
-    --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.08);
-    --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.12);
-    --shadow-large: 0 8px 24px rgba(0, 0, 0, 0.15);
+    --shadow-soft: 0 2px 8px rgba(102, 126, 234, 0.08);
+    --shadow-medium: 0 4px 12px rgba(102, 126, 234, 0.12);
+    --shadow-large: 0 8px 24px rgba(102, 126, 234, 0.15);
     --backdrop-blur: blur(10px);
     --transition-fast: all 0.2s ease;
     --transition-medium: all 0.3s ease;
@@ -40,7 +40,7 @@ body {
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     color: var(--text-primary);
-    background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     overflow-x: hidden;
 }
