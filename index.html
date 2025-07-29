@@ -7,8 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="templates/navbar.css">
-    <link rel="stylesheet" href="css/sidebar.css">
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/auth.css">
     <style>
         /* Default content area styling */
         #content {
@@ -24,7 +23,7 @@
             align-items: center;
             height: 50vh;
             font-size: 1.2rem;
-            color: #64748b;
+            color: #ffffff;
         }
         
         /* Override navbar.css body styles to let JavaScript handle them */
@@ -33,7 +32,111 @@
             margin: 0 !important;
             padding: 0 !important;
             overflow-x: hidden !important;
-            /* Background will be set by JavaScript for each page */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: #ffffff !important;
+            min-height: 100vh !important;
+            transition: all 0.3s ease !important;
+        }
+        #content {
+            min-height: calc(100vh - 70px);
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .welcome-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 4rem 2rem 2rem 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+            margin-top: 80px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(102,126,234,0.10);
+        }
+        .welcome-message h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .welcome-message p {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.92);
+            margin-bottom: 2.5rem;
+        }
+        .welcome-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+            width: 100%;
+        }
+        .welcome-btn {
+            padding: 1.1rem 2.2rem;
+            border-radius: 14px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s cubic-bezier(.4,1.3,.6,1);
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.18);
+        }
+        .welcome-btn.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+        .welcome-btn.primary:hover {
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.25);
+        }
+        .welcome-btn.secondary {
+            background: rgba(102, 126, 234, 0.18);
+            color: #fff;
+            border: 2px solid rgba(102, 126, 234, 0.35);
+            backdrop-filter: blur(10px);
+        }
+        .welcome-btn.secondary:hover {
+            background: rgba(102, 126, 234, 0.28);
+            transform: translateY(-2px) scale(1.04);
+            border-color: rgba(102, 126, 234, 0.55);
+        }
+        .welcome-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+        @media (max-width: 700px) {
+            .welcome-message {
+                padding: 2.5rem 1rem 1.5rem 1rem;
+                margin-top: 60px;
+            }
+            .welcome-message h1 {
+                font-size: 2rem;
+            }
+            .welcome-buttons {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+        @media (max-width: 400px) {
+            .welcome-message {
+                padding: 1.2rem 0.2rem 1rem 0.2rem;
+                margin-top: 40px;
+            }
+            .welcome-message h1 {
+                font-size: 1.3rem;
+            }
         }
     </style>
 </head>
@@ -149,16 +252,16 @@
     <div id="content">
         <div class="welcome-message">
             <h1>CinemaHub'a Hoş Geldiniz</h1>
-            <p>Film dünyasını keşfetmek için yukarıdaki menüyü kullanın.</p>
+            <p>Binlerce film arasından seçim yapın ve yeni favorilerinizi keşfedin.</p>
             <div class="welcome-buttons">
-                <a href="pages/Home.html" class="welcome-btn primary">
+                <button class="welcome-btn primary" data-page="Home">
                     <i class="fas fa-home"></i>
                     Ana Sayfaya Git
-                </a>
-                <a href="pages/Filmler.html" class="welcome-btn secondary">
+                </button>
+                <button class="welcome-btn secondary" data-page="Filmler">
                     <i class="fas fa-video"></i>
                     Filmleri Keşfet
-                </a>
+                </button>
             </div>
         </div>
     </div>
@@ -176,14 +279,14 @@
             font-size: 2.5rem;
             font-weight: 700;
             margin-bottom: 1rem;
-            background: linear-gradient(135deg, #fff 0%, #e0e7ff 100%);
+            background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         
         .welcome-message p {
             font-size: 1.2rem;
-            color: rgba(255, 255, 255, 0.8);
+            color: rgba(255, 255, 255, 0.9);
             margin-bottom: 2rem;
         }
         
@@ -198,6 +301,14 @@
             padding: 1rem 2rem;
             border-radius: 12px;
             text-decoration: none;
+            border: none;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
             font-weight: 600;
             transition: all 0.3s ease;
             display: inline-flex;
@@ -206,32 +317,60 @@
         }
         
         .welcome-btn.primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-            color: white;
-            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
         }
         
         .welcome-btn.primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(59, 130, 246, 0.6);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
         }
         
         .welcome-btn.secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(102, 126, 234, 0.2);
+            color: #ffffff;
+            border: 2px solid rgba(102, 126, 234, 0.4);
             backdrop-filter: blur(10px);
         }
         
         .welcome-btn.secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(102, 126, 234, 0.3);
             transform: translateY(-2px);
+            border-color: rgba(102, 126, 234, 0.6);
+        }
+        
+        /* Buton tıklama efekti */
+        .welcome-btn:active {
+            transform: translateY(0);
         }
     </style>
 
-    <script src="js/navbar.js"></script>
-    <script src="js/man.js"></script>
-    <script src="js/script.js"></script>
-    <script src="js/sidebar.js"></script>
+    <!-- Optimized CSS -->
+    <link rel="stylesheet" href="css/optimized.css">
+    
+    <!-- Optimized JavaScript -->
+    <script src="js/modules/navigation.js"></script>
+    <script src="js/modules/films.js"></script>
+    <script src="js/modules/ui.js"></script>
+    <script src="js/login.js"></script>
+    <script src="js/register.js"></script>
+    <script src="js/app.js"></script>
+    
+    <script>
+        // Global app instance
+        let app;
+        
+        // Uygulama başlatma kontrolü
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                app = new CinemaHubApp();
+                window.app = app;
+                console.log('CinemaHub app initialized successfully');
+            } catch (error) {
+                console.error('CinemaHub app failed to initialize:', error);
+            }
+        });
+    </script>
 </body>
 </html>

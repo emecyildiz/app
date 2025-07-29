@@ -124,10 +124,10 @@
 }
 
 .slider-btn:hover {
-    background: #3b82f6;
-    color: white;
+    background: #174e4f;
+    color: #f3e5c3;
     transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    box-shadow: 0 6px 20px rgba(23, 78, 79, 0.4);
 }
 
 .slider-btn:disabled {
@@ -157,10 +157,10 @@
 
 .film-card {
     width: 200px;
-    background: white;
+    background: #f3e5c3;
     border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 20px rgba(23, 78, 79, 0.2);
     transition: all 0.3s ease;
     cursor: pointer;
     height: 320px;
@@ -181,7 +181,7 @@
     position: relative;
     height: 240px;
     overflow: hidden;
-    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    background: linear-gradient(135deg, #e8d5b5 0%, #f3e5c3 100%);
     flex-shrink: 0;
 }
 
@@ -199,67 +199,7 @@
     filter: brightness(1.05);
 }
 
-.film-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    backdrop-filter: blur(2px);
-}
 
-.overlay-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: center;
-}
-
-.film-card:hover .film-overlay {
-    opacity: 1;
-}
-
-.rate-btn-small, .comment-btn-small {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 25px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
-    backdrop-filter: blur(10px);
-    min-width: 120px;
-    justify-content: center;
-}
-
-.comment-btn-small {
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-}
-
-.rate-btn-small:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
-    background: linear-gradient(135deg, #f59e0b, #ea580c);
-}
-
-.comment-btn-small:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
-    background: linear-gradient(135deg, #3b82f6, #2563eb);
-}
 
 .film-details {
     padding: 1rem;
@@ -267,7 +207,7 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    background: white;
+    background: #f3e5c3;
 }
 
 .film-title {
@@ -319,185 +259,7 @@
 }
 
 /* Rating Modal */
-.rating-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-}
 
-.rating-modal.active {
-    opacity: 1;
-    visibility: visible;
-}
-
-.modal-content {
-    background: white;
-    border-radius: 16px;
-    width: 90%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-    transform: scale(0.9);
-    transition: transform 0.3s ease;
-}
-
-.rating-modal.active .modal-content {
-    transform: scale(1);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.modal-header h3 {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1f2937;
-}
-
-.close-modal {
-    background: none;
-    border: none;
-    font-size: 1.25rem;
-    color: #6b7280;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 4px;
-    transition: color 0.2s ease;
-}
-
-.close-modal:hover {
-    color: #374151;
-}
-
-.modal-body {
-    padding: 1.5rem;
-}
-
-.rating-section {
-    margin-bottom: 2rem;
-}
-
-.rating-section h4 {
-    margin: 0 0 1rem 0;
-    font-size: 1rem;
-    font-weight: 500;
-    color: #374151;
-}
-
-.star-rating {
-    display: flex;
-    gap: 0.25rem;
-    margin-bottom: 0.5rem;
-}
-
-.star-rating i {
-    font-size: 1.5rem;
-    color: #d1d5db;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-.star-rating i:hover,
-.star-rating i.active {
-    color: #fbbf24;
-}
-
-.rating-text {
-    font-size: 0.9rem;
-    color: #6b7280;
-    text-align: center;
-}
-
-.comment-section h4 {
-    margin: 0 0 1rem 0;
-    font-size: 1rem;
-    font-weight: 500;
-    color: #374151;
-}
-
-.comment-section textarea {
-    width: 100%;
-    min-height: 100px;
-    padding: 0.75rem;
-    border: 2px solid #e5e7eb;
-    border-radius: 8px;
-    font-family: inherit;
-    font-size: 0.9rem;
-    resize: vertical;
-    transition: border-color 0.2s ease;
-}
-
-.comment-section textarea:focus {
-    outline: none;
-    border-color: #3b82f6;
-}
-
-.char-counter {
-    text-align: right;
-    font-size: 0.8rem;
-    color: #6b7280;
-    margin-top: 0.5rem;
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    padding: 1.5rem;
-    border-top: 1px solid #e5e7eb;
-}
-
-.cancel-btn {
-    background: #f3f4f6;
-    color: #374151;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.2s ease;
-}
-
-.cancel-btn:hover {
-    background: #e5e7eb;
-}
-
-.submit-btn {
-    background: linear-gradient(135deg, #3b82f6, #1e40af);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
-
-.submit-btn:hover {
-    transform: translateY(-1px);
-}
-
-.submit-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-}
 
 /* Tür Navbarı */
 .film-genre-navbar {
