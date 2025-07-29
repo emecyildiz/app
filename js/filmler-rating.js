@@ -1,6 +1,71 @@
 let currentFilmId = null;
-
 let currentRating = 0;
+
+// Rating sistemi başlatma fonksiyonu
+function initializeRating() {
+    console.log('Rating sistemi başlatılıyor...');
+    
+    const stars = document.querySelectorAll('.star-rating i');
+    const ratingText = document.getElementById('ratingText');
+    const commentText = document.getElementById('commentText');
+    const charCount = document.getElementById('charCount');
+
+    // Star hover and click events
+    stars.forEach((star, index) => {
+        star.addEventListener('mouseenter', () => {
+            highlightStars(index + 1);
+        });
+
+        star.addEventListener('click', () => {
+            currentRating = index + 1;
+            setRatingText(currentRating);
+            highlightStars(currentRating);
+        });
+    });
+
+    // Reset stars on mouse leave
+    const starRating = document.querySelector('.star-rating');
+    if (starRating) {
+        starRating.addEventListener('mouseleave', () => {
+            highlightStars(currentRating);
+        });
+    }
+
+    // Character counter
+    if (commentText) {
+        commentText.addEventListener('input', () => {
+            const count = commentText.value.length;
+            charCount.textContent = count;
+            
+            if (count > 450) {
+                charCount.style.color = '#ef4444';
+            } else if (count > 400) {
+                charCount.style.color = '#f59e0b';
+            } else {
+                charCount.style.color = '#6b7280';
+            }
+        });
+    }
+
+    // Close modal on outside click
+    const ratingModal = document.getElementById('ratingModal');
+    if (ratingModal) {
+        ratingModal.addEventListener('click', (e) => {
+            if (e.target.classList.contains('rating-modal')) {
+                closeRatingModal();
+            }
+        });
+    }
+
+    // Close modal on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.getElementById('ratingModal').classList.contains('active')) {
+            closeRatingModal();
+        }
+    });
+    
+    console.log('Rating sistemi başlatma tamamlandı');
+}
 
 function openRatingModal(filmId, filmTitle) {
     currentFilmId = filmId;

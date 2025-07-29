@@ -10,6 +10,18 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         /* Component-specific styles only - body styles handled by JavaScript */
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
+            color: #fff;
+        }
+        
+        .page-content {
+            margin-top: 70px;
+        }
+        
         .hero-section {
             display: flex;
             align-items: center;
@@ -234,7 +246,115 @@
     </style>
 </head>
 <body>
-    <div class="hero-section">
+    <!-- Modern Sticky Navbar -->
+    <nav class="modern-navbar" id="navbar">
+        <div class="navbar-container">
+            <!-- Logo/Brand Section -->
+            <div class="navbar-brand">
+                <div class="brand-icon">
+                    <i class="fas fa-film"></i>
+                </div>
+                <span class="brand-text">CinemaHub</span>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="navbar-nav">
+                <div class="nav-links">
+                    <a href="Home.html" class="nav-link active btn" data-page="Home">
+                        <i class="fas fa-home"></i>
+                        <span>Ana Sayfa</span>
+                        <div class="nav-indicator"></div>
+                    </a>
+                    <a href="Filmler.html" class="nav-link btn" data-page="Filmler">
+                        <i class="fas fa-video"></i>
+                        <span>Filmler</span>
+                        <div class="nav-indicator"></div>
+                    </a>
+                    <a href="Hakkinda.html" class="nav-link btn" data-page="Hakkinda">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Hakkında</span>
+                        <div class="nav-indicator"></div>
+                    </a>
+                    <a href="Profil.html" class="nav-link btn" data-page="Profil">
+                        <i class="fas fa-user"></i>
+                        <span>Profil</span>
+                        <div class="nav-indicator"></div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right Side Actions -->
+            <div class="navbar-actions">
+                <!-- Search Bar -->
+                <form action="">
+                    <input class="mini-input" type="search" placeholder="Film ara...">
+                    <i class="fa fa-search"></i>
+                </form>
+
+                <!-- User Actions -->
+                <div class="user-actions">
+                    <button class="action-btn login-btn giriş" data-page="Giriş">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Giriş</span>
+                    </button>
+                    <button class="action-btn register-btn giriş" data-page="Kayıt">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Kayıt</span>
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Toggle -->
+                <div class="mobile-menu-toggle" id="mobileToggle">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div class="mobile-menu-overlay" id="mobileMenu">
+            <div class="mobile-nav-links">
+                <!-- Mobile Search Bar -->
+                <div class="mobile-search-container">
+                    <form class="mobile-search-form">
+                        <input class="mobile-search-input" type="search" placeholder="Film ara...">
+                        <i class="fa fa-search"></i>
+                    </form>
+                </div>
+                
+                <a href="Home.html" class="mobile-nav-link active btn" data-page="Home">
+                    <i class="fas fa-home"></i>
+                    <span>Ana Sayfa</span>
+                </a>
+                <a href="Filmler.html" class="mobile-nav-link btn" data-page="Filmler">
+                    <i class="fas fa-video"></i>
+                    <span>Filmler</span>
+                </a>
+                <a href="Hakkinda.html" class="mobile-nav-link btn" data-page="Hakkinda">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Hakkında</span>
+                </a>
+                <a href="Profil.html" class="mobile-nav-link btn" data-page="Profil">
+                    <i class="fas fa-user"></i>
+                    <span>Profil</span>
+                </a>
+                <div class="mobile-actions">
+                    <button class="mobile-action-btn login-btn giriş" data-page="Giriş">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Giriş Yap</span>
+                    </button>
+                    <button class="mobile-action-btn register-btn giriş" data-page="Kayıt">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Kayıt Ol</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-content">
+        <div class="hero-section">
         <div class="hero-content">
             <h1 class="hero-title">Film Dünyasına Hoş Geldiniz</h1>
             <p class="hero-subtitle">
@@ -243,11 +363,11 @@
                 yeni favorilerinizi keşfedin.
             </p>
             <div class="hero-buttons">
-                <a href="#" class="cta-button cta-primary btn" data-page="Filmler">
+                <a href="#" class="cta-button cta-primary btn nav-link" data-page="Filmler">
                     <i class="fas fa-play"></i>
                     Filmleri Keşfet
                 </a>
-                <a href="#" class="cta-button cta-secondary btn" data-page="Kayıt">
+                <a href="#" class="cta-button cta-secondary btn nav-link" data-page="Kayıt">
                     <i class="fas fa-user-plus"></i>
                     Ücretsiz Kayıt Ol
                 </a>
@@ -345,6 +465,7 @@
         </div>
     </div>
     
+    <script src="../js/navbar.js"></script>
     <script src="../js/man.js"></script>
 </body>
 </html>

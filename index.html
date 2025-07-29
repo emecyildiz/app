@@ -147,11 +147,87 @@
 
     <!-- Main Content Area -->
     <div id="content">
-        <div class="loading">
-            <i class="fas fa-spinner fa-spin"></i>
-            <span style="margin-left: 10px;">Yükleniyor...</span>
+        <div class="welcome-message">
+            <h1>CinemaHub'a Hoş Geldiniz</h1>
+            <p>Film dünyasını keşfetmek için yukarıdaki menüyü kullanın.</p>
+            <div class="welcome-buttons">
+                <a href="pages/Home.html" class="welcome-btn primary">
+                    <i class="fas fa-home"></i>
+                    Ana Sayfaya Git
+                </a>
+                <a href="pages/Filmler.html" class="welcome-btn secondary">
+                    <i class="fas fa-video"></i>
+                    Filmleri Keşfet
+                </a>
+            </div>
         </div>
     </div>
+
+    <style>
+        .welcome-message {
+            text-align: center;
+            padding: 4rem 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+            margin-top: 100px;
+        }
+        
+        .welcome-message h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 0%, #e0e7ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .welcome-message p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 2rem;
+        }
+        
+        .welcome-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .welcome-btn {
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .welcome-btn.primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .welcome-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(59, 130, 246, 0.6);
+        }
+        
+        .welcome-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .welcome-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+    </style>
 
     <script src="js/navbar.js"></script>
     <script src="js/man.js"></script>

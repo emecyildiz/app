@@ -6,8 +6,22 @@
     <title>Hakkında | CinemaHub</title>
     <link rel="stylesheet" href="../templates/navbar.css">
     <link rel="stylesheet" href="../css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         /* Component-specific styles only - body styles handled by JavaScript */
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            color: #1e293b;
+        }
+        
+        .page-content {
+            margin-top: 70px;
+        }
+        
         .about-hero {
             display: flex;
             flex-direction: column;
@@ -73,7 +87,115 @@
     </style>
 </head>
 <body>
-    <div class="about-hero fade-in">
+    <!-- Modern Sticky Navbar -->
+    <nav class="modern-navbar" id="navbar">
+        <div class="navbar-container">
+            <!-- Logo/Brand Section -->
+            <div class="navbar-brand">
+                <div class="brand-icon">
+                    <i class="fas fa-film"></i>
+                </div>
+                <span class="brand-text">CinemaHub</span>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="navbar-nav">
+                <div class="nav-links">
+                    <a href="Home.html" class="nav-link btn" data-page="Home">
+                        <i class="fas fa-home"></i>
+                        <span>Ana Sayfa</span>
+                        <div class="nav-indicator"></div>
+                    </a>
+                    <a href="Filmler.html" class="nav-link btn" data-page="Filmler">
+                        <i class="fas fa-video"></i>
+                        <span>Filmler</span>
+                        <div class="nav-indicator"></div>
+                    </a>
+                    <a href="Hakkinda.html" class="nav-link active btn" data-page="Hakkinda">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Hakkında</span>
+                        <div class="nav-indicator"></div>
+                    </a>
+                    <a href="Profil.html" class="nav-link btn" data-page="Profil">
+                        <i class="fas fa-user"></i>
+                        <span>Profil</span>
+                        <div class="nav-indicator"></div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Right Side Actions -->
+            <div class="navbar-actions">
+                <!-- Search Bar -->
+                <form action="">
+                    <input class="mini-input" type="search" placeholder="Film ara...">
+                    <i class="fa fa-search"></i>
+                </form>
+
+                <!-- User Actions -->
+                <div class="user-actions">
+                    <button class="action-btn login-btn giriş" data-page="Giriş">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Giriş</span>
+                    </button>
+                    <button class="action-btn register-btn giriş" data-page="Kayıt">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Kayıt</span>
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Toggle -->
+                <div class="mobile-menu-toggle" id="mobileToggle">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div class="mobile-menu-overlay" id="mobileMenu">
+            <div class="mobile-nav-links">
+                <!-- Mobile Search Bar -->
+                <div class="mobile-search-container">
+                    <form class="mobile-search-form">
+                        <input class="mobile-search-input" type="search" placeholder="Film ara...">
+                        <i class="fa fa-search"></i>
+                    </form>
+                </div>
+                
+                <a href="Home.html" class="mobile-nav-link btn" data-page="Home">
+                    <i class="fas fa-home"></i>
+                    <span>Ana Sayfa</span>
+                </a>
+                <a href="Filmler.html" class="mobile-nav-link btn" data-page="Filmler">
+                    <i class="fas fa-video"></i>
+                    <span>Filmler</span>
+                </a>
+                <a href="Hakkinda.html" class="mobile-nav-link active btn" data-page="Hakkinda">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Hakkında</span>
+                </a>
+                <a href="Profil.html" class="mobile-nav-link btn" data-page="Profil">
+                    <i class="fas fa-user"></i>
+                    <span>Profil</span>
+                </a>
+                <div class="mobile-actions">
+                    <button class="mobile-action-btn login-btn giriş" data-page="Giriş">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Giriş Yap</span>
+                    </button>
+                    <button class="mobile-action-btn register-btn giriş" data-page="Kayıt">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Kayıt Ol</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-content">
+        <div class="about-hero fade-in">
         <img src="../img/movie.svg" alt="CinemaHub Illustration" loading="lazy">
         <div class="about-title">CinemaHub</div>
         <div class="about-subtitle">Film tutkunları için modern, hızlı ve kullanıcı dostu bir platform.</div>
@@ -93,6 +215,7 @@
             CinemaHub, film severler için topluluk odaklı bir deneyim sunmayı hedefler. Geliştirilmeye devam eden bu platformda, yakında daha fazla sosyal özellik ve kişiselleştirme seçenekleri de sizlerle olacak!
         </p>
     </div>
+    <script src="../js/navbar.js"></script>
     <script src="../js/man.js"></script>
 </body>
 </html>

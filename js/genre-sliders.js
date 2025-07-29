@@ -9,6 +9,25 @@ const genreSliders = {
     dram: { currentIndex: 0, itemsPerView: 5 }
 };
 
+// Genre slider'larını başlatma fonksiyonu
+function initializeGenreSliders() {
+    console.log('Genre slider\'ları başlatılıyor...');
+    
+    // Slider'ları başlat
+    initializeSliders();
+    
+    // Genre tab event'lerini ekle
+    attachGenreTabEvents();
+    
+    // Film kartlarını başlat
+    initializeFilmCards();
+    
+    // Swipe desteği ekle
+    handleSwipe();
+    
+    console.log('Genre slider\'ları başlatma tamamlandı');
+}
+
 function slideGenre(genre, direction) {
     if (genre === 'active') {
         genre = window.currentActiveGenre || 'romantik';
