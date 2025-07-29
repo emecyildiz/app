@@ -76,20 +76,13 @@
 }
 
 .slider-container {
-    width: calc(100vw - 20px);
-    padding-left: 10px;
-    padding-right: 10px;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -50vw;
-    border-radius: 0;
-    overflow-x: auto;
-    overflow-y: visible;
     position: relative;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE 10+ */
+    width: 100%;
+    overflow: hidden;
+    padding: 0 60px; /* Slider butonları için alan */
+    margin: 0 -2rem; /* Container padding'ini telafi et */
 }
+
 .slider-container::-webkit-scrollbar {
     display: none; /* Chrome, Safari, Opera */
 }
@@ -98,6 +91,8 @@
     position: relative;
     display: flex;
     align-items: center;
+    width: 100%;
+    overflow: hidden;
 }
 
 .slider-btn {
@@ -121,11 +116,11 @@
 }
 
 .slider-btn.prev-btn {
-    left: 0;
+    left: 10px;
 }
 
 .slider-btn.next-btn {
-    right: 0;
+    right: 10px;
 }
 
 .slider-btn:hover {
@@ -155,38 +150,53 @@
     padding: 0.5rem 0;
     min-width: fit-content;
     overflow-x: visible;
+    position: relative;
+    flex-wrap: nowrap;
+    align-items: stretch;
 }
 
 .film-card {
-    flex: 0 0 220px;
+    width: 200px;
     background: white;
-    border-radius: 12px;
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     cursor: pointer;
+    height: 320px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    flex-shrink: 0;
+    opacity: 1;
+    visibility: visible;
 }
 
 .film-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
 }
 
 .film-poster {
     position: relative;
-    aspect-ratio: 2/3;
+    height: 240px;
     overflow: hidden;
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+    flex-shrink: 0;
 }
 
 .film-poster img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    transition: transform 0.4s ease;
+    display: block;
+    filter: brightness(0.95);
 }
 
 .film-card:hover .film-poster img {
-    transform: scale(1.05);
+    transform: scale(1.08);
+    filter: brightness(1.05);
 }
 
 .film-overlay {
@@ -195,77 +205,117 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0;
     transition: opacity 0.3s ease;
+    backdrop-filter: blur(2px);
+}
+
+.overlay-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
 }
 
 .film-card:hover .film-overlay {
     opacity: 1;
 }
 
-.rate-btn-small {
+.rate-btn-small, .comment-btn-small {
     background: linear-gradient(135deg, #f59e0b, #d97706);
     color: white;
     border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
     font-size: 0.9rem;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    transition: transform 0.2s ease;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+    backdrop-filter: blur(10px);
+    min-width: 120px;
+    justify-content: center;
+}
+
+.comment-btn-small {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
 }
 
 .rate-btn-small:hover {
-    transform: scale(1.1);
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.6);
+    background: linear-gradient(135deg, #f59e0b, #ea580c);
+}
+
+.comment-btn-small:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
 }
 
 .film-details {
     padding: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: white;
 }
 
 .film-title {
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 0.95rem;
+    font-weight: 700;
     color: #1f2937;
     margin-bottom: 0.5rem;
     line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .film-genre {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #6b7280;
     margin-bottom: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .film-rating {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0.5rem;
+    margin-top: auto;
 }
 
 .stars {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9rem;
-    color: #374151;
+    gap: 0.25rem;
+    color: #f59e0b;
+    font-size: 0.85rem;
 }
 
 .stars i {
-    color: #fbbf24;
+    color: #f59e0b;
     font-size: 0.8rem;
 }
 
 .review-count {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: #9ca3af;
+    font-weight: 500;
 }
 
 /* Rating Modal */
@@ -508,7 +558,13 @@
     }
 
     .film-card {
-        flex: 0 0 180px;
+        width: 180px;
+        height: 280px;
+        flex-shrink: 0;
+    }
+    
+    .film-poster {
+        height: 200px;
     }
 
     .container {
@@ -525,17 +581,16 @@
     }
 
     .slider-container {
-        width: calc(100vw - 10px);
-        padding-left: 5px;
-        padding-right: 5px;
+        padding: 0 50px;
+        margin: 0 -1rem;
     }
 
     .slider-btn.prev-btn {
-        left: 0;
+        left: 5px;
     }
 
     .slider-btn.next-btn {
-        right: 0;
+        right: 5px;
     }
 }
 
@@ -553,7 +608,13 @@
     }
 
     .film-card {
-        flex: 0 0 160px;
+        width: 160px;
+        height: 260px;
+        flex-shrink: 0;
+    }
+    
+    .film-poster {
+        height: 180px;
     }
 
     .modal-header {
@@ -573,12 +634,21 @@
         justify-content: center;
     }
 
+    .slider-container {
+        padding: 0 40px;
+        margin: 0 -1rem;
+    }
+
     .slider-btn.prev-btn {
-        left: -10px;
+        left: 2px;
+        width: 36px;
+        height: 36px;
     }
 
     .slider-btn.next-btn {
-        right: -10px;
+        right: 2px;
+        width: 36px;
+        height: 36px;
     }
 }
 
