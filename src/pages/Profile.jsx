@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Camera, User, Mail, Calendar, Film, Star, Heart, Settings, LogOut } from 'lucide-react'
+import { Camera, User, Mail, Calendar, Film, Star, Heart, Settings, LogOut, MapPin, Edit2, Twitter, Instagram, Link } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 
 import { useAuthStore } from '../store/authStore'
+import { useFavoritesStore } from '../store/favoritesStore'
 import MovieCard from '../components/MovieCard'
+import AvatarUpload from '../components/AvatarUpload'
 import { mockMovies } from '../utils/mockData'
 
 const Profile = () => {
-  const { user, updateProfile, logout } = useAuthStore()
+  const { user, updateProfile, updateAvatar, logout } = useAuthStore()
+  const { favorites, removeFromFavorites, getFavoritesCount } = useFavoritesStore()
   const [activeTab, setActiveTab] = useState('overview')
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   
@@ -20,12 +23,30 @@ const Profile = () => {
   } = useForm({
     defaultValues: {
       name: user?.name || '',
+      username: user?.username || '',
       email: user?.email || '',
+      bio: user?.bio || '',
+      location: user?.location || '',
+      twitter: user?.socialLinks?.twitter || '',
+      instagram: user?.socialLinks?.instagram || '',
+      letterboxd: user?.socialLinks?.letterboxd || '',
     },
   })
 
   const onSubmit = async (data) => {
-    const result = await updateProfile(data)
+    const updates = {
+      name: data.name,
+      username: data.username,
+      email: data.email,
+      bio: data.bio,
+      location: data.location,
+      socialLinks: {
+        twitter: data.twitter,
+        instagram: data.instagram,
+        letterboxd: data.letterboxd,
+      }
+    }
+    const result = await updateProfile(updates)
     if (result.success) {
       setIsEditModalOpen(false)
     }
@@ -35,11 +56,10 @@ const Profile = () => {
   const userStats = {
     watchedMovies: 42,
     ratings: 38,
-    favorites: 12,
-    memberSince: '2023-01-15',
+    favorites: getFavoritesCount(),
+    memberSince: user?.memberSince || '2023-01-15',
   }
 
-  const favoriteMovies = mockMovies.slice(0, 6)
   const ratedMovies = mockMovies.slice(6, 12)
 
   const tabs = [
@@ -61,25 +81,30 @@ const Profile = () => {
         >
           <div className="flex flex-col md:flex-row items-center gap-8">
             {/* Avatar */}
-            <div className="relative">
-              <img
-                src={user?.avatar || `https://ui-avatars.com/api/?name=${user?.name}&background=ef4444&color=fff&size=200`}
-                alt={user?.name}
-                className="w-32 h-32 md:w-40 md:h-40 rounded-full"
-              />
-              <button className="absolute bottom-0 right-0 w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center text-white hover:bg-primary-600 transition-colors">
-                <Camera className="w-5 h-5" />
-              </button>
-            </div>
+            <AvatarUpload
+              currentAvatar={user?.avatar || `https://ui-avatars.com/api/?name=${user?.name}&background=ef4444&color=fff&size=200`}
+              onUpload={updateAvatar}
+              size="large"
+            />
 
             {/* User Info */}
             <div className="flex-1 text-center md:text-left">
-              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">
                 {user?.name}
               </h1>
-              <p className="text-gray-400 mb-4">{user?.email}</p>
+              <p className="text-xl text-gray-400 mb-3">@{user?.username}</p>
+              
+              {user?.bio && (
+                <p className="text-gray-300 mb-4 max-w-2xl">{user?.bio}</p>
+              )}
               
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm">
+                {user?.location && (
+                  <div className="flex items-center gap-2 text-gray-300">
+                    <MapPin className="w-4 h-4" />
+                    <span>{user.location}</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2 text-gray-300">
                   <Calendar className="w-4 h-4" />
                   <span>Üyelik: {new Date(userStats.memberSince).toLocaleDateString('tr-TR')}</span>
@@ -88,11 +113,43 @@ const Profile = () => {
                   <Film className="w-4 h-4" />
                   <span>{userStats.watchedMovies} film izlendi</span>
                 </div>
-                <div className="flex items-center gap-2 text-gray-300">
-                  <Star className="w-4 h-4" />
-                  <span>{userStats.ratings} puan verildi</span>
-                </div>
               </div>
+
+              {/* Social Links */}
+              {(user?.socialLinks?.twitter || user?.socialLinks?.instagram || user?.socialLinks?.letterboxd) && (
+                <div className="flex items-center justify-center md:justify-start gap-4 mt-4">
+                  {user.socialLinks.twitter && (
+                    <a
+                      href={`https://twitter.com/${user.socialLinks.twitter}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      <Twitter className="w-5 h-5" />
+                    </a>
+                  )}
+                  {user.socialLinks.instagram && (
+                    <a
+                      href={`https://instagram.com/${user.socialLinks.instagram}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      <Instagram className="w-5 h-5" />
+                    </a>
+                  )}
+                  {user.socialLinks.letterboxd && (
+                    <a
+                      href={`https://letterboxd.com/${user.socialLinks.letterboxd}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      <Link className="w-5 h-5" />
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Actions */}
@@ -101,6 +158,7 @@ const Profile = () => {
                 onClick={() => setIsEditModalOpen(true)}
                 className="btn btn-primary"
               >
+                <Edit2 className="w-4 h-4" />
                 Profili Düzenle
               </button>
               <button
@@ -188,12 +246,43 @@ const Profile = () => {
 
             {activeTab === 'favorites' && (
               <div>
-                <h2 className="text-2xl font-bold text-white mb-6">Favori Filmlerim</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-                  {favoriteMovies.map((movie, index) => (
-                    <MovieCard key={movie.id} movie={movie} index={index} />
-                  ))}
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-white">Favori Filmlerim ({favorites.length})</h2>
+                  {favorites.length > 0 && (
+                    <button
+                      onClick={() => {
+                        if (window.confirm('Tüm favorileri temizlemek istediğinize emin misiniz?')) {
+                          useFavoritesStore.getState().clearFavorites()
+                        }
+                      }}
+                      className="text-sm text-gray-400 hover:text-red-400 transition-colors"
+                    >
+                      Tümünü Temizle
+                    </button>
+                  )}
                 </div>
+                
+                {favorites.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+                    {favorites.map((movie, index) => (
+                      <div key={movie.id} className="relative group">
+                        <MovieCard movie={movie} index={index} />
+                        <button
+                          onClick={() => removeFromFavorites(movie.id)}
+                          className="absolute top-2 right-2 p-2 bg-black/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Heart className="w-4 h-4 text-red-500 fill-current" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="glass rounded-xl p-12 text-center">
+                    <Heart className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                    <p className="text-gray-400 text-lg">Henüz favori film eklemediniz</p>
+                    <p className="text-gray-500 text-sm mt-2">Film detay sayfalarından favorilere ekleyebilirsiniz</p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -280,30 +369,56 @@ const Profile = () => {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
-            className="glass rounded-xl p-8 max-w-md w-full"
+            className="glass rounded-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-2xl font-bold text-white mb-6">Profili Düzenle</h3>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Ad Soyad
-                </label>
-                <input
-                  type="text"
-                  {...register('name', {
-                    required: 'Ad soyad gereklidir',
-                    minLength: {
-                      value: 3,
-                      message: 'Ad soyad en az 3 karakter olmalıdır',
-                    },
-                  })}
-                  className="input"
-                />
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-400">{errors.name.message}</p>
-                )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Ad Soyad
+                  </label>
+                  <input
+                    type="text"
+                    {...register('name', {
+                      required: 'Ad soyad gereklidir',
+                      minLength: {
+                        value: 3,
+                        message: 'Ad soyad en az 3 karakter olmalıdır',
+                      },
+                    })}
+                    className="input"
+                  />
+                  {errors.name && (
+                    <p className="mt-1 text-sm text-red-400">{errors.name.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Kullanıcı Adı
+                  </label>
+                  <input
+                    type="text"
+                    {...register('username', {
+                      required: 'Kullanıcı adı gereklidir',
+                      pattern: {
+                        value: /^[a-zA-Z0-9_]+$/,
+                        message: 'Kullanıcı adı sadece harf, rakam ve _ içerebilir',
+                      },
+                      minLength: {
+                        value: 3,
+                        message: 'Kullanıcı adı en az 3 karakter olmalıdır',
+                      },
+                    })}
+                    className="input"
+                  />
+                  {errors.username && (
+                    <p className="mt-1 text-sm text-red-400">{errors.username.message}</p>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -324,6 +439,88 @@ const Profile = () => {
                 {errors.email && (
                   <p className="mt-1 text-sm text-red-400">{errors.email.message}</p>
                 )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Biyografi
+                </label>
+                <textarea
+                  {...register('bio', {
+                    maxLength: {
+                      value: 200,
+                      message: 'Biyografi en fazla 200 karakter olabilir',
+                    },
+                  })}
+                  rows={3}
+                  className="input"
+                  placeholder="Kendinizden bahsedin..."
+                />
+                {errors.bio && (
+                  <p className="mt-1 text-sm text-red-400">{errors.bio.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Konum
+                </label>
+                <input
+                  type="text"
+                  {...register('location')}
+                  className="input"
+                  placeholder="İstanbul, Türkiye"
+                />
+              </div>
+
+              <div className="space-y-4">
+                <h4 className="text-lg font-semibold text-white">Sosyal Medya</h4>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Twitter Kullanıcı Adı
+                  </label>
+                  <div className="flex">
+                    <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-600 bg-dark-300 text-gray-400">
+                      @
+                    </span>
+                    <input
+                      type="text"
+                      {...register('twitter')}
+                      className="input rounded-l-none"
+                      placeholder="kullaniciadi"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Instagram Kullanıcı Adı
+                  </label>
+                  <div className="flex">
+                    <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-600 bg-dark-300 text-gray-400">
+                      @
+                    </span>
+                    <input
+                      type="text"
+                      {...register('instagram')}
+                      className="input rounded-l-none"
+                      placeholder="kullaniciadi"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Letterboxd Kullanıcı Adı
+                  </label>
+                  <input
+                    type="text"
+                    {...register('letterboxd')}
+                    className="input"
+                    placeholder="kullaniciadi"
+                  />
+                </div>
               </div>
 
               <div className="flex gap-3">
