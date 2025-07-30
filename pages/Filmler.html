@@ -9,20 +9,6 @@
     <link rel="stylesheet" href="../templates/navbar.css">
     <link rel="stylesheet" href="../css/styles.css">
     <link rel="stylesheet" href="../css/filmler.css">
-    <style>
-        /* Component-specific styles only - body styles handled by JavaScript */
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
-            color: #fff;
-        }
-        
-        .page-content {
-            margin-top: 70px;
-        }
-    </style>
 </head>
 <body>
     <!-- Modern Sticky Navbar -->
@@ -160,15 +146,15 @@
                     <div class="section-header">
                         <h2 class="section-title">Romantik</h2>
                     </div>
-                    <div class="slider-container">
-                        <button class="slider-btn prev-btn" onclick="slideGenre('romantik', 'prev')">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button class="slider-btn next-btn" onclick="slideGenre('romantik', 'next')">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                        <div class="film-slider" id="romantik-slider"></div>
-                    </div>
+                                         <div class="slider-container">
+                         <button class="slider-btn prev-btn">
+                             <i class="fas fa-chevron-left"></i>
+                         </button>
+                         <button class="slider-btn next-btn">
+                             <i class="fas fa-chevron-right"></i>
+                         </button>
+                         <div class="film-slider" id="romantik-slider"></div>
+                     </div>
                 </div>
             </section>
             <section class="genre-section" data-genre="korku">
@@ -176,15 +162,15 @@
                     <div class="section-header">
                         <h2 class="section-title">Korku</h2>
                     </div>
-                    <div class="slider-container">
-                        <button class="slider-btn prev-btn" onclick="slideGenre('korku', 'prev')">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button class="slider-btn next-btn" onclick="slideGenre('korku', 'next')">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                        <div class="film-slider" id="korku-slider"></div>
-                    </div>
+                                         <div class="slider-container">
+                         <button class="slider-btn prev-btn">
+                             <i class="fas fa-chevron-left"></i>
+                         </button>
+                         <button class="slider-btn next-btn">
+                             <i class="fas fa-chevron-right"></i>
+                         </button>
+                         <div class="film-slider" id="korku-slider"></div>
+                     </div>
                 </div>
             </section>
             <section class="genre-section" data-genre="komedi">
@@ -192,15 +178,15 @@
                     <div class="section-header">
                         <h2 class="section-title">Komedi</h2>
                     </div>
-                    <div class="slider-container">
-                        <button class="slider-btn prev-btn" onclick="slideGenre('komedi', 'prev')">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button class="slider-btn next-btn" onclick="slideGenre('komedi', 'next')">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                        <div class="film-slider" id="komedi-slider"></div>
-                    </div>
+                                         <div class="slider-container">
+                         <button class="slider-btn prev-btn">
+                             <i class="fas fa-chevron-left"></i>
+                         </button>
+                         <button class="slider-btn next-btn">
+                             <i class="fas fa-chevron-right"></i>
+                         </button>
+                         <div class="film-slider" id="komedi-slider"></div>
+                     </div>
                 </div>
             </section>
             <section class="genre-section" data-genre="anime">
@@ -208,15 +194,15 @@
                     <div class="section-header">
                         <h2 class="section-title">Anime</h2>
                     </div>
-                    <div class="slider-container">
-                        <button class="slider-btn prev-btn" onclick="slideGenre('anime', 'prev')">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button class="slider-btn next-btn" onclick="slideGenre('anime', 'next')">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                        <div class="film-slider" id="anime-slider"></div>
-                    </div>
+                                         <div class="slider-container">
+                         <button class="slider-btn prev-btn">
+                             <i class="fas fa-chevron-left"></i>
+                         </button>
+                         <button class="slider-btn next-btn">
+                             <i class="fas fa-chevron-right"></i>
+                         </button>
+                         <div class="film-slider" id="anime-slider"></div>
+                     </div>
                 </div>
             </section>
             <section class="genre-section" data-genre="macera">
@@ -224,15 +210,15 @@
                     <div class="section-header">
                         <h2 class="section-title">Macera</h2>
                     </div>
-                    <div class="slider-container">
-                        <button class="slider-btn prev-btn" onclick="slideGenre('macera', 'prev')">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button class="slider-btn next-btn" onclick="slideGenre('macera', 'next')">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                        <div class="film-slider" id="macera-slider"></div>
-                    </div>
+                                         <div class="slider-container">
+                         <button class="slider-btn prev-btn">
+                             <i class="fas fa-chevron-left"></i>
+                         </button>
+                         <button class="slider-btn next-btn">
+                             <i class="fas fa-chevron-right"></i>
+                         </button>
+                         <div class="film-slider" id="macera-slider"></div>
+                     </div>
                 </div>
             </section>
             <section class="genre-section" data-genre="aksiyon">
@@ -240,15 +226,15 @@
                     <div class="section-header">
                         <h2 class="section-title">Aksiyon</h2>
                     </div>
-                    <div class="slider-container">
-                        <button class="slider-btn prev-btn" onclick="slideGenre('aksiyon', 'prev')">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button class="slider-btn next-btn" onclick="slideGenre('aksiyon', 'next')">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                        <div class="film-slider" id="aksiyon-slider"></div>
-                    </div>
+                                         <div class="slider-container">
+                         <button class="slider-btn prev-btn">
+                             <i class="fas fa-chevron-left"></i>
+                         </button>
+                         <button class="slider-btn next-btn">
+                             <i class="fas fa-chevron-right"></i>
+                         </button>
+                         <div class="film-slider" id="aksiyon-slider"></div>
+                     </div>
                 </div>
             </section>
             <section class="genre-section" data-genre="dram">
@@ -256,15 +242,15 @@
                     <div class="section-header">
                         <h2 class="section-title">Dram</h2>
                     </div>
-                    <div class="slider-container">
-                        <button class="slider-btn prev-btn" onclick="slideGenre('dram', 'prev')">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button class="slider-btn next-btn" onclick="slideGenre('dram', 'next')">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                        <div class="film-slider" id="dram-slider"></div>
-                    </div>
+                                         <div class="slider-container">
+                         <button class="slider-btn prev-btn">
+                             <i class="fas fa-chevron-left"></i>
+                         </button>
+                         <button class="slider-btn next-btn">
+                             <i class="fas fa-chevron-right"></i>
+                         </button>
+                         <div class="film-slider" id="dram-slider"></div>
+                     </div>
                 </div>
             </section>
         </div>
@@ -281,62 +267,9 @@
 
 
 
-    <link rel="stylesheet" href="../css/filmler.css">
     <script src="../js/navbar.js"></script>
     <script src="../js/filmler.js"></script>
     <script src="../js/genre-sliders.js"></script>
     <script src="../js/man.js"></script>
-    
-    <script>
-        // Filmler sayfası için özel başlatma sistemi
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Filmler sayfası yüklendi, script\'leri başlatılıyor...');
-            
-            // Script'lerin yüklenmesini bekle
-            setTimeout(() => {
-                // Filmler script'ini yeniden başlat
-                if (typeof initializeFilms === 'function') {
-                    console.log('Filmler başlatılıyor...');
-                    initializeFilms();
-                }
-                
-                // Rating script'ini yeniden başlat
-                if (typeof initializeRating === 'function') {
-                    console.log('Rating sistemi başlatılıyor...');
-                    initializeRating();
-                }
-                
-                // Genre slider'larını yeniden başlat
-                if (typeof initializeGenreSliders === 'function') {
-                    console.log('Genre slider\'ları başlatılıyor...');
-                    initializeGenreSliders();
-                }
-                
-                console.log('Filmler sayfası başlatma tamamlandı');
-            }, 1000);
-        });
-        
-        // Sayfa görünür olduğunda da kontrol et
-        document.addEventListener('visibilitychange', function() {
-            if (!document.hidden) {
-                console.log('Sayfa görünür oldu, filmleri kontrol ediyor...');
-                setTimeout(() => {
-                    if (typeof initializeFilms === 'function') {
-                        initializeFilms();
-                    }
-                }, 500);
-            }
-        });
-        
-        // Sayfa tamamen yüklendiğinde son kontrol
-        window.addEventListener('load', function() {
-            console.log('Sayfa tamamen yüklendi, son kontrol yapılıyor...');
-            setTimeout(() => {
-                if (typeof initializeFilms === 'function') {
-                    initializeFilms();
-                }
-            }, 1500);
-        });
-    </script>
 </body>
 </html>
