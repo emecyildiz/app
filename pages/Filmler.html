@@ -225,5 +225,25 @@
             </section>
         </div>
     </div>
+    <script>
+        // Ensure sliders are initialized when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Filmler page DOM loaded');
+            
+            // Initialize films after a short delay to ensure everything is loaded
+            setTimeout(() => {
+                if (typeof initializeFilms === 'function') {
+                    initializeFilms();
+                } else {
+                    console.error('initializeFilms function not found');
+                }
+            }, 500);
+        });
+        
+        // Also initialize when the page is loaded via AJAX
+        if (typeof initializeFilms === 'function') {
+            initializeFilms();
+        }
+    </script>
 </body>
 </html>
