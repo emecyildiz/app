@@ -9,11 +9,13 @@ import MovieCard from '../components/MovieCard'
 import { movieService } from '../services/movieService'
 import { useAuthStore } from '../store/authStore'
 import { useMovieStore } from '../store/movieStore'
+import { useFavoritesStore } from '../store/favoritesStore'
 
 const MovieDetail = () => {
   const { id } = useParams()
   const { isAuthenticated } = useAuthStore()
   const { rateMovie } = useMovieStore()
+  const { addToFavorites, removeFromFavorites, isFavorite } = useFavoritesStore()
   const [movie, setMovie] = useState(null)
   const [relatedMovies, setRelatedMovies] = useState([])
   const [isLoading, setIsLoading] = useState(true)
@@ -53,6 +55,19 @@ const MovieDetail = () => {
       setIsRatingModalOpen(false)
     } else {
       toast.error('Puan verilirken bir hata oluştu')
+    }
+  }
+
+  const handleFavoriteClick = () => {
+    if (!isAuthenticated) {
+      toast.error('Favorilere eklemek için giriş yapmalısınız')
+      return
+    }
+
+    if (isFavorite(movie.id)) {
+      removeFromFavorites(movie.id)
+    } else {
+      addToFavorites(movie)
     }
   }
 
@@ -170,8 +185,11 @@ const MovieDetail = () => {
                   <Star className="w-5 h-5" />
                   {userRating > 0 ? `Puanım: ${userRating}` : 'Puan Ver'}
                 </button>
-                <button className="btn btn-ghost glass">
-                  <Heart className="w-5 h-5" />
+                <button 
+                  onClick={handleFavoriteClick}
+                  className={`btn glass ${isFavorite(movie?.id) ? 'bg-red-500/20 border-red-500' : 'btn-ghost'}`}
+                >
+                  <Heart className={`w-5 h-5 ${isFavorite(movie?.id) ? 'fill-current text-red-500' : ''}`} />
                 </button>
                 <button className="btn btn-ghost glass">
                   <Share2 className="w-5 h-5" />
