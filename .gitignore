@@ -29,6 +29,16 @@ dist-ssr
 .env.development.local
 .env.test.local
 .env.production.local
+.env.development
+.env.production
+.env.staging
+
+# API Keys and Secrets
+*.key
+*.pem
+*.p12
+secrets/
+credentials/
 
 # Build files
 build/
@@ -40,3 +50,26 @@ build/
 /templates/
 /css/
 /img/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.backup
+*.bak
+*.tmp
+
+# Private data
+private/
+confidential/
+data/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# OS files
+Thumbs.db
+desktop.ini
