@@ -75,6 +75,35 @@ const Register = () => {
               )}
             </div>
 
+            {/* Username */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Kullanıcı Adı
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <input
+                  type="text"
+                  {...register('username', {
+                    required: 'Kullanıcı adı gereklidir',
+                    pattern: {
+                      value: /^[a-zA-Z0-9_]+$/,
+                      message: 'Kullanıcı adı sadece harf, rakam ve _ içerebilir',
+                    },
+                    minLength: {
+                      value: 3,
+                      message: 'Kullanıcı adı en az 3 karakter olmalıdır',
+                    },
+                  })}
+                  className="input pl-10"
+                  placeholder="johndoe"
+                />
+              </div>
+              {errors.username && (
+                <p className="mt-1 text-sm text-red-400">{errors.username.message}</p>
+              )}
+            </div>
+
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
