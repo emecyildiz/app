@@ -267,7 +267,10 @@ class CinemaHubApp {
      * Sayfa yükleme - optimize edilmiş
      */
     async loadPage(pageName) {
-        if (this.isLoading || this.currentPage === pageName) return;
+        if (this.isLoading || this.currentPage === pageName) {
+            console.log('CinemaHubApp: Skipping page load - isLoading:', this.isLoading, 'currentPage:', this.currentPage, 'requested:', pageName);
+            return;
+        }
         
         console.log('CinemaHubApp: Loading page:', pageName);
         this.isLoading = true;
@@ -399,6 +402,20 @@ class CinemaHubApp {
             document.head.insertBefore(themeLink, document.head.firstChild);
         }
         
+        // Önce eski sayfa CSS'lerini temizle (theme.css ve navbar.css hariç)
+        const existingPageCSS = document.querySelectorAll('link[rel="stylesheet"]');
+        existingPageCSS.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && !href.includes('theme.css') && !href.includes('navbar.css') && !href.includes('styles.css') && !href.includes('font-awesome')) {
+                // Sadece sayfa özel CSS'lerini kaldır
+                if (href.includes('home.css') || href.includes('filmler.css') || href.includes('hakkinda.css') || 
+                    href.includes('sidebar.css') || href.includes('profil.css') || href.includes('auth.css')) {
+                    link.remove();
+                    console.log(`Removed old CSS: ${href}`);
+                }
+            }
+        });
+        
         const cssFiles = {
             'Home': ['css/home.css'],
             'Filmler': ['css/filmler.css'],
@@ -436,6 +453,11 @@ class CinemaHubApp {
      */
     initializePageModules(pageName) {
         console.log('Initializing modules for page:', pageName);
+        
+        // Navbar'ı güncelle - her sayfa değişiminde
+        setTimeout(() => {
+            this.updateActiveNavigation(pageName);
+        }, 100);
         
         // Sayfa özel modülleri başlat
         switch(pageName.toLowerCase()) {
@@ -601,16 +623,24 @@ class CinemaHubApp {
      * Aktif navigation'ı güncelle
      */
     updateActiveNavigation(pageName) {
-        // Tüm aktif sınıfları temizle
-        document.querySelectorAll('.nav-link.active, .mobile-nav-link.active').forEach(link => {
-            link.classList.remove('active');
-        });
+        // navbar.js'deki global fonksiyonu kullan
+        if (typeof window.updateActiveNavigation === 'function') {
+            window.updateActiveNavigation(pageName);
+        } else {
+            // Fallback - eğer navbar.js yüklenmemişse
+            // Tüm aktif sınıfları temizle
+            document.querySelectorAll('.nav-link.active, .mobile-nav-link.active').forEach(link => {
+                link.classList.remove('active');
+            });
 
-        // Mevcut sayfayı aktif yap
-        const activeLinks = document.querySelectorAll(`[data-page="${pageName}"]`);
-        activeLinks.forEach(link => {
-            link.classList.add('active');
-        });
+            // Mevcut sayfayı aktif yap
+            const activeLinks = document.querySelectorAll(`[data-page="${pageName}"]`);
+            activeLinks.forEach(link => {
+                if (link.classList.contains('nav-link') || link.classList.contains('mobile-nav-link')) {
+                    link.classList.add('active');
+                }
+            });
+        }
     }
 
     /**
