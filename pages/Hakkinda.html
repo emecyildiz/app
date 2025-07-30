@@ -4,141 +4,183 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hakkında | CinemaHub</title>
-    <link rel="stylesheet" href="../templates/navbar.css">
-    <link rel="stylesheet" href="../css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Modern Sticky Navbar -->
-    <nav class="modern-navbar" id="navbar">
-        <div class="navbar-container">
-            <!-- Logo/Brand Section -->
-            <div class="navbar-brand">
-                <div class="brand-icon">
-                    <i class="fas fa-film"></i>
-                </div>
-                <span class="brand-text">CinemaHub</span>
-            </div>
-
-            <!-- Navigation Links -->
-            <div class="navbar-nav">
-                <div class="nav-links">
-                    <a href="Home.html" class="nav-link btn" data-page="Home">
-                        <i class="fas fa-home"></i>
-                        <span>Ana Sayfa</span>
-                        <div class="nav-indicator"></div>
-                    </a>
-                    <a href="Filmler.html" class="nav-link btn" data-page="Filmler">
-                        <i class="fas fa-video"></i>
-                        <span>Filmler</span>
-                        <div class="nav-indicator"></div>
-                    </a>
-                    <a href="Hakkinda.html" class="nav-link active btn" data-page="Hakkinda">
-                        <i class="fas fa-info-circle"></i>
-                        <span>Hakkında</span>
-                        <div class="nav-indicator"></div>
-                    </a>
-                    <a href="Profil.html" class="nav-link btn" data-page="Profil">
-                        <i class="fas fa-user"></i>
-                        <span>Profil</span>
-                        <div class="nav-indicator"></div>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Right Side Actions -->
-            <div class="navbar-actions">
-                <!-- Search Bar -->
-                <form action="">
-                    <input class="mini-input" type="search" placeholder="Film ara...">
-                    <i class="fa fa-search"></i>
-                </form>
-
-                <!-- User Actions -->
-                <div class="user-actions">
-                    <button class="action-btn login-btn giriş" data-page="Giriş">
-                        <i class="fas fa-sign-in-alt"></i>
-                        <span>Giriş</span>
-                    </button>
-                    <button class="action-btn register-btn giriş" data-page="Kayıt">
-                        <i class="fas fa-user-plus"></i>
-                        <span>Kayıt</span>
-                    </button>
-                </div>
-
-                <!-- Mobile Menu Toggle -->
-                <div class="mobile-menu-toggle" id="mobileToggle">
-                    <span class="hamburger-line"></span>
-                    <span class="hamburger-line"></span>
-                    <span class="hamburger-line"></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mobile Menu Overlay -->
-        <div class="mobile-menu-overlay" id="mobileMenu">
-            <div class="mobile-nav-links">
-                <!-- Mobile Search Bar -->
-                <div class="mobile-search-container">
-                    <form class="mobile-search-form">
-                        <input class="mobile-search-input" type="search" placeholder="Film ara...">
-                        <i class="fa fa-search"></i>
-                    </form>
-                </div>
-                
-                <a href="Home.html" class="mobile-nav-link btn" data-page="Home">
-                    <i class="fas fa-home"></i>
-                    <span>Ana Sayfa</span>
-                </a>
-                <a href="Filmler.html" class="mobile-nav-link btn" data-page="Filmler">
-                    <i class="fas fa-video"></i>
-                    <span>Filmler</span>
-                </a>
-                <a href="Hakkinda.html" class="mobile-nav-link active btn" data-page="Hakkinda">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Hakkında</span>
-                </a>
-                <a href="Profil.html" class="mobile-nav-link btn" data-page="Profil">
-                    <i class="fas fa-user"></i>
-                    <span>Profil</span>
-                </a>
-                <div class="mobile-actions">
-                    <button class="mobile-action-btn login-btn giriş" data-page="Giriş">
-                        <i class="fas fa-sign-in-alt"></i>
-                        <span>Giriş Yap</span>
-                    </button>
-                    <button class="mobile-action-btn register-btn giriş" data-page="Kayıt">
-                        <i class="fas fa-user-plus"></i>
-                        <span>Kayıt Ol</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </nav>
-
     <div class="page-content">
-        <div class="about-hero fade-in">
-        <img src="../img/movie.svg" alt="CinemaHub Illustration" loading="lazy">
-        <div class="about-title">CinemaHub</div>
-        <div class="about-subtitle">Film tutkunları için modern, hızlı ve kullanıcı dostu bir platform.</div>
+        <!-- Hero Section -->
+        <section class="about-hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 class="hero-title gradient-text">CinemaHub Hakkında</h1>
+                    <p class="hero-subtitle">Film tutkunlarını bir araya getiren modern platform</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mission Section -->
+        <section class="mission-section">
+            <div class="container">
+                <div class="mission-content glass-effect">
+                    <div class="mission-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h2 class="section-title">Misyonumuz</h2>
+                    <p class="mission-text">
+                        CinemaHub olarak amacımız, film severlerin deneyimlerini paylaşabileceği, 
+                        yeni filmler keşfedebileceği ve sinema kültürünü geliştirebileceği 
+                        modern ve kullanıcı dostu bir platform sunmaktır.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Story Section -->
+        <section class="story-section">
+            <div class="container">
+                <div class="story-grid">
+                    <div class="story-content">
+                        <h2 class="section-title">Hikayemiz</h2>
+                        <p>
+                            CinemaHub, 2024 yılında bir grup film tutkunu tarafından kuruldu. 
+                            Film izleme deneyimlerini paylaşmak ve yeni filmler keşfetmek için 
+                            daha iyi bir platform arayışından doğdu.
+                        </p>
+                        <p>
+                            Bugün binlerce kullanıcımızla birlikte, film dünyasının en kapsamlı 
+                            ve interaktif platformlarından biri haline geldik.
+                        </p>
+                    </div>
+                    <div class="story-image">
+                        <div class="image-placeholder glass-effect">
+                            <i class="fas fa-film"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Values Section -->
+        <section class="values-section">
+            <div class="container">
+                <h2 class="section-title">Değerlerimiz</h2>
+                <div class="values-grid">
+                    <div class="value-card glass-effect">
+                        <div class="value-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3>Topluluk</h3>
+                        <p>Film severleri bir araya getiren güçlü bir topluluk oluşturmak</p>
+                    </div>
+                    <div class="value-card glass-effect">
+                        <div class="value-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h3>Kalite</h3>
+                        <p>En kaliteli içerik ve kullanıcı deneyimini sunmak</p>
+                    </div>
+                    <div class="value-card glass-effect">
+                        <div class="value-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>Güvenilirlik</h3>
+                        <p>Objektif ve güvenilir film değerlendirmeleri sağlamak</p>
+                    </div>
+                    <div class="value-card glass-effect">
+                        <div class="value-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <h3>İnovasyon</h3>
+                        <p>Sürekli gelişen ve yenilenen bir platform olmak</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Team Section -->
+        <section class="team-section">
+            <div class="container">
+                <h2 class="section-title">Ekibimiz</h2>
+                <p class="section-subtitle">CinemaHub'ı mümkün kılan tutkulu ekip</p>
+                <div class="team-grid">
+                    <div class="team-member glass-effect">
+                        <div class="member-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h3>Ahmet Yılmaz</h3>
+                        <p class="member-role">Kurucu & CEO</p>
+                        <div class="member-socials">
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fab fa-linkedin"></i></a>
+                        </div>
+                    </div>
+                    <div class="team-member glass-effect">
+                        <div class="member-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h3>Ayşe Kaya</h3>
+                        <p class="member-role">Baş Tasarımcı</p>
+                        <div class="member-socials">
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fab fa-linkedin"></i></a>
+                        </div>
+                    </div>
+                    <div class="team-member glass-effect">
+                        <div class="member-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h3>Mehmet Demir</h3>
+                        <p class="member-role">Baş Geliştirici</p>
+                        <div class="member-socials">
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fab fa-linkedin"></i></a>
+                        </div>
+                    </div>
+                    <div class="team-member glass-effect">
+                        <div class="member-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h3>Zeynep Öz</h3>
+                        <p class="member-role">İçerik Yöneticisi</p>
+                        <div class="member-socials">
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fab fa-linkedin"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section class="contact-section">
+            <div class="container">
+                <div class="contact-content glass-effect">
+                    <h2 class="section-title">İletişime Geçin</h2>
+                    <p>Sorularınız, önerileriniz veya işbirliği teklifleriniz için bizimle iletişime geçebilirsiniz.</p>
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>info@cinemahub.com</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-phone"></i>
+                            <span>+90 555 123 45 67</span>
+                        </div>
+                        <div class="contact-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>İstanbul, Türkiye</span>
+                        </div>
+                    </div>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
-    <div class="about-content slide-in">
-        <h2>Hakkında</h2>
-        <p>
-            <b>CinemaHub</b>, en yeni ve popüler filmleri keşfetmek, favori türlerde gezinmek ve kişisel profilinizde izleme listenizi yönetmek için tasarlanmış modern bir film platformudur. Kullanıcı dostu arayüzü ve dinamik özellikleriyle, sinema deneyiminizi dijital dünyada bir üst seviyeye taşır.
-        </p>
-        <ul>
-            <li><b>Modern Tasarım:</b> Şık ve sezgisel arayüz ile kolay kullanım.</li>
-            <li><b>Film Kataloğu:</b> Farklı türlerde zengin film arşivi ve detaylı film sayfaları.</li>
-            <li><b>Kişisel Profil:</b> İzleme listenizi oluşturun, favori filmlerinizi kaydedin.</li>
-            <li><b>Mobil Uyumlu:</b> Tüm cihazlarda sorunsuz ve hızlı erişim.</li>
-        </ul>
-        <p style="margin-top:1.5rem; color:#6b7280; font-size:1rem;">
-            CinemaHub, film severler için topluluk odaklı bir deneyim sunmayı hedefler. Geliştirilmeye devam eden bu platformda, yakında daha fazla sosyal özellik ve kişiselleştirme seçenekleri de sizlerle olacak!
-        </p>
-    </div>
-    <script src="../js/navbar.js"></script>
-    <script src="../js/man.js"></script>
 </body>
 </html>

@@ -347,6 +347,10 @@ class CinemaHubApp {
      * CSS yollarını düzelt
      */
     fixCSSPaths(content) {
+        // Remove all <link> tags from the loaded content to prevent CSS conflicts
+        content = content.replace(/<link[^>]*>/g, '');
+        
+        // Fix relative paths for remaining resources
         // ../templates/navbar.css -> templates/navbar.css
         content = content.replace(/href="\.\.\/templates\//g, 'href="templates/');
         // ../css/ -> css/
@@ -355,6 +359,9 @@ class CinemaHubApp {
         content = content.replace(/src="\.\.\/js\//g, 'src="js/');
         // ../img/ -> img/
         content = content.replace(/src="\.\.\/img\//g, 'src="img/');
+        
+        // Fix any remaining ../ paths
+        content = content.replace(/="\.\.\/([^"]+)"/g, '="$1"');
         
         return content;
     }
@@ -383,6 +390,15 @@ class CinemaHubApp {
      * Sayfa özel CSS'lerini yükle
      */
     loadPageSpecificCSS(pageName) {
+        // Always ensure theme.css is loaded first
+        const themeCSS = document.querySelector('link[href="css/theme.css"]');
+        if (!themeCSS) {
+            const themeLink = document.createElement('link');
+            themeLink.rel = 'stylesheet';
+            themeLink.href = 'css/theme.css';
+            document.head.insertBefore(themeLink, document.head.firstChild);
+        }
+        
         const cssFiles = {
             'Home': ['css/home.css'],
             'Filmler': ['css/filmler.css'],
