@@ -212,8 +212,8 @@ function attachSliderButtonEvents() {
             e.preventDefault();
             e.stopPropagation();
             
-            const sliderContainer = this.closest('.slider-container');
-            const slider = sliderContainer.querySelector('.film-slider');
+            const sliderWrapper = this.closest('.film-slider-wrapper');
+            const slider = sliderWrapper.querySelector('.film-slider');
             const genre = slider.id.replace('-slider', '');
             const direction = this.classList.contains('prev-btn') ? 'prev' : 'next';
             
@@ -267,8 +267,8 @@ function slideGenre(genre, direction) {
     let currentIndex = window.genreSliders[genre].currentIndex;
 
     // Ekranda kaç kart tam olarak görünüyor?
-    const sliderContainer = slider.closest('.slider-container');
-    const containerWidth = sliderContainer.offsetWidth;
+    const sliderWrapper = slider.closest('.film-slider-wrapper');
+    const containerWidth = sliderWrapper.offsetWidth;
     const visibleCards = Math.floor((containerWidth + gap) / moveDistance);
     const maxIndex = Math.max(0, totalCards - visibleCards);
 
@@ -297,9 +297,9 @@ function slideGenre(genre, direction) {
 
 // Slider butonlarını güncelle
 function updateSliderButtons(genre, currentIndex, totalCards, visibleCards) {
-    const sliderContainer = document.querySelector(`#${genre}-slider`).closest('.slider-container');
-    const prevBtn = sliderContainer.querySelector('.prev-btn');
-    const nextBtn = sliderContainer.querySelector('.next-btn');
+    const sliderWrapper = document.querySelector(`#${genre}-slider`).closest('.film-slider-wrapper');
+    const prevBtn = sliderWrapper.querySelector('.prev-btn');
+    const nextBtn = sliderWrapper.querySelector('.next-btn');
 
     if (!prevBtn || !nextBtn) return;
 
