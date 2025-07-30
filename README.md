@@ -1,35 +1,39 @@
-# CinemaHub - Modern Film Değerlendirme Platformu
+# Film Kütüphanesi Uygulaması
 
-CinemaHub, React ve modern web teknolojileri kullanılarak geliştirilmiş, kullanıcı dostu bir film değerlendirme platformudur.
+Modern ve kullanıcı dostu bir film kütüphanesi web uygulaması. React, Vite ve Tailwind CSS kullanılarak geliştirilmiştir.
 
 ## 🚀 Özellikler
 
-- 🎬 **Geniş Film Veritabanı**: Binlerce film ve detaylı bilgiler
-- ⭐ **Puanlama Sistemi**: Filmleri 10 üzerinden puanlayın
-- 🔍 **Gelişmiş Arama**: Film adı veya türe göre arama yapın
-- 👤 **Kullanıcı Profili**: Kişisel profil ve izleme geçmişi
-- 🎨 **Modern Tasarım**: Karanlık tema ve responsive arayüz
-- ⚡ **Hızlı Performans**: Vite ile optimize edilmiş build sistemi
+- 🎬 Film arama ve listeleme
+- ⭐ Favori film yönetimi
+- 👤 Kullanıcı girişi ve kaydı
+- 📱 Responsive tasarım
+- 🌙 Modern ve şık arayüz
+- 🔍 Gelişmiş arama özellikleri
+- 📊 Film detayları ve bilgileri
 
 ## 🛠️ Teknolojiler
 
-- **Frontend Framework**: React 18
-- **Build Tool**: Vite
-- **Routing**: React Router v6
-- **State Management**: Zustand
-- **Styling**: Tailwind CSS
-- **Animations**: Framer Motion
-- **HTTP Client**: Axios
-- **Form Management**: React Hook Form
-- **Icons**: Lucide React
-- **UI Components**: Swiper, React Hot Toast
+- **Frontend Framework:** React 18
+- **Build Tool:** Vite
+- **Styling:** Tailwind CSS
+- **State Management:** Zustand
+- **Form Handling:** React Hook Form
+- **Routing:** React Router v6
+- **Icons:** React Icons
+- **HTTP Client:** Axios
 
-## 📦 Kurulum
+## 📋 Gereksinimler
+
+- Node.js (v16 veya üzeri)
+- npm veya yarn
+
+## 🔧 Kurulum
 
 1. Projeyi klonlayın:
 ```bash
-git clone https://github.com/yourusername/cinemahub.git
-cd cinemahub
+git clone [repository-url]
+cd film-kutuphanesi
 ```
 
 2. Bağımlılıkları yükleyin:
@@ -37,123 +41,98 @@ cd cinemahub
 npm install
 ```
 
-3. Geliştirme sunucusunu başlatın:
+3. Environment değişkenlerini ayarlayın:
 ```bash
-npm run dev
+cp .env.example .env
 ```
 
-4. Tarayıcınızda [http://localhost:3000](http://localhost:3000) adresini açın.
-
-## 🏗️ Proje Yapısı
-
+4. `.env` dosyasını düzenleyin ve gerekli API anahtarlarını ekleyin:
 ```
-cinemahub/
-├── src/
-│   ├── components/       # Yeniden kullanılabilir bileşenler
-│   ├── pages/           # Sayfa bileşenleri
-│   ├── services/        # API servisleri
-│   ├── store/           # Zustand store'ları
-│   ├── styles/          # Global stiller
-│   ├── utils/           # Yardımcı fonksiyonlar
-│   ├── hooks/           # Custom React hook'ları
-│   ├── assets/          # Statik dosyalar
-│   ├── App.jsx          # Ana uygulama bileşeni
-│   └── main.jsx         # Uygulama giriş noktası
-├── public/              # Statik dosyalar
-├── index.html           # HTML şablonu
-├── package.json         # Proje bağımlılıkları
-├── vite.config.js       # Vite yapılandırması
-├── tailwind.config.js   # Tailwind CSS yapılandırması
-└── README.md           # Proje dokümantasyonu
-```
-
-## 📝 Kullanılabilir Komutlar
-
-```bash
-# Geliştirme sunucusunu başlat
-npm run dev
-
-# Production build oluştur
-npm run build
-
-# Build'i önizle
-npm run preview
-
-# Kod kalitesini kontrol et
-npm run lint
-
-# Kodu formatla
-npm run format
-```
-
-## 🎨 Özelleştirme
-
-### Tema Renkleri
-
-Tema renklerini `tailwind.config.js` dosyasından özelleştirebilirsiniz:
-
-```javascript
-theme: {
-  extend: {
-    colors: {
-      primary: {
-        // Kendi renk paletinizi tanımlayın
-      }
-    }
-  }
-}
-```
-
-### API Endpoint'leri
-
-`src/services/movieService.js` dosyasındaki `USE_MOCK_DATA` değişkenini `false` yaparak gerçek API'ye bağlanabilirsiniz:
-
-```javascript
-const USE_MOCK_DATA = false; // Gerçek API kullanmak için
-```
-
-## 🔐 Çevre Değişkenleri
-
-Proje kök dizinine `.env` dosyası oluşturun:
-
-```env
-VITE_API_URL=https://api.example.com
+VITE_API_URL=your_api_url_here
 VITE_API_KEY=your_api_key_here
 ```
 
-## 🚀 Production Build
+## 🚀 Çalıştırma
 
-Production build oluşturmak için:
+### Development
+```bash
+npm run dev
+```
 
+### Production Build
 ```bash
 npm run build
 ```
 
-Build dosyaları `dist/` klasörüne oluşturulacaktır.
+### Preview Production Build
+```bash
+npm run preview
+```
 
-## 📱 Responsive Tasarım
+## 📁 Proje Yapısı
 
-Uygulama tüm cihazlarda sorunsuz çalışacak şekilde tasarlanmıştır:
-- 📱 Mobil cihazlar (320px ve üzeri)
-- 📱 Tabletler (768px ve üzeri)
-- 💻 Masaüstü (1024px ve üzeri)
+```
+film-kutuphanesi/
+├── src/
+│   ├── components/     # React bileşenleri
+│   ├── pages/         # Sayfa bileşenleri
+│   ├── services/      # API servisleri
+│   ├── store/         # State yönetimi
+│   ├── styles/        # CSS dosyaları
+│   └── utils/         # Yardımcı fonksiyonlar
+├── public/            # Statik dosyalar
+├── .env.example       # Örnek environment dosyası
+├── .gitignore        # Git ignore dosyası
+├── package.json      # Proje bağımlılıkları
+└── vite.config.js    # Vite konfigürasyonu
+```
+
+## 🔒 Güvenlik
+
+### Önemli Güvenlik Notları
+
+1. **Environment Değişkenleri:**
+   - `.env` dosyasını ASLA git'e eklemeyin
+   - Tüm hassas bilgileri (API anahtarları, şifreler) `.env` dosyasında saklayın
+   - Production'da environment değişkenlerini güvenli bir şekilde yönetin
+
+2. **API Anahtarları:**
+   - API anahtarlarınızı frontend kodunda doğrudan kullanmayın
+   - Mümkünse backend proxy kullanın
+   - CORS ayarlarını doğru yapılandırın
+
+3. **Güvenlik Kontrol Listesi:**
+   - [ ] `.env` dosyası `.gitignore`'da mı?
+   - [ ] API anahtarları gizli mi?
+   - [ ] Hassas veriler şifreleniyor mu?
+   - [ ] HTTPS kullanılıyor mu?
+   - [ ] Input validasyonu yapılıyor mu?
+
+4. **GitHub'a Yüklemeden Önce:**
+   - `.gitignore` dosyasını kontrol edin
+   - `git status` ile takip edilen dosyaları kontrol edin
+   - Hassas bilgi içeren dosyaların takip edilmediğinden emin olun
+
+## 📝 API Kullanımı
+
+Uygulama, film verilerini almak için harici bir API kullanmaktadır. API anahtarınızı `.env` dosyasına eklemeyi unutmayın.
 
 ## 🤝 Katkıda Bulunma
 
-1. Projeyi fork'layın
+1. Projeyi fork edin
 2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Değişikliklerinizi commit'leyin (`git commit -m 'Add some amazing feature'`)
-4. Branch'inizi push'layın (`git push origin feature/amazing-feature`)
+3. Değişikliklerinizi commit edin (`git commit -m 'Add some amazing feature'`)
+4. Branch'inizi push edin (`git push origin feature/amazing-feature`)
 5. Pull Request açın
 
 ## 📄 Lisans
 
-Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICENSE) dosyasına bakın.
+Bu proje MIT lisansı altında lisanslanmıştır.
 
 ## 👥 İletişim
 
-Proje Linki: [https://github.com/yourusername/cinemahub](https://github.com/yourusername/cinemahub)
+Proje ile ilgili sorularınız için issue açabilirsiniz.
 
 ---
 
-Made with ❤️ by CinemaHub Team 
+**Not:** Bu proje eğitim amaçlı geliştirilmiştir. Production kullanımı için ek güvenlik önlemleri alınmalıdır. 
