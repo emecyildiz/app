@@ -1,8 +1,23 @@
 import { Link } from 'react-router-dom'
-import { Star, Calendar, Clock } from 'lucide-react'
+import { Star, Calendar, Clock, Heart } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useFavoritesStore } from '../store/favoritesStore'
 
-const MovieCard = ({ movie, index = 0 }) => {
+const MovieCard = ({ movie, index = 0, showFavoriteButton = true }) => {
+  const { addToFavorites, removeFromFavorites, isFavorite } = useFavoritesStore()
+  const isMovieFavorite = isFavorite(movie.id)
+
+  const handleFavoriteClick = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (isMovieFavorite) {
+      removeFromFavorites(movie.id)
+    } else {
+      addToFavorites(movie)
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -29,6 +44,24 @@ const MovieCard = ({ movie, index = 0 }) => {
               <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
               <span className="text-white font-semibold text-sm">{movie.rating.toFixed(1)}</span>
             </div>
+
+            {/* Favorite Button */}
+            {showFavoriteButton && (
+              <button
+                onClick={handleFavoriteClick}
+                className={`absolute top-3 left-3 p-2 rounded-full transition-all duration-300 ${
+                  isMovieFavorite
+                    ? 'bg-red-500/90 opacity-100'
+                    : 'bg-black/50 opacity-0 group-hover:opacity-100 hover:bg-red-500/90'
+                }`}
+              >
+                <Heart
+                  className={`w-4 h-4 transition-colors ${
+                    isMovieFavorite ? 'text-white fill-current' : 'text-white'
+                  }`}
+                />
+              </button>
+            )}
           </div>
 
           {/* Content */}
