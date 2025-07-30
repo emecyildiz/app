@@ -89,12 +89,14 @@ class CinemaHubApp {
 
     handleFilmsPage() {
         console.log('Films page handler called');
-        // Filmler sayfası için özel işlemler
-        if (typeof initializeFilms === 'function') {
-            setTimeout(() => {
-                initializeFilms();
-            }, 200);
-        }
+        // Filmler sayfası için özel işlemler - FilmsModule kullan
+        setTimeout(() => {
+            if (this.modules.has('films')) {
+                const filmsModule = this.modules.get('films');
+                filmsModule.init();
+                console.log('Films module initialized successfully');
+            }
+        }, 200);
     }
 
     handleGeneralPage() {
@@ -159,31 +161,16 @@ class CinemaHubApp {
             return;
         }
         
-        // Genre butonları
+        // Genre butonları - FilmsModule handles this
         if (target.closest('.genre-tab')) {
-            const btn = target.closest('.genre-tab');
-            const genre = btn.getAttribute('data-genre');
-            if (genre) {
-                if (typeof showGenre === 'function') {
-                    showGenre(genre);
-                }
-                return;
-            }
+            // Let FilmsModule handle genre tab clicks
+            return;
         }
         
-        // Slider butonları
+        // Slider butonları - FilmsModule handles this
         if (target.closest('.slider-btn')) {
-            const btn = target.closest('.slider-btn');
-            const direction = btn.classList.contains('prev-btn') ? 'prev' : 'next';
-            const sliderContainer = btn.closest('.slider-container');
-            const slider = sliderContainer.querySelector('.film-slider');
-            if (slider) {
-                const genre = slider.id.replace('-slider', '');
-                if (typeof slideGenre === 'function') {
-                    slideGenre(genre, direction);
-                }
-                return;
-            }
+            // Let FilmsModule handle slider button clicks
+            return;
         }
     }
 
