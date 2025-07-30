@@ -31,8 +31,7 @@ const MovieDetail = () => {
         setRelatedMovies(related.movies.filter((m) => m.id !== parseInt(id)))
         setUserRating(movieData.userRating || 0)
       } catch (error) {
-        console.error('Failed to fetch movie:', error)
-        toast.error('Film yüklenirken bir hata oluştu')
+        toast.error('Film detayları yüklenirken bir hata oluştu')
       } finally {
         setIsLoading(false)
       }

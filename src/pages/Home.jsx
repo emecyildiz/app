@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { ArrowRight, TrendingUp, Star, Film } from 'lucide-react'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay, Pagination, Navigation } from 'swiper/modules'
+import toast from 'react-hot-toast'
 import 'swiper/css'
 import 'swiper/css/pagination'
 import 'swiper/css/navigation'
@@ -27,7 +28,7 @@ const Home = () => {
         setTrendingMovies(trending)
         setFeaturedMovies(featured.movies)
       } catch (error) {
-        console.error('Failed to fetch movies:', error)
+        toast.error('Filmler yüklenirken bir hata oluştu')
       } finally {
         setIsLoading(false)
       }

@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { useAuthStore } from './store/authStore'
@@ -5,15 +6,16 @@ import { useAuthStore } from './store/authStore'
 // Layout components
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
+import LoadingSpinner from './components/LoadingSpinner'
 
-// Pages
-import Home from './pages/Home'
-import Movies from './pages/Movies'
-import MovieDetail from './pages/MovieDetail'
-import About from './pages/About'
-import Profile from './pages/Profile'
-import Login from './pages/Login'
-import Register from './pages/Register'
+// Lazy load pages
+const Home = lazy(() => import('./pages/Home'))
+const Movies = lazy(() => import('./pages/Movies'))
+const MovieDetail = lazy(() => import('./pages/MovieDetail'))
+const About = lazy(() => import('./pages/About'))
+const Profile = lazy(() => import('./pages/Profile'))
+const Login = lazy(() => import('./pages/Login'))
+const Register = lazy(() => import('./pages/Register'))
 
 function App() {
   const { isAuthenticated } = useAuthStore()
@@ -34,22 +36,50 @@ function App() {
       
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="movies" element={<Movies />} />
-          <Route path="movies/:id" element={<MovieDetail />} />
-          <Route path="about" element={<About />} />
+          <Route index element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <Home />
+            </Suspense>
+          } />
+          <Route path="movies" element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <Movies />
+            </Suspense>
+          } />
+          <Route path="movies/:id" element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <MovieDetail />
+            </Suspense>
+          } />
+          <Route path="about" element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <About />
+            </Suspense>
+          } />
           <Route
             path="profile"
             element={
               <ProtectedRoute>
-                <Profile />
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <Profile />
+                </Suspense>
               </ProtectedRoute>
             }
           />
         </Route>
         
-        <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login />} />
-        <Route path="/register" element={isAuthenticated ? <Navigate to="/" /> : <Register />} />
+        <Route path="/login" element={
+          isAuthenticated ? <Navigate to="/" /> : 
+          <Suspense fallback={<LoadingSpinner fullScreen />}>
+            <Login />
+          </Suspense>
+        } />
+        <Route path="/register" element={
+          isAuthenticated ? <Navigate to="/" /> : 
+          <Suspense fallback={<LoadingSpinner fullScreen />}>
+            <Register />
+          </Suspense>
+        } />
       </Routes>
     </Router>
   )
