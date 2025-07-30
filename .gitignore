@@ -30,7 +30,13 @@ dist-ssr
 .env.test.local
 .env.production.local
 
-# Temporary files
-*.tmp
-*.temp
-.cache
+# Build files
+build/
+.cache/
+
+# Old files (to be removed)
+/js/
+/pages/
+/templates/
+/css/
+/img/
