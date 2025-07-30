@@ -15,7 +15,13 @@ function loadPage(page){
         if(page == "Filmler") {
             // Initialize film slider after DOM is ready
             setTimeout(() => {
-                initializeFilmSlider();
+                if (typeof initializeFilms === 'function') {
+                    initializeFilms();
+                } else if (typeof initializeFilmSlider === 'function') {
+                    initializeFilmSlider();
+                } else {
+                    console.error('Film initialization function not found');
+                }
             }, 100);
         } else if(page == "Profil"){
             // Load sidebar CSS if not already loaded
