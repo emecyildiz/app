@@ -10,9 +10,15 @@ class FilmsModule {
         this.currentGenre = 'all';
         this.sliders = new Map();
         this.renderedCards = new Set();
+        // Guard flag to avoid multiple initializations when navigating
+        this.initialized = false;
     }
 
     init() {
+        // Prevent duplicate initialization (e.g. when navigating back & forth)
+        if (this.initialized) return;
+        this.initialized = true;
+
         this.setupEventDelegation();
         this.loadFilmCards();
         this.initializeGenreTabs();
@@ -23,7 +29,7 @@ class FilmsModule {
      * Film verilerini başlat
      */
     initializeFilmData() {
-        return {
+        const data = {
             romantik: [
                 { id: 1, title: "Titanic", year: 1997, rating: 8.5, image: "../img/kom.png", genre: "Romantik", reviews: 1250000 },
                 { id: 2, title: "La La Land", year: 2016, rating: 8.0, image: "../img/han.png", genre: "Romantik", reviews: 450000 },
@@ -67,6 +73,21 @@ class FilmsModule {
                 { id: 28, title: "Schindler's List", year: 1993, rating: 8.9, image: "../img/terr.png", genre: "Dram", reviews: 1400000 }
             ]
         };
+
+        // Ensure we have enough items (≥10) for a smooth slider experience in each genre
+        Object.keys(data).forEach((genre) => {
+            const baseArr = [...data[genre]];
+            let cloneIndex = 0;
+            while (data[genre].length < 10) {
+                const baseFilm = baseArr[cloneIndex % baseArr.length];
+                const clonedFilm = { ...baseFilm };
+                clonedFilm.id = `${genre}-${Date.now()}-${cloneIndex}`;
+                data[genre].push(clonedFilm);
+                cloneIndex += 1;
+            }
+        });
+
+        return data;
     }
 
     /**
@@ -188,9 +209,15 @@ class FilmsModule {
         card.className = 'film-card';
         card.setAttribute('data-film-id', film.id);
         
+        // Gracefully support both "image" and legacy "img" properties and fix relative path issues
+        let imgSrc = film.image || film.img || '';
+        if (imgSrc.startsWith('../')) {
+            imgSrc = imgSrc.replace(/^\.\.\//, ''); // "../img/x.png" -> "img/x.png"
+        }
+
         card.innerHTML = `
             <div class="film-poster">
-                <img src="${film.image}" alt="${film.title}" loading="lazy">
+                <img src="${imgSrc}" alt="${film.title}" loading="lazy">
             </div>
             <div class="film-details">
                 <div class="film-info">
