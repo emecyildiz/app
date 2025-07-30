@@ -1,3 +1,10 @@
+/* Filmler Page Specific Styles */
+
+/* Page Content */
+.page-content {
+    margin-top: 70px;
+}
+
 /* Modern Films Page Styles */
 .films-page {
     min-height: 100vh;
@@ -47,21 +54,16 @@
     font-size: 1.8rem;
     font-weight: 600;
     color: #1f2937;
-
     margin-bottom: 0.5rem;
-
 }
 
 /* Genre Sections */
 .genre-section {
-
     margin-bottom: 2.5rem;
-
 }
 
 .genre-section:last-of-type {
     margin-bottom: 2rem;
-
 }
 
 .section-header {
@@ -155,6 +157,7 @@
     align-items: stretch;
 }
 
+/* Film Cards */
 .film-card {
     width: 200px;
     background: #f3e5c3;
@@ -199,14 +202,11 @@
     filter: brightness(1.05);
 }
 
-
-
 .film-details {
     padding: 1rem;
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     background: #f3e5c3;
 }
 
@@ -258,9 +258,6 @@
     font-weight: 500;
 }
 
-/* Rating Modal */
-
-
 /* Tür Navbarı */
 .film-genre-navbar {
     display: flex;
@@ -275,6 +272,7 @@
     border-bottom: 1px solid #e5e7eb;
     margin-bottom: 1.5rem;
 }
+
 .film-genre-navbar .genre-tab {
     background: none;
     border: none;
@@ -286,21 +284,253 @@
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
 }
+
 .film-genre-navbar .genre-tab.active,
 .film-genre-navbar .genre-tab:hover {
     background: linear-gradient(135deg, #3b82f6 60%, #1e40af 100%);
     color: #fff;
 }
-@media (max-width: 600px) {
-    .film-genre-navbar {
-        gap: 0.5rem;
-        padding: 0.5rem 0.2rem;
-        font-size: 0.95rem;
-    }
-    .film-genre-navbar .genre-tab {
-        padding: 0.4rem 0.7rem;
-        font-size: 0.95rem;
-    }
+
+/* Genre Tabs */
+.genre-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+    padding: 0 1rem;
+}
+
+.genre-tab {
+    padding: 0.8rem 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 25px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+}
+
+.genre-tab:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.genre-tab.active {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    border-color: #3b82f6;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+}
+
+/* Film Slider Container */
+.film-slider-container {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.slider-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 2rem 0;
+}
+
+.slider-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 0.8rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.slider-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.slider-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Film Cards */
+.film-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    min-width: 200px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+}
+
+.film-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.film-card img {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.film-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+}
+
+.film-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.film-year {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+
+.film-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: #fbbf24;
+    font-size: 0.9rem;
+}
+
+.film-genre {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Rating Modal */
+.rating-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.rating-modal.active {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: background 0.3s ease;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.rating-stars {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem 0;
+    justify-content: center;
+}
+
+.star {
+    font-size: 2rem;
+    color: #374151;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.star:hover,
+.star.active {
+    color: #fbbf24;
+}
+
+.rating-form {
+    margin-top: 1.5rem;
+}
+
+.rating-form textarea {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+}
+
+.rating-form textarea::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.submit-rating {
+    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 1rem;
+    transition: all 0.3s ease;
+}
+
+.submit-rating:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
 }
 
 /* Responsive Design */
@@ -353,6 +583,44 @@
 
     .slider-btn.next-btn {
         right: 5px;
+    }
+    
+    .genre-tabs {
+        gap: 0.5rem;
+    }
+    
+    .genre-tab {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .film-slider {
+        gap: 1rem;
+    }
+    
+    .film-card {
+        min-width: 160px;
+    }
+    
+    .film-card img {
+        height: 220px;
+    }
+    
+    .modal-content {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .film-genre-navbar {
+        gap: 0.5rem;
+        padding: 0.5rem 0.2rem;
+        font-size: 0.95rem;
+    }
+    .film-genre-navbar .genre-tab {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.95rem;
     }
 }
 
@@ -421,12 +689,14 @@
     gap: 2rem 1.5rem;
     padding: 1.5rem 0 0.5rem 0;
 }
+
 @media (max-width: 900px) {
     .film-grid {
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 1.2rem 0.7rem;
     }
 }
+
 @media (max-width: 600px) {
     .film-grid {
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));

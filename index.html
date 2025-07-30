@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="templates/navbar.css">
+    <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/auth.css">
     <style>
         /* Default content area styling */
@@ -65,6 +66,7 @@
             margin-bottom: 1rem;
             background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         .welcome-message p {
@@ -250,20 +252,7 @@
 
     <!-- Main Content Area -->
     <div id="content">
-        <div class="welcome-message">
-            <h1>CinemaHub'a Hoş Geldiniz</h1>
-            <p>Binlerce film arasından seçim yapın ve yeni favorilerinizi keşfedin.</p>
-            <div class="welcome-buttons">
-                <button class="welcome-btn primary" data-page="Home">
-                    <i class="fas fa-home"></i>
-                    Ana Sayfaya Git
-                </button>
-                <button class="welcome-btn secondary" data-page="Filmler">
-                    <i class="fas fa-video"></i>
-                    Filmleri Keşfet
-                </button>
-            </div>
-        </div>
+        <!-- Content will be loaded here dynamically -->
     </div>
 
     <style>
@@ -281,6 +270,7 @@
             margin-bottom: 1rem;
             background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         
@@ -349,12 +339,16 @@
     <!-- Optimized CSS -->
     <link rel="stylesheet" href="css/optimized.css">
     
-    <!-- Optimized JavaScript -->
+    <!-- JavaScript Files -->
+    <script src="js/navbar.js"></script>
+    <script src="js/man.js"></script>
+    <script src="js/sidebar.js"></script>
+    <script src="js/login.js"></script>
+    <script src="js/register.js"></script>
+    <!-- Module files for CinemaHubApp -->
     <script src="js/modules/navigation.js"></script>
     <script src="js/modules/films.js"></script>
     <script src="js/modules/ui.js"></script>
-    <script src="js/login.js"></script>
-    <script src="js/register.js"></script>
     <script src="js/app.js"></script>
     
     <script>
@@ -364,9 +358,12 @@
         // Uygulama başlatma kontrolü
         document.addEventListener('DOMContentLoaded', function() {
             try {
-                app = new CinemaHubApp();
-                window.app = app;
-                console.log('CinemaHub app initialized successfully');
+                // Wait for all scripts to load before initializing
+                setTimeout(() => {
+                    app = new CinemaHubApp();
+                    window.app = app;
+                    console.log('CinemaHub app initialized successfully');
+                }, 200);
             } catch (error) {
                 console.error('CinemaHub app failed to initialize:', error);
             }

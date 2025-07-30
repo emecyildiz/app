@@ -19,12 +19,22 @@ class CinemaHubApp {
      * Uygulamayı başlat
      */
     init() {
+        console.log('CinemaHubApp: Initializing...');
         this.setupEventDelegation();
         this.loadModules();
         this.setupInitialStyles();
         this.registerPageHandlers();
-        // Başlangıçta Home sayfasını yükle
-        this.loadPage('Home');
+        
+        // DOM hazır olduğunda Home sayfasını yükle
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log('CinemaHubApp: Loading Home page...');
+                this.loadPage('Home');
+            });
+        } else {
+            console.log('CinemaHubApp: Loading Home page...');
+            this.loadPage('Home');
+        }
     }
 
     /**
@@ -79,9 +89,11 @@ class CinemaHubApp {
 
     handleFilmsPage() {
         console.log('Films page handler called');
-        // Film sayfası özel işlemleri
-        if (this.modules.has('films')) {
-            this.modules.get('films').init();
+        // Filmler sayfası için özel işlemler
+        if (typeof initializeFilms === 'function') {
+            setTimeout(() => {
+                initializeFilms();
+            }, 200);
         }
     }
 
@@ -102,7 +114,11 @@ class CinemaHubApp {
             const pageName = pageElement.getAttribute('data-page');
             if (pageName) {
                 event.preventDefault();
+                console.log('CinemaHubApp: Loading page via click:', pageName);
                 this.loadPage(pageName);
+                
+                // Update active navigation
+                this.updateActiveNavigation(pageName);
                 return;
             }
         }
@@ -144,11 +160,13 @@ class CinemaHubApp {
         }
         
         // Genre butonları
-        if (target.closest('.genre-btn')) {
-            const btn = target.closest('.genre-btn');
+        if (target.closest('.genre-tab')) {
+            const btn = target.closest('.genre-tab');
             const genre = btn.getAttribute('data-genre');
             if (genre) {
-                this.handleGenreFilter(genre);
+                if (typeof showGenre === 'function') {
+                    showGenre(genre);
+                }
                 return;
             }
         }
@@ -156,10 +174,14 @@ class CinemaHubApp {
         // Slider butonları
         if (target.closest('.slider-btn')) {
             const btn = target.closest('.slider-btn');
-            const direction = btn.classList.contains('prev') ? 'prev' : 'next';
-            const slider = btn.closest('.slider-container');
+            const direction = btn.classList.contains('prev-btn') ? 'prev' : 'next';
+            const sliderContainer = btn.closest('.slider-container');
+            const slider = sliderContainer.querySelector('.film-slider');
             if (slider) {
-                this.handleSliderNavigation(slider, direction);
+                const genre = slider.id.replace('-slider', '');
+                if (typeof slideGenre === 'function') {
+                    slideGenre(genre, direction);
+                }
                 return;
             }
         }
@@ -260,12 +282,14 @@ class CinemaHubApp {
     async loadPage(pageName) {
         if (this.isLoading || this.currentPage === pageName) return;
         
-        console.log('Loading page:', pageName);
+        console.log('CinemaHubApp: Loading page:', pageName);
         this.isLoading = true;
         this.showLoading();
 
         try {
+            console.log('CinemaHubApp: Fetching page content...');
             const content = await this.fetchPageContent(pageName);
+            console.log('CinemaHubApp: Content fetched, length:', content.length);
             this.updateContent(content);
             this.applyPageStyles(pageName);
             this.initializePageModules(pageName);
@@ -273,9 +297,10 @@ class CinemaHubApp {
             
             // Navigation'ı güncelle
             this.updateActiveNavigation(pageName);
+            console.log('CinemaHubApp: Page loaded successfully:', pageName);
             
         } catch (error) {
-            console.error('Page load error:', error);
+            console.error('CinemaHubApp: Page load error:', error);
             this.showError('Sayfa yüklenirken bir hata oluştu');
         } finally {
             this.hideLoading();
@@ -293,13 +318,18 @@ class CinemaHubApp {
             return this.cache.get(cacheKey);
         }
 
-        const response = await fetch(`/pages/${pageName}.html`);
+        const response = await fetch(`pages/${pageName}.html`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
         const content = await response.text();
-        this.cache.set(cacheKey, content);
         
-        return content;
+        // Extract only the body content to avoid nested HTML structure
+        const bodyMatch = content.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+        const extractedContent = bodyMatch ? bodyMatch[1] : content;
+        
+        this.cache.set(cacheKey, extractedContent);
+        
+        return extractedContent;
     }
 
     /**
@@ -309,10 +339,13 @@ class CinemaHubApp {
         const contentElement = document.getElementById('content');
         if (!contentElement) return;
 
+        // CSS yollarını düzelt
+        const fixedContent = this.fixCSSPaths(content);
+
         // DocumentFragment kullanarak performansı artır
         const fragment = document.createDocumentFragment();
         const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = content;
+        tempDiv.innerHTML = fixedContent;
         
         while (tempDiv.firstChild) {
             fragment.appendChild(tempDiv.firstChild);
@@ -321,6 +354,22 @@ class CinemaHubApp {
         // Tek seferde DOM güncelle
         contentElement.innerHTML = '';
         contentElement.appendChild(fragment);
+    }
+
+    /**
+     * CSS yollarını düzelt
+     */
+    fixCSSPaths(content) {
+        // ../templates/navbar.css -> templates/navbar.css
+        content = content.replace(/href="\.\.\/templates\//g, 'href="templates/');
+        // ../css/ -> css/
+        content = content.replace(/href="\.\.\/css\//g, 'href="css/');
+        // ../js/ -> js/
+        content = content.replace(/src="\.\.\/js\//g, 'src="js/');
+        // ../img/ -> img/
+        content = content.replace(/src="\.\.\/img\//g, 'src="img/');
+        
+        return content;
     }
 
     /**
@@ -338,6 +387,45 @@ class CinemaHubApp {
 
         const style = styles[pageName] || styles.Home;
         Object.assign(document.body.style, style);
+        
+        // Sayfa özel CSS'lerini yükle
+        this.loadPageSpecificCSS(pageName);
+    }
+
+    /**
+     * Sayfa özel CSS'lerini yükle
+     */
+    loadPageSpecificCSS(pageName) {
+        const cssFiles = {
+            'Home': ['css/home.css'],
+            'Filmler': ['css/filmler.css'],
+            'Hakkinda': ['css/hakkinda.css'],
+            'Profil': ['css/sidebar.css', 'css/profil.css'],
+            'Giriş': ['css/auth.css'],
+            'Kayıt': ['css/auth.css']
+        };
+
+        const filesToLoad = cssFiles[pageName] || [];
+        
+        filesToLoad.forEach(cssFile => {
+            // CSS dosyasının zaten yüklenip yüklenmediğini kontrol et
+            const existingLink = document.querySelector(`link[href="${cssFile}"]`);
+            if (!existingLink) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = cssFile;
+                link.id = `css-${pageName.toLowerCase()}`;
+                
+                // CSS yüklendiğinde console'a log yaz
+                link.onload = () => console.log(`CSS loaded successfully: ${cssFile}`);
+                link.onerror = () => console.error(`Failed to load CSS: ${cssFile}`);
+                
+                document.head.appendChild(link);
+                console.log(`Loading CSS: ${cssFile}`);
+            } else {
+                console.log(`CSS already loaded: ${cssFile}`);
+            }
+        });
     }
 
     /**
