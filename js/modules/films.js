@@ -25,46 +25,46 @@ class FilmsModule {
     initializeFilmData() {
         return {
             romantik: [
-                { id: 1, title: "Titanic", year: 1997, rating: 8.5, image: "../img/kom.png", genre: "Romantik", reviews: 1250000 },
-                { id: 2, title: "La La Land", year: 2016, rating: 8.0, image: "../img/han.png", genre: "Romantik", reviews: 450000 },
-                { id: 3, title: "500 Days of Summer", year: 2009, rating: 7.7, image: "../img/nine.png", genre: "Romantik", reviews: 380000 },
-                { id: 4, title: "The Notebook", year: 2004, rating: 7.8, image: "../img/terr.png", genre: "Romantik", reviews: 520000 }
+                { id: 1, title: "Titanic", year: 1997, rating: 8.5, image: "img/kom.png", genre: "Romantik", reviews: 1250000 },
+                { id: 2, title: "La La Land", year: 2016, rating: 8.0, image: "img/han.png", genre: "Romantik", reviews: 450000 },
+                { id: 3, title: "500 Days of Summer", year: 2009, rating: 7.7, image: "img/nine.png", genre: "Romantik", reviews: 380000 },
+                { id: 4, title: "The Notebook", year: 2004, rating: 7.8, image: "img/terr.png", genre: "Romantik", reviews: 520000 }
             ],
             korku: [
-                { id: 5, title: "The Shining", year: 1980, rating: 8.4, image: "../img/kom.png", genre: "Korku", reviews: 890000 },
-                { id: 6, title: "A Nightmare on Elm Street", year: 1984, rating: 7.5, image: "../img/han.png", genre: "Korku", reviews: 320000 },
-                { id: 7, title: "Halloween", year: 1978, rating: 7.7, image: "../img/nine.png", genre: "Korku", reviews: 280000 },
-                { id: 8, title: "The Exorcist", year: 1973, rating: 8.0, image: "../img/terr.png", genre: "Korku", reviews: 410000 }
+                { id: 5, title: "The Shining", year: 1980, rating: 8.4, image: "img/kom.png", genre: "Korku", reviews: 890000 },
+                { id: 6, title: "A Nightmare on Elm Street", year: 1984, rating: 7.5, image: "img/han.png", genre: "Korku", reviews: 320000 },
+                { id: 7, title: "Halloween", year: 1978, rating: 7.7, image: "img/nine.png", genre: "Korku", reviews: 280000 },
+                { id: 8, title: "The Exorcist", year: 1973, rating: 8.0, image: "img/terr.png", genre: "Korku", reviews: 410000 }
             ],
             komedi: [
-                { id: 9, title: "The Hangover", year: 2009, rating: 7.7, image: "../img/kom.png", genre: "Komedi", reviews: 680000 },
-                { id: 10, title: "Superbad", year: 2007, rating: 7.6, image: "../img/han.png", genre: "Komedi", reviews: 420000 },
-                { id: 11, title: "Bridesmaids", year: 2011, rating: 6.8, image: "../img/nine.png", genre: "Komedi", reviews: 310000 },
-                { id: 12, title: "The 40-Year-Old Virgin", year: 2005, rating: 7.3, image: "../img/terr.png", genre: "Komedi", reviews: 380000 }
+                { id: 9, title: "The Hangover", year: 2009, rating: 7.7, image: "img/kom.png", genre: "Komedi", reviews: 680000 },
+                { id: 10, title: "Superbad", year: 2007, rating: 7.6, image: "img/han.png", genre: "Komedi", reviews: 420000 },
+                { id: 11, title: "Bridesmaids", year: 2011, rating: 6.8, image: "img/nine.png", genre: "Komedi", reviews: 310000 },
+                { id: 12, title: "The 40-Year-Old Virgin", year: 2005, rating: 7.3, image: "img/terr.png", genre: "Komedi", reviews: 380000 }
             ],
             anime: [
-                { id: 13, title: "Spirited Away", year: 2001, rating: 8.6, image: "../img/kom.png", genre: "Anime", reviews: 720000 },
-                { id: 14, title: "My Neighbor Totoro", year: 1988, rating: 8.2, image: "../img/han.png", genre: "Anime", reviews: 280000 },
-                { id: 15, title: "Akira", year: 1988, rating: 8.0, image: "../img/nine.png", genre: "Anime", reviews: 190000 },
-                { id: 16, title: "Ghost in the Shell", year: 1995, rating: 8.0, image: "../img/terr.png", genre: "Anime", reviews: 210000 }
+                { id: 13, title: "Spirited Away", year: 2001, rating: 8.6, image: "img/kom.png", genre: "Anime", reviews: 720000 },
+                { id: 14, title: "My Neighbor Totoro", year: 1988, rating: 8.2, image: "img/han.png", genre: "Anime", reviews: 280000 },
+                { id: 15, title: "Akira", year: 1988, rating: 8.0, image: "img/nine.png", genre: "Anime", reviews: 190000 },
+                { id: 16, title: "Ghost in the Shell", year: 1995, rating: 8.0, image: "img/terr.png", genre: "Anime", reviews: 210000 }
             ],
             macera: [
-                { id: 17, title: "Indiana Jones", year: 1981, rating: 8.4, image: "../img/kom.png", genre: "Macera", reviews: 950000 },
-                { id: 18, title: "The Mummy", year: 1999, rating: 7.0, image: "../img/han.png", genre: "Macera", reviews: 420000 },
-                { id: 19, title: "National Treasure", year: 2004, rating: 6.9, image: "../img/nine.png", genre: "Macera", reviews: 380000 },
-                { id: 20, title: "The Goonies", year: 1985, rating: 7.8, image: "../img/terr.png", genre: "Macera", reviews: 310000 }
+                { id: 17, title: "Indiana Jones", year: 1981, rating: 8.4, image: "img/kom.png", genre: "Macera", reviews: 950000 },
+                { id: 18, title: "The Mummy", year: 1999, rating: 7.0, image: "img/han.png", genre: "Macera", reviews: 420000 },
+                { id: 19, title: "National Treasure", year: 2004, rating: 6.9, image: "img/nine.png", genre: "Macera", reviews: 380000 },
+                { id: 20, title: "The Goonies", year: 1985, rating: 7.8, image: "img/terr.png", genre: "Macera", reviews: 310000 }
             ],
             aksiyon: [
-                { id: 21, title: "Die Hard", year: 1988, rating: 8.2, image: "../img/kom.png", genre: "Aksiyon", reviews: 780000 },
-                { id: 22, title: "Mad Max: Fury Road", year: 2015, rating: 8.1, image: "../img/han.png", genre: "Aksiyon", reviews: 890000 },
-                { id: 23, title: "John Wick", year: 2014, rating: 7.4, image: "../img/nine.png", genre: "Aksiyon", reviews: 520000 },
-                { id: 24, title: "The Matrix", year: 1999, rating: 8.7, image: "../img/terr.png", genre: "Aksiyon", reviews: 1800000 }
+                { id: 21, title: "Die Hard", year: 1988, rating: 8.2, image: "img/kom.png", genre: "Aksiyon", reviews: 780000 },
+                { id: 22, title: "Mad Max: Fury Road", year: 2015, rating: 8.1, image: "img/han.png", genre: "Aksiyon", reviews: 890000 },
+                { id: 23, title: "John Wick", year: 2014, rating: 7.4, image: "img/nine.png", genre: "Aksiyon", reviews: 520000 },
+                { id: 24, title: "The Matrix", year: 1999, rating: 8.7, image: "img/terr.png", genre: "Aksiyon", reviews: 1800000 }
             ],
             dram: [
-                { id: 25, title: "The Shawshank Redemption", year: 1994, rating: 9.3, image: "../img/kom.png", genre: "Dram", reviews: 2500000 },
-                { id: 26, title: "Forrest Gump", year: 1994, rating: 8.8, image: "../img/han.png", genre: "Dram", reviews: 1200000 },
-                { id: 27, title: "The Green Mile", year: 1999, rating: 8.6, image: "../img/nine.png", genre: "Dram", reviews: 1100000 },
-                { id: 28, title: "Schindler's List", year: 1993, rating: 8.9, image: "../img/terr.png", genre: "Dram", reviews: 1400000 }
+                { id: 25, title: "The Shawshank Redemption", year: 1994, rating: 9.3, image: "img/kom.png", genre: "Dram", reviews: 2500000 },
+                { id: 26, title: "Forrest Gump", year: 1994, rating: 8.8, image: "img/han.png", genre: "Dram", reviews: 1200000 },
+                { id: 27, title: "The Green Mile", year: 1999, rating: 8.6, image: "img/nine.png", genre: "Dram", reviews: 1100000 },
+                { id: 28, title: "Schindler's List", year: 1993, rating: 8.9, image: "img/terr.png", genre: "Dram", reviews: 1400000 }
             ]
         };
     }
@@ -214,11 +214,22 @@ class FilmsModule {
      * Genre tab'larını başlat
      */
     initializeGenreTabs() {
+        console.log('Initializing genre tabs...');
         const genreTabs = document.querySelectorAll('.genre-tab');
+        console.log('Found genre tabs:', genreTabs.length);
+        
         genreTabs.forEach(tab => {
+            // Remove existing listeners to prevent duplicates
+            tab.replaceWith(tab.cloneNode(true));
+        });
+        
+        // Re-select after cloning
+        const newGenreTabs = document.querySelectorAll('.genre-tab');
+        newGenreTabs.forEach(tab => {
             tab.addEventListener('click', (event) => {
                 event.preventDefault();
                 const genre = tab.getAttribute('data-genre');
+                console.log('Genre tab clicked:', genre);
                 this.showGenre(genre);
             });
         });
@@ -248,7 +259,18 @@ class FilmsModule {
      * Tüm türleri göster
      */
     showAllGenres() {
-        document.querySelectorAll('.genre-section').forEach(section => {
+        const allGenresSection = document.getElementById('all-genres-section');
+        const singleGenreSection = document.querySelector('.single-genre-section');
+        
+        if (allGenresSection) {
+            allGenresSection.style.display = 'block';
+        }
+        if (singleGenreSection) {
+            singleGenreSection.style.display = 'none';
+        }
+        
+        // Tüm genre section'ları göster
+        document.querySelectorAll('.genre-section[data-genre]').forEach(section => {
             section.style.display = 'block';
         });
         
@@ -262,14 +284,31 @@ class FilmsModule {
      * Tek tür göster
      */
     showSingleGenre(genre) {
-        document.querySelectorAll('.genre-section').forEach(section => {
+        const allGenresSection = document.getElementById('all-genres-section');
+        const singleGenreSection = document.querySelector('.single-genre-section');
+        
+        if (allGenresSection) {
+            allGenresSection.style.display = 'none';
+        }
+        if (singleGenreSection) {
+            singleGenreSection.style.display = 'block';
+        }
+        
+        // Sadece seçilen genre'ı göster
+        document.querySelectorAll('.genre-section[data-genre]').forEach(section => {
             section.style.display = section.getAttribute('data-genre') === genre ? 'block' : 'none';
         });
 
         // Grid görünümü için film kartlarını yeniden render et
         const gridContainer = document.getElementById('active-genre-grid');
-        if (gridContainer) {
+        const titleElement = document.getElementById('active-genre-title');
+        
+        if (gridContainer && this.filmData[genre]) {
             this.renderFilmGrid(genre, gridContainer);
+        }
+        
+        if (titleElement) {
+            titleElement.textContent = genre.charAt(0).toUpperCase() + genre.slice(1);
         }
     }
 
@@ -355,7 +394,13 @@ class FilmSlider {
         this.module = module;
         this.currentIndex = 0;
         this.itemsPerView = this.calculateItemsPerView();
-        this.totalItems = this.element.children.length;
+        
+        // Wait for content to be loaded before calculating totalItems
+        setTimeout(() => {
+            this.totalItems = this.element.children.length;
+            console.log(`Slider initialized for ${genre}: ${this.totalItems} items, ${this.itemsPerView} per view`);
+            this.updateSliderButtons();
+        }, 100);
         
         this.init();
     }
@@ -374,19 +419,25 @@ class FilmSlider {
     }
 
     slide(direction) {
+        const maxIndex = Math.max(0, this.totalItems - this.itemsPerView);
+        
         if (direction === 'prev') {
             this.currentIndex = Math.max(0, this.currentIndex - 1);
         } else {
-            this.currentIndex = Math.min(this.totalItems - this.itemsPerView, this.currentIndex + 1);
+            this.currentIndex = Math.min(maxIndex, this.currentIndex + 1);
         }
         
+        console.log(`Sliding ${direction}: currentIndex=${this.currentIndex}, maxIndex=${maxIndex}`);
         this.updateTransform();
         this.updateSliderButtons();
     }
 
     updateTransform() {
-        const translateX = -this.currentIndex * (200 + 24); // card width + gap
+        const cardWidth = 200; // Fixed card width from CSS
+        const gap = 24; // 1.5rem gap from CSS
+        const translateX = -this.currentIndex * (cardWidth + gap);
         this.element.style.transform = `translateX(${translateX}px)`;
+        this.element.style.transition = 'transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)';
     }
 
     updateSliderButtons() {
