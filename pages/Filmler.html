@@ -6,268 +6,224 @@
     <title>Filmler | CinemaHub</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../templates/navbar.css">
-    <link rel="stylesheet" href="../css/styles.css">
-    <link rel="stylesheet" href="../css/filmler.css">
 </head>
 <body>
-    <!-- Modern Sticky Navbar -->
-    <nav class="modern-navbar" id="navbar">
-        <div class="navbar-container">
-            <!-- Logo/Brand Section -->
-            <div class="navbar-brand">
-                <div class="brand-icon">
-                    <i class="fas fa-film"></i>
-                </div>
-                <span class="brand-text">CinemaHub</span>
-            </div>
-
-            <!-- Navigation Links -->
-            <div class="navbar-nav">
-                <div class="nav-links">
-                    <a href="Home.html" class="nav-link btn" data-page="Home">
-                        <i class="fas fa-home"></i>
-                        <span>Ana Sayfa</span>
-                        <div class="nav-indicator"></div>
-                    </a>
-                    <a href="Filmler.html" class="nav-link active btn" data-page="Filmler">
-                        <i class="fas fa-video"></i>
-                        <span>Filmler</span>
-                        <div class="nav-indicator"></div>
-                    </a>
-                    <a href="Hakkinda.html" class="nav-link btn" data-page="Hakkinda">
-                        <i class="fas fa-info-circle"></i>
-                        <span>Hakkında</span>
-                        <div class="nav-indicator"></div>
-                    </a>
-                    <a href="Profil.html" class="nav-link btn" data-page="Profil">
-                        <i class="fas fa-user"></i>
-                        <span>Profil</span>
-                        <div class="nav-indicator"></div>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Right Side Actions -->
-            <div class="navbar-actions">
-                <!-- Search Bar -->
-                <form action="">
-                    <input class="mini-input" type="search" placeholder="Film ara...">
-                    <i class="fa fa-search"></i>
-                </form>
-
-                <!-- User Actions -->
-                <div class="user-actions">
-                    <button class="action-btn login-btn giriş" data-page="Giriş">
-                        <i class="fas fa-sign-in-alt"></i>
-                        <span>Giriş</span>
-                    </button>
-                    <button class="action-btn register-btn giriş" data-page="Kayıt">
-                        <i class="fas fa-user-plus"></i>
-                        <span>Kayıt</span>
-                    </button>
-                </div>
-
-                <!-- Mobile Menu Toggle -->
-                <div class="mobile-menu-toggle" id="mobileToggle">
-                    <span class="hamburger-line"></span>
-                    <span class="hamburger-line"></span>
-                    <span class="hamburger-line"></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Mobile Menu Overlay -->
-        <div class="mobile-menu-overlay" id="mobileMenu">
-            <div class="mobile-nav-links">
-                <!-- Mobile Search Bar -->
-                <div class="mobile-search-container">
-                    <form class="mobile-search-form">
-                        <input class="mobile-search-input" type="search" placeholder="Film ara...">
-                        <i class="fa fa-search"></i>
-                    </form>
-                </div>
-                
-                <a href="Home.html" class="mobile-nav-link btn" data-page="Home">
-                    <i class="fas fa-home"></i>
-                    <span>Ana Sayfa</span>
-                </a>
-                <a href="Filmler.html" class="mobile-nav-link active btn" data-page="Filmler">
-                    <i class="fas fa-video"></i>
-                    <span>Filmler</span>
-                </a>
-                <a href="Hakkinda.html" class="mobile-nav-link btn" data-page="Hakkinda">
-                    <i class="fas fa-info-circle"></i>
-                    <span>Hakkında</span>
-                </a>
-                <a href="Profil.html" class="mobile-nav-link btn" data-page="Profil">
-                    <i class="fas fa-user"></i>
-                    <span>Profil</span>
-                </a>
-                <div class="mobile-actions">
-                    <button class="mobile-action-btn login-btn giriş" data-page="Giriş">
-                        <i class="fas fa-sign-in-alt"></i>
-                        <span>Giriş Yap</span>
-                    </button>
-                    <button class="mobile-action-btn register-btn giriş" data-page="Kayıt">
-                        <i class="fas fa-user-plus"></i>
-                        <span>Kayıt Ol</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </nav>
-
     <div class="page-content">
-        <!-- Tür Navbarı -->
-        <nav class="film-genre-navbar">
-        <button class="genre-tab active" data-genre="all">Tümü</button>
-        <button class="genre-tab" data-genre="romantik">Romantik</button>
-        <button class="genre-tab" data-genre="korku">Korku</button>
-        <button class="genre-tab" data-genre="komedi">Komedi</button>
-        <button class="genre-tab" data-genre="anime">Anime</button>
-        <button class="genre-tab" data-genre="macera">Macera</button>
-        <button class="genre-tab" data-genre="aksiyon">Aksiyon</button>
-        <button class="genre-tab" data-genre="dram">Dram</button>
-    </nav>
-    <!-- Modern Film Page -->
-    <div class="films-page">
         <!-- Hero Section -->
         <section class="hero-section">
-            <div class="hero-content">
-                <h1 class="hero-title">Film Değerlendirme</h1>
+            <div class="container">
+                <div class="hero-content">
+                    <h1 class="gradient-text">Film Koleksiyonu</h1>
+                    <p>En sevilen filmleri keşfedin ve değerlendirin</p>
+                </div>
             </div>
         </section>
-        <!-- Tüm türler görünümü -->
-        <div id="all-genres-section">
-            <!-- Her tür için bir şerit -->
-            <section class="genre-section" data-genre="romantik">
-                <div class="container">
-                    <div class="section-header">
-                        <h2 class="section-title">Romantik</h2>
-                    </div>
-                                         <div class="slider-container">
-                         <button class="slider-btn prev-btn">
-                             <i class="fas fa-chevron-left"></i>
-                         </button>
-                         <button class="slider-btn next-btn">
-                             <i class="fas fa-chevron-right"></i>
-                         </button>
-                         <div class="film-slider" id="romantik-slider"></div>
-                     </div>
+
+        <!-- Genre Navigation -->
+        <nav class="genre-navbar">
+            <div class="container">
+                <div class="genre-tabs">
+                    <button class="genre-tab active" data-genre="all">
+                        <i class="fas fa-th"></i>
+                        Tümü
+                    </button>
+                    <button class="genre-tab" data-genre="romantik">
+                        <i class="fas fa-heart"></i>
+                        Romantik
+                    </button>
+                    <button class="genre-tab" data-genre="korku">
+                        <i class="fas fa-ghost"></i>
+                        Korku
+                    </button>
+                    <button class="genre-tab" data-genre="komedi">
+                        <i class="fas fa-laugh"></i>
+                        Komedi
+                    </button>
+                    <button class="genre-tab" data-genre="anime">
+                        <i class="fas fa-dragon"></i>
+                        Anime
+                    </button>
+                    <button class="genre-tab" data-genre="macera">
+                        <i class="fas fa-compass"></i>
+                        Macera
+                    </button>
+                    <button class="genre-tab" data-genre="aksiyon">
+                        <i class="fas fa-bolt"></i>
+                        Aksiyon
+                    </button>
+                    <button class="genre-tab" data-genre="dram">
+                        <i class="fas fa-theater-masks"></i>
+                        Dram
+                    </button>
                 </div>
-            </section>
-            <section class="genre-section" data-genre="korku">
+            </div>
+        </nav>
+
+        <!-- Films Content -->
+        <div class="films-content">
+            <!-- All Genres View -->
+            <div id="all-genres-section" class="all-genres">
+                <!-- Romantik Films -->
+                <section class="genre-section" data-genre="romantik">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2 class="section-title">Romantik Filmler</h2>
+                            <p class="section-subtitle">Aşk dolu hikayeler</p>
+                        </div>
+                        <div class="film-slider-wrapper">
+                            <button class="slider-btn prev-btn" aria-label="Önceki">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="film-slider" id="romantik-slider">
+                                <!-- Film cards will be dynamically inserted here -->
+                            </div>
+                            <button class="slider-btn next-btn" aria-label="Sonraki">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Korku Films -->
+                <section class="genre-section" data-genre="korku">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2 class="section-title">Korku Filmleri</h2>
+                            <p class="section-subtitle">Gerilim dolu anlar</p>
+                        </div>
+                        <div class="film-slider-wrapper">
+                            <button class="slider-btn prev-btn" aria-label="Önceki">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="film-slider" id="korku-slider">
+                                <!-- Film cards will be dynamically inserted here -->
+                            </div>
+                            <button class="slider-btn next-btn" aria-label="Sonraki">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Komedi Films -->
+                <section class="genre-section" data-genre="komedi">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2 class="section-title">Komedi Filmleri</h2>
+                            <p class="section-subtitle">Kahkaha garantili</p>
+                        </div>
+                        <div class="film-slider-wrapper">
+                            <button class="slider-btn prev-btn" aria-label="Önceki">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="film-slider" id="komedi-slider">
+                                <!-- Film cards will be dynamically inserted here -->
+                            </div>
+                            <button class="slider-btn next-btn" aria-label="Sonraki">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Anime Films -->
+                <section class="genre-section" data-genre="anime">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2 class="section-title">Anime Filmleri</h2>
+                            <p class="section-subtitle">Japon animasyon sanatı</p>
+                        </div>
+                        <div class="film-slider-wrapper">
+                            <button class="slider-btn prev-btn" aria-label="Önceki">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="film-slider" id="anime-slider">
+                                <!-- Film cards will be dynamically inserted here -->
+                            </div>
+                            <button class="slider-btn next-btn" aria-label="Sonraki">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Macera Films -->
+                <section class="genre-section" data-genre="macera">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2 class="section-title">Macera Filmleri</h2>
+                            <p class="section-subtitle">Heyecan dolu yolculuklar</p>
+                        </div>
+                        <div class="film-slider-wrapper">
+                            <button class="slider-btn prev-btn" aria-label="Önceki">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="film-slider" id="macera-slider">
+                                <!-- Film cards will be dynamically inserted here -->
+                            </div>
+                            <button class="slider-btn next-btn" aria-label="Sonraki">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Aksiyon Films -->
+                <section class="genre-section" data-genre="aksiyon">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2 class="section-title">Aksiyon Filmleri</h2>
+                            <p class="section-subtitle">Adrenalin patlaması</p>
+                        </div>
+                        <div class="film-slider-wrapper">
+                            <button class="slider-btn prev-btn" aria-label="Önceki">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="film-slider" id="aksiyon-slider">
+                                <!-- Film cards will be dynamically inserted here -->
+                            </div>
+                            <button class="slider-btn next-btn" aria-label="Sonraki">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Dram Films -->
+                <section class="genre-section" data-genre="dram">
+                    <div class="container">
+                        <div class="section-header">
+                            <h2 class="section-title">Dram Filmleri</h2>
+                            <p class="section-subtitle">Duygu yüklü hikayeler</p>
+                        </div>
+                        <div class="film-slider-wrapper">
+                            <button class="slider-btn prev-btn" aria-label="Önceki">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="film-slider" id="dram-slider">
+                                <!-- Film cards will be dynamically inserted here -->
+                            </div>
+                            <button class="slider-btn next-btn" aria-label="Sonraki">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Single Genre View -->
+            <section class="single-genre-section" style="display:none;">
                 <div class="container">
                     <div class="section-header">
-                        <h2 class="section-title">Korku</h2>
+                        <h2 class="section-title" id="active-genre-title">Tüm Filmler</h2>
+                        <p class="section-subtitle" id="active-genre-subtitle">Koleksiyonumuzdaki tüm filmler</p>
                     </div>
-                                         <div class="slider-container">
-                         <button class="slider-btn prev-btn">
-                             <i class="fas fa-chevron-left"></i>
-                         </button>
-                         <button class="slider-btn next-btn">
-                             <i class="fas fa-chevron-right"></i>
-                         </button>
-                         <div class="film-slider" id="korku-slider"></div>
-                     </div>
-                </div>
-            </section>
-            <section class="genre-section" data-genre="komedi">
-                <div class="container">
-                    <div class="section-header">
-                        <h2 class="section-title">Komedi</h2>
+                    <div class="film-grid" id="active-genre-grid">
+                        <!-- Film cards will be dynamically inserted here -->
                     </div>
-                                         <div class="slider-container">
-                         <button class="slider-btn prev-btn">
-                             <i class="fas fa-chevron-left"></i>
-                         </button>
-                         <button class="slider-btn next-btn">
-                             <i class="fas fa-chevron-right"></i>
-                         </button>
-                         <div class="film-slider" id="komedi-slider"></div>
-                     </div>
-                </div>
-            </section>
-            <section class="genre-section" data-genre="anime">
-                <div class="container">
-                    <div class="section-header">
-                        <h2 class="section-title">Anime</h2>
-                    </div>
-                                         <div class="slider-container">
-                         <button class="slider-btn prev-btn">
-                             <i class="fas fa-chevron-left"></i>
-                         </button>
-                         <button class="slider-btn next-btn">
-                             <i class="fas fa-chevron-right"></i>
-                         </button>
-                         <div class="film-slider" id="anime-slider"></div>
-                     </div>
-                </div>
-            </section>
-            <section class="genre-section" data-genre="macera">
-                <div class="container">
-                    <div class="section-header">
-                        <h2 class="section-title">Macera</h2>
-                    </div>
-                                         <div class="slider-container">
-                         <button class="slider-btn prev-btn">
-                             <i class="fas fa-chevron-left"></i>
-                         </button>
-                         <button class="slider-btn next-btn">
-                             <i class="fas fa-chevron-right"></i>
-                         </button>
-                         <div class="film-slider" id="macera-slider"></div>
-                     </div>
-                </div>
-            </section>
-            <section class="genre-section" data-genre="aksiyon">
-                <div class="container">
-                    <div class="section-header">
-                        <h2 class="section-title">Aksiyon</h2>
-                    </div>
-                                         <div class="slider-container">
-                         <button class="slider-btn prev-btn">
-                             <i class="fas fa-chevron-left"></i>
-                         </button>
-                         <button class="slider-btn next-btn">
-                             <i class="fas fa-chevron-right"></i>
-                         </button>
-                         <div class="film-slider" id="aksiyon-slider"></div>
-                     </div>
-                </div>
-            </section>
-            <section class="genre-section" data-genre="dram">
-                <div class="container">
-                    <div class="section-header">
-                        <h2 class="section-title">Dram</h2>
-                    </div>
-                                         <div class="slider-container">
-                         <button class="slider-btn prev-btn">
-                             <i class="fas fa-chevron-left"></i>
-                         </button>
-                         <button class="slider-btn next-btn">
-                             <i class="fas fa-chevron-right"></i>
-                         </button>
-                         <div class="film-slider" id="dram-slider"></div>
-                     </div>
                 </div>
             </section>
         </div>
-        <!-- Tekli tür görünümü -->
-        <section class="genre-section single-genre-section" style="display:none;">
-            <div class="container">
-                <div class="section-header">
-                    <h2 class="section-title" id="active-genre-title">Romantik</h2>
-                </div>
-                <div class="film-grid" id="active-genre-grid"></div>
-            </div>
-        </section>
     </div>
-
-
-
-    <script src="../js/navbar.js"></script>
-    <script src="../js/man.js"></script>
 </body>
 </html>
