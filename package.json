@@ -19,6 +19,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "axios": "^1.6.2",
     "framer-motion": "^10.16.16",
     "lucide-react": "^0.294.0",
