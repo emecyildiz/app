@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Film, Home, Info, User, LogIn, UserPlus, Search, Menu, X, LogOut } from 'lucide-react'
+import { Film, Home, Info, User, LogIn, UserPlus, Search, Menu, X, LogOut, Shield } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
 
 const Navbar = () => {
@@ -34,6 +34,7 @@ const Navbar = () => {
     { path: '/movies', label: 'Filmler', icon: Film },
     { path: '/about', label: 'Hakkında', icon: Info },
     ...(isAuthenticated ? [{ path: '/profile', label: 'Profil', icon: User }] : []),
+    ...((user?.role === 'admin' || user?.role === 'operator') ? [{ path: '/admin', label: 'Admin Panel', icon: Shield }] : []),
   ]
 
   return (
@@ -109,6 +110,12 @@ const Navbar = () => {
                       className="w-8 h-8 rounded-full"
                     />
                     <span className="font-medium">{user?.name}</span>
+                    {user?.role === 'admin' && (
+                      <span className="px-2 py-0.5 text-xs bg-red-600 text-white rounded-full">Admin</span>
+                    )}
+                    {user?.role === 'operator' && (
+                      <span className="px-2 py-0.5 text-xs bg-blue-600 text-white rounded-full">Operatör</span>
+                    )}
                   </Link>
                   <button
                     onClick={logout}
