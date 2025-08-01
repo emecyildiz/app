@@ -5,6 +5,7 @@ const useMovieStore = create((set, get) => ({
   movies: [],
   genres: [],
   selectedGenre: null,
+  selectedActor: null,
   searchQuery: '',
   isLoading: false,
   error: null,
@@ -54,9 +55,20 @@ const useMovieStore = create((set, get) => ({
     }
   },
 
+  // Filter by actor
+  filterByActor: async (actor, page = 1) => {
+    set({ isLoading: true, error: null, selectedActor: actor })
+    try {
+      const { movies, totalPages } = await movieService.getMoviesByActor(actor, page)
+      set({ movies, totalPages, currentPage: page, isLoading: false })
+    } catch (error) {
+      set({ error: error.message, isLoading: false })
+    }
+  },
+
   // Clear filters
   clearFilters: () => {
-    set({ selectedGenre: null, searchQuery: '' })
+    set({ selectedGenre: null, selectedActor: null, searchQuery: '' })
     get().fetchMovies(1)
   },
 

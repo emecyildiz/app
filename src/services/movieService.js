@@ -78,6 +78,30 @@ class MovieService {
     return response.data
   }
 
+  async getMoviesByActor(actor, page = 1, limit = 12) {
+    if (USE_MOCK_DATA) {
+      const filteredMovies = mockMovies.filter((movie) =>
+        movie.cast.some((castMember) => 
+          castMember.toLowerCase().includes(actor.toLowerCase())
+        )
+      )
+      const start = (page - 1) * limit
+      const end = start + limit
+      const paginatedMovies = filteredMovies.slice(start, end)
+      
+      return {
+        movies: paginatedMovies,
+        totalPages: Math.ceil(filteredMovies.length / limit),
+        currentPage: page,
+      }
+    }
+
+    const response = await this.apiClient.get('/movies', {
+      params: { actor: actor, page, limit },
+    })
+    return response.data
+  }
+
   async searchMovies(query, page = 1, limit = 12) {
     if (USE_MOCK_DATA) {
       const searchResults = mockMovies.filter((movie) =>
@@ -134,6 +158,22 @@ class MovieService {
     }
 
     const response = await this.apiClient.get(`/users/${userId}/recommendations`)
+    return response.data
+  }
+
+  async getAllActors() {
+    if (USE_MOCK_DATA) {
+      // Extract all unique actors from all movies
+      const actorsSet = new Set()
+      mockMovies.forEach(movie => {
+        movie.cast.forEach(actor => {
+          actorsSet.add(actor)
+        })
+      })
+      return Array.from(actorsSet).sort()
+    }
+
+    const response = await this.apiClient.get('/actors')
     return response.data
   }
 }

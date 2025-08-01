@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Search, Filter, X } from 'lucide-react'
+import { Search, Filter, X, User } from 'lucide-react'
 
 import MovieCard from '../components/MovieCard'
 import LoadingSpinner from '../components/LoadingSpinner'
 import { useMovieStore } from '../store/movieStore'
+import { movieService } from '../services/movieService'
 
 const Movies = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const [showFilters, setShowFilters] = useState(false)
   const [localSearchQuery, setLocalSearchQuery] = useState('')
+  const [actors, setActors] = useState([])
   
   const {
     movies,
@@ -19,30 +21,45 @@ const Movies = () => {
     currentPage,
     totalPages,
     selectedGenre,
+    selectedActor,
     searchQuery,
     fetchMovies,
     fetchGenres,
     searchMovies,
     filterByGenre,
+    filterByActor,
     clearFilters,
   } = useMovieStore()
 
   useEffect(() => {
     fetchGenres()
+    loadActors()
     
     // Check URL params
     const search = searchParams.get('search')
     const genre = searchParams.get('genre')
+    const actor = searchParams.get('actor')
     
     if (search) {
       setLocalSearchQuery(search)
       searchMovies(search)
     } else if (genre) {
       filterByGenre(genre)
+    } else if (actor) {
+      filterByActor(actor)
     } else {
       fetchMovies(1)
     }
   }, [searchParams])
+
+  const loadActors = async () => {
+    try {
+      const actorsList = await movieService.getAllActors()
+      setActors(actorsList)
+    } catch (error) {
+      console.error('Failed to load actors:', error)
+    }
+  }
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -69,11 +86,25 @@ const Movies = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const handleActorFilter = (actor) => {
+    if (actor) {
+      setSearchParams({ actor: actor })
+      filterByActor(actor)
+    } else {
+      setSearchParams({})
+      clearFilters()
+    }
+    // Scroll to top after filter change
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   const handlePageChange = (page) => {
     if (searchQuery) {
       searchMovies(searchQuery, page)
     } else if (selectedGenre) {
       filterByGenre(selectedGenre, page)
+    } else if (selectedActor) {
+      filterByActor(selectedActor, page)
     } else {
       fetchMovies(page)
     }
@@ -97,6 +128,8 @@ const Movies = () => {
               ? `"${searchQuery}" için arama sonuçları`
               : selectedGenre
               ? `${genres.find((g) => g.id === parseInt(selectedGenre))?.name || ''} filmleri`
+              : selectedActor
+              ? `${selectedActor} filmlerinde`
               : 'Tüm filmler'}
           </p>
         </motion.div>
@@ -135,7 +168,7 @@ const Movies = () => {
               <span>Filtreler</span>
             </button>
             
-            {(searchQuery || selectedGenre) && (
+            {(searchQuery || selectedGenre || selectedActor) && (
               <button
                 onClick={() => {
                   setSearchParams({})
@@ -150,39 +183,62 @@ const Movies = () => {
             )}
           </div>
 
-          {/* Genre Filters */}
+          {/* Genre and Actor Filters */}
           {showFilters && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="glass rounded-xl p-6"
+              className="glass rounded-xl p-6 space-y-6"
             >
-              <h3 className="text-white font-semibold mb-4">Türler</h3>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => handleGenreFilter(null)}
-                  className={`px-4 py-2 rounded-lg transition-all ${
-                    !selectedGenre
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-dark-300 text-gray-300 hover:bg-dark-400'
-                  }`}
-                >
-                  Tümü
-                </button>
-                {genres.map((genre) => (
+              {/* Genre Filters */}
+              <div>
+                <h3 className="text-white font-semibold mb-4">Türler</h3>
+                <div className="flex flex-wrap gap-2">
                   <button
-                    key={genre.id}
-                    onClick={() => handleGenreFilter(genre.id)}
+                    onClick={() => handleGenreFilter(null)}
                     className={`px-4 py-2 rounded-lg transition-all ${
-                      selectedGenre === genre.id
+                      !selectedGenre
                         ? 'bg-primary-500 text-white'
                         : 'bg-dark-300 text-gray-300 hover:bg-dark-400'
                     }`}
                   >
-                    {genre.name}
+                    Tümü
                   </button>
-                ))}
+                  {genres.map((genre) => (
+                    <button
+                      key={genre.id}
+                      onClick={() => handleGenreFilter(genre.id)}
+                      className={`px-4 py-2 rounded-lg transition-all ${
+                        selectedGenre == genre.id
+                          ? 'bg-primary-500 text-white'
+                          : 'bg-dark-300 text-gray-300 hover:bg-dark-400'
+                      }`}
+                    >
+                      {genre.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actor Filters */}
+              <div>
+                <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  Oyuncular
+                </h3>
+                <select
+                  value={selectedActor || ''}
+                  onChange={(e) => handleActorFilter(e.target.value)}
+                  className="w-full md:w-auto px-4 py-2 rounded-lg bg-dark-300 border border-dark-500 text-gray-100 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
+                >
+                  <option value="">Tüm Oyuncular</option>
+                  {actors.map((actor) => (
+                    <option key={actor} value={actor}>
+                      {actor}
+                    </option>
+                  ))}
+                </select>
               </div>
             </motion.div>
           )}
