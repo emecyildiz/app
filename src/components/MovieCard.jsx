@@ -18,6 +18,14 @@ const MovieCard = ({ movie, index = 0, showFavoriteButton = true }) => {
     }
   }
 
+  const handleMovieClick = () => {
+    // Scroll to top when movie is clicked
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    })
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -25,7 +33,7 @@ const MovieCard = ({ movie, index = 0, showFavoriteButton = true }) => {
       transition={{ duration: 0.5, delay: index * 0.1 }}
       className="group relative"
     >
-      <Link to={`/movies/${movie.id}`} className="block">
+      <Link to={`/movies/${movie.id}`} className="block" onClick={handleMovieClick}>
         <div className="relative overflow-hidden rounded-xl bg-dark-200 transition-all duration-300 hover:transform hover:scale-[1.02]">
           {/* Poster */}
           <div className="aspect-[2/3] overflow-hidden">

@@ -49,6 +49,8 @@ const Movies = () => {
     if (localSearchQuery.trim()) {
       setSearchParams({ search: localSearchQuery })
       searchMovies(localSearchQuery)
+      // Scroll to top after search
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } else {
       setSearchParams({})
       clearFilters()
@@ -63,6 +65,8 @@ const Movies = () => {
       setSearchParams({})
       clearFilters()
     }
+    // Scroll to top after filter change
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handlePageChange = (page) => {
@@ -73,6 +77,8 @@ const Movies = () => {
     } else {
       fetchMovies(page)
     }
+    // Scroll to top after page change
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   return (
