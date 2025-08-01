@@ -16,6 +16,8 @@ const About = lazy(() => import('./pages/About'))
 const Profile = lazy(() => import('./pages/Profile'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
+const AdminUserEdit = lazy(() => import('./pages/AdminUserEdit'))
 
 function App() {
   const { isAuthenticated } = useAuthStore()
@@ -62,6 +64,26 @@ function App() {
               <ProtectedRoute>
                 <Suspense fallback={<LoadingSpinner fullScreen />}>
                   <Profile />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="admin"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <AdminDashboard />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="admin/user/:userId"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <AdminUserEdit />
                 </Suspense>
               </ProtectedRoute>
             }
