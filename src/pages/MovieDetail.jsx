@@ -91,7 +91,7 @@ const MovieDetail = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-[70vh] min-h-[500px]">
+      <section className="relative h-[80vh] min-h-[600px] pt-16">
         {/* Background */}
         <div className="absolute inset-0">
           <img
@@ -103,7 +103,7 @@ const MovieDetail = () => {
         </div>
 
         {/* Back Button */}
-        <div className="absolute top-20 left-4 z-10">
+        <div className="absolute top-24 left-4 z-10">
           <Link
             to="/movies"
             className="btn btn-ghost glass"
@@ -115,13 +115,13 @@ const MovieDetail = () => {
 
         {/* Content */}
         <div className="relative h-full container mx-auto px-4 flex items-end pb-12">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full items-end">
             {/* Poster */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="hidden lg:block"
+              className="hidden lg:block -mb-20"
             >
               <img
                 src={movie.poster}
@@ -201,7 +201,7 @@ const MovieDetail = () => {
       </section>
 
       {/* Details Section */}
-      <section className="py-12 bg-dark-100">
+      <section className="py-12 bg-dark-100 lg:pt-24">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Main Info */}
