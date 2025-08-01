@@ -22,6 +22,14 @@ const MovieDetail = () => {
   const [userRating, setUserRating] = useState(0)
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false)
 
+  // Scroll to top when component mounts or movie ID changes
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'instant' // Use instant for page navigation
+    })
+  }, [id])
+
   useEffect(() => {
     const fetchMovieData = async () => {
       try {
