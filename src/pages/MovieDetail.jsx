@@ -111,7 +111,7 @@ const MovieDetail = () => {
         </div>
 
         {/* Back Button */}
-        <div className="absolute top-24 left-4 z-10">
+        <div className="absolute top-20 left-4 z-10">
           <Link
             to="/movies"
             className="btn btn-ghost glass"
