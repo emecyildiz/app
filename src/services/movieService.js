@@ -18,7 +18,6 @@ class MovieService {
 
   async getMovies(page = 1, limit = 12) {
     if (USE_MOCK_DATA) {
-      // Simulate pagination with mock data
       const start = (page - 1) * limit
       const end = start + limit
       const paginatedMovies = mockMovies.slice(start, end)
@@ -30,10 +29,15 @@ class MovieService {
       }
     }
 
-    const response = await this.apiClient.get('/movies', {
-      params: { page, limit },
-    })
-    return response.data
+    try {
+      const response = await this.apiClient.get('/api/movies', {
+        params: { page, limit },
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error fetching movies:', error)
+      throw new Error('Filmler yüklenirken bir hata oluştu')
+    }
   }
 
   async getMovieById(id) {
@@ -43,8 +47,13 @@ class MovieService {
       return movie
     }
 
-    const response = await this.apiClient.get(`/movies/${id}`)
-    return response.data
+    try {
+      const response = await this.apiClient.get(`/api/movies/${id}`)
+      return response.data
+    } catch (error) {
+      console.error('Error fetching movie:', error)
+      throw new Error('Film detayları yüklenirken bir hata oluştu')
+    }
   }
 
   async getGenres() {
@@ -52,54 +61,13 @@ class MovieService {
       return mockGenres
     }
 
-    const response = await this.apiClient.get('/genres')
-    return response.data
-  }
-
-  async getMoviesByGenre(genreId, page = 1, limit = 12) {
-    if (USE_MOCK_DATA) {
-      const filteredMovies = mockMovies.filter((movie) =>
-        movie.genres.some((g) => g.id === parseInt(genreId))
-      )
-      const start = (page - 1) * limit
-      const end = start + limit
-      const paginatedMovies = filteredMovies.slice(start, end)
-      
-      return {
-        movies: paginatedMovies,
-        totalPages: Math.ceil(filteredMovies.length / limit),
-        currentPage: page,
-      }
+    try {
+      const response = await this.apiClient.get('/api/genres')
+      return response.data
+    } catch (error) {
+      console.error('Error fetching genres:', error)
+      return mockGenres // Fallback to mock data
     }
-
-    const response = await this.apiClient.get('/movies', {
-      params: { genre: genreId, page, limit },
-    })
-    return response.data
-  }
-
-  async getMoviesByActor(actor, page = 1, limit = 12) {
-    if (USE_MOCK_DATA) {
-      const filteredMovies = mockMovies.filter((movie) =>
-        movie.cast.some((castMember) => 
-          castMember.toLowerCase().includes(actor.toLowerCase())
-        )
-      )
-      const start = (page - 1) * limit
-      const end = start + limit
-      const paginatedMovies = filteredMovies.slice(start, end)
-      
-      return {
-        movies: paginatedMovies,
-        totalPages: Math.ceil(filteredMovies.length / limit),
-        currentPage: page,
-      }
-    }
-
-    const response = await this.apiClient.get('/movies', {
-      params: { actor: actor, page, limit },
-    })
-    return response.data
   }
 
   async searchMovies(query, page = 1, limit = 12) {
@@ -119,62 +87,31 @@ class MovieService {
       }
     }
 
-    const response = await this.apiClient.get('/movies/search', {
-      params: { q: query, page, limit },
-    })
-    return response.data
-  }
-
-  async rateMovie(movieId, rating) {
-    if (USE_MOCK_DATA) {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      return { success: true, rating }
+    try {
+      const response = await this.apiClient.get('/api/movies/search', {
+        params: { q: query, page, limit },
+      })
+      return response.data
+    } catch (error) {
+      console.error('Error searching movies:', error)
+      throw new Error('Arama yapılırken bir hata oluştu')
     }
-
-    const response = await this.apiClient.post(`/movies/${movieId}/rate`, {
-      rating,
-    })
-    return response.data
   }
 
   async getTrendingMovies() {
     if (USE_MOCK_DATA) {
-      // Return top 10 movies sorted by rating
       return mockMovies
         .sort((a, b) => b.rating - a.rating)
         .slice(0, 10)
     }
 
-    const response = await this.apiClient.get('/movies/trending')
-    return response.data
-  }
-
-  async getRecommendedMovies(userId) {
-    if (USE_MOCK_DATA) {
-      // Return random 6 movies as recommendations
-      const shuffled = [...mockMovies].sort(() => 0.5 - Math.random())
-      return shuffled.slice(0, 6)
+    try {
+      const response = await this.apiClient.get('/api/movies/trending')
+      return response.data
+    } catch (error) {
+      console.error('Error fetching trending movies:', error)
+      return mockMovies.slice(0, 10) // Fallback
     }
-
-    const response = await this.apiClient.get(`/users/${userId}/recommendations`)
-    return response.data
-  }
-
-  async getAllActors() {
-    if (USE_MOCK_DATA) {
-      // Extract all unique actors from all movies
-      const actorsSet = new Set()
-      mockMovies.forEach(movie => {
-        movie.cast.forEach(actor => {
-          actorsSet.add(actor)
-        })
-      })
-      return Array.from(actorsSet).sort()
-    }
-
-    const response = await this.apiClient.get('/actors')
-    return response.data
   }
 }
 
