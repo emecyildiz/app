@@ -15,7 +15,42 @@ const useAuthStore = create(
       isAuthenticated: false,
       isLoading: false,
       users: [], // All users for admin management
-      operators: [], // Operators list
+      operators: [
+        {
+          id: 'operator-1',
+          email: 'operator@example.com',
+          password: 'operator123',
+          name: 'Ahmet Yılmaz',
+          username: 'ahmetyilmaz',
+          role: 'operator',
+          bio: 'Sistem Operatörü',
+          location: 'İstanbul, Türkiye',
+          avatar: `https://ui-avatars.com/api/?name=Ahmet+Yılmaz&background=3b82f6&color=fff`,
+          memberSince: new Date('2023-06-01').toISOString(),
+          socialLinks: {
+            twitter: '',
+            instagram: '',
+            letterboxd: ''
+          }
+        },
+        {
+          id: 'operator-2',
+          email: 'operator2@example.com',
+          password: 'operator456',
+          name: 'Fatma Demir',
+          username: 'fatmademir',
+          role: 'operator',
+          bio: 'Kullanıcı Yönetimi Operatörü',
+          location: 'Ankara, Türkiye',
+          avatar: `https://ui-avatars.com/api/?name=Fatma+Demir&background=3b82f6&color=fff`,
+          memberSince: new Date('2023-07-15').toISOString(),
+          socialLinks: {
+            twitter: '',
+            instagram: '',
+            letterboxd: ''
+          }
+        }
+      ], // Operators list
 
       login: async (credentials) => {
         set({ isLoading: true })
@@ -243,7 +278,7 @@ const useAuthStore = create(
 
       deleteUser: async (userId) => {
         const currentUser = get().user
-        if (currentUser?.role !== 'admin') {
+        if (currentUser?.role !== 'admin' && currentUser?.role !== 'operator') {
           toast.error('Bu işlem için yetkiniz yok!')
           return { success: false, error: 'Unauthorized' }
         }

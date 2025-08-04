@@ -18,6 +18,7 @@ const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const AdminUserEdit = lazy(() => import('./pages/AdminUserEdit'))
+const OperatorDashboard = lazy(() => import('./pages/OperatorDashboard'))
 
 function App() {
   const { isAuthenticated } = useAuthStore()
@@ -84,6 +85,16 @@ function App() {
               <ProtectedRoute>
                 <Suspense fallback={<LoadingSpinner fullScreen />}>
                   <AdminUserEdit />
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="operator"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <OperatorDashboard />
                 </Suspense>
               </ProtectedRoute>
             }

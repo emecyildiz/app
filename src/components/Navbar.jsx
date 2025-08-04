@@ -34,7 +34,8 @@ const Navbar = () => {
     { path: '/movies', label: 'Filmler', icon: Film },
     { path: '/about', label: 'Hakkında', icon: Info },
     ...(isAuthenticated ? [{ path: '/profile', label: 'Profil', icon: User }] : []),
-    ...((user?.role === 'admin' || user?.role === 'operator') ? [{ path: '/admin', label: 'Admin Panel', icon: Shield }] : []),
+    ...(user?.role === 'admin' ? [{ path: '/admin', label: 'Admin Panel', icon: Shield }] : []),
+    ...(user?.role === 'operator' ? [{ path: '/operator', label: 'Operatör Paneli', icon: Shield }] : []),
   ]
 
   return (
