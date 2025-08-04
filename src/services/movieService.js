@@ -3,7 +3,7 @@ import { mockMovies, mockGenres } from '../utils/mockData'
 
 // For development, we'll use mock data
 // In production, replace with actual API endpoints
-const USE_MOCK_DATA = false
+const USE_MOCK_DATA = true // Temporarily use mock data due to API issues
 
 class MovieService {
   constructor() {
@@ -120,6 +120,34 @@ class MovieService {
     } catch (error) {
       console.error('Error fetching trending movies:', error)
       return mockMovies.slice(0, 10) // Fallback
+    }
+  }
+
+  async getAllActors() {
+    if (USE_MOCK_DATA) {
+      // Mock verilerden aktörleri çıkar
+      const allActors = new Set()
+      mockMovies.forEach(movie => {
+        if (movie.cast && Array.isArray(movie.cast)) {
+          movie.cast.forEach(actor => allActors.add(actor))
+        }
+      })
+      return Array.from(allActors).sort()
+    }
+
+    try {
+      const response = await this.apiClient.get('/api/actors')
+      return response.data.data || []
+    } catch (error) {
+      console.error('Error fetching actors:', error)
+      // Fallback - mock verilerden aktörleri çıkar
+      const allActors = new Set()
+      mockMovies.forEach(movie => {
+        if (movie.cast && Array.isArray(movie.cast)) {
+          movie.cast.forEach(actor => allActors.add(actor))
+        }
+      })
+      return Array.from(allActors).sort()
     }
   }
 }

@@ -55,9 +55,10 @@ const Movies = () => {
   const loadActors = async () => {
     try {
       const actorsList = await movieService.getAllActors()
-      setActors(actorsList)
+      setActors(actorsList || [])
     } catch (error) {
       console.error('Failed to load actors:', error)
+      setActors([]) // Set empty array as fallback
     }
   }
 
