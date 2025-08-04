@@ -25,10 +25,14 @@ const Home = () => {
           movieService.getTrendingMovies(),
           movieService.getMovies(1, 6),
         ])
-        setTrendingMovies(trending)
-        setFeaturedMovies(featured.movies)
+        setTrendingMovies(trending || [])
+        setFeaturedMovies(featured?.movies || [])
       } catch (error) {
+        console.error('Error fetching data:', error)
         toast.error('Filmler yüklenirken bir hata oluştu')
+        // Fallback'leri set et
+        setTrendingMovies([])
+        setFeaturedMovies([])
       } finally {
         setIsLoading(false)
       }
@@ -54,7 +58,7 @@ const Home = () => {
           navigation
           className="h-full"
         >
-          {trendingMovies.slice(0, 5).map((movie) => (
+          {(trendingMovies || []).slice(0, 5).map((movie) => (
             <SwiperSlide key={movie.id}>
               <div className="relative h-full">
                 {/* Background Image */}
@@ -139,7 +143,7 @@ const Home = () => {
           </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {trendingMovies.slice(0, 10).map((movie, index) => (
+            {(trendingMovies || []).slice(0, 10).map((movie, index) => (
               <MovieCard key={movie.id} movie={movie} index={index} />
             ))}
           </div>
@@ -163,7 +167,7 @@ const Home = () => {
           </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredMovies.map((movie, index) => (
+            {(featuredMovies || []).map((movie, index) => (
               <MovieCard key={movie.id} movie={movie} index={index} />
             ))}
           </div>

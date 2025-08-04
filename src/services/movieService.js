@@ -36,7 +36,16 @@ class MovieService {
       return response.data.data // Backend response formatı
     } catch (error) {
       console.error('Error fetching movies:', error)
-      throw new Error('Filmler yüklenirken bir hata oluştu')
+      // Fallback olarak mock data döndür
+      const start = (page - 1) * limit
+      const end = start + limit
+      const paginatedMovies = mockMovies.slice(start, end)
+      
+      return {
+        movies: paginatedMovies,
+        totalPages: Math.ceil(mockMovies.length / limit),
+        currentPage: page,
+      }
     }
   }
 
@@ -107,7 +116,7 @@ class MovieService {
 
     try {
       const response = await this.apiClient.get('/api/movies/trending')
-      return response.data.data.movies // Backend response formatı
+      return response.data.data.movies || [] // Backend response formatı
     } catch (error) {
       console.error('Error fetching trending movies:', error)
       return mockMovies.slice(0, 10) // Fallback
