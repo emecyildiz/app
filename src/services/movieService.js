@@ -3,7 +3,7 @@ import { mockMovies, mockGenres } from '../utils/mockData'
 
 // For development, we'll use mock data
 // In production, replace with actual API endpoints
-const USE_MOCK_DATA = true
+const USE_MOCK_DATA = false
 
 class MovieService {
   constructor() {
