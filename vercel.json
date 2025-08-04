@@ -11,9 +11,15 @@
   ],
   "routes": [
     {
-      "src": "/assets/(.*)",
+      "src": "/assets/(.*\\.js)",
       "headers": {
         "Content-Type": "application/javascript"
+      }
+    },
+    {
+      "src": "/assets/(.*\\.css)",
+      "headers": {
+        "Content-Type": "text/css"
       }
     },
     {
