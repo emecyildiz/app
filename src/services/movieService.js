@@ -33,7 +33,7 @@ class MovieService {
       const response = await this.apiClient.get('/api/movies', {
         params: { page, limit },
       })
-      return response.data
+      return response.data.data // Backend response formatı
     } catch (error) {
       console.error('Error fetching movies:', error)
       throw new Error('Filmler yüklenirken bir hata oluştu')
@@ -49,7 +49,7 @@ class MovieService {
 
     try {
       const response = await this.apiClient.get(`/api/movies/${id}`)
-      return response.data
+      return response.data.data.movie // Backend response formatı
     } catch (error) {
       console.error('Error fetching movie:', error)
       throw new Error('Film detayları yüklenirken bir hata oluştu')
@@ -63,7 +63,7 @@ class MovieService {
 
     try {
       const response = await this.apiClient.get('/api/genres')
-      return response.data
+      return response.data.data || mockGenres // Fallback to mock data
     } catch (error) {
       console.error('Error fetching genres:', error)
       return mockGenres // Fallback to mock data
@@ -91,7 +91,7 @@ class MovieService {
       const response = await this.apiClient.get('/api/movies/search', {
         params: { q: query, page, limit },
       })
-      return response.data
+      return response.data.data // Backend response formatı
     } catch (error) {
       console.error('Error searching movies:', error)
       throw new Error('Arama yapılırken bir hata oluştu')
@@ -107,7 +107,7 @@ class MovieService {
 
     try {
       const response = await this.apiClient.get('/api/movies/trending')
-      return response.data
+      return response.data.data.movies // Backend response formatı
     } catch (error) {
       console.error('Error fetching trending movies:', error)
       return mockMovies.slice(0, 10) // Fallback
