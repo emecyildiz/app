@@ -20,7 +20,7 @@ const limiter = rateLimit({
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'https://cinemahub.vercel.app',
+  origin: process.env.CORS_ORIGIN || 'https://app-seven-flax-12.vercel.app',
   credentials: true
 }));
 app.use(morgan('combined'));
