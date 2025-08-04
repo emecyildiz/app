@@ -87,10 +87,10 @@ const Home = () => {
                     <div className="flex items-center gap-6 mb-6">
                       <div className="flex items-center gap-2">
                         <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
-                        <span className="text-2xl font-semibold text-white">{movie.rating.toFixed(1)}</span>
+                        <span className="text-2xl font-semibold text-white">{movie.rating ? movie.rating.toFixed(1) : 'N/A'}</span>
                       </div>
-                      <span className="text-gray-300">{new Date(movie.releaseDate).getFullYear()}</span>
-                      <span className="text-gray-300">{movie.runtime} dk</span>
+                      <span className="text-gray-300">{movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'N/A'}</span>
+                      <span className="text-gray-300">{movie.runtime ? `${movie.runtime} dk` : 'N/A'}</span>
                     </div>
 
                     <p className="text-lg text-gray-200 mb-8 line-clamp-3">

@@ -152,8 +152,8 @@ const MovieDetail = () => {
               <div className="flex flex-wrap items-center gap-4 mb-6">
                 <div className="flex items-center gap-2">
                   <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
-                  <span className="text-2xl font-semibold text-white">{movie.rating.toFixed(1)}</span>
-                  <span className="text-gray-400">({movie.voteCount} oy)</span>
+                  <span className="text-2xl font-semibold text-white">{movie.rating ? movie.rating.toFixed(1) : 'N/A'}</span>
+                                      <span className="text-gray-400">({movie.voteCount || 0} oy)</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-300">
                   <Calendar className="w-5 h-5" />
@@ -269,7 +269,7 @@ const MovieDetail = () => {
                     <dt className="text-gray-400 text-sm">Puan</dt>
                     <dd className="text-white flex items-center gap-2">
                       <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                      {movie.rating.toFixed(1)} / 10
+                      {movie.rating ? movie.rating.toFixed(1) : 'N/A'} / 10
                     </dd>
                   </div>
                   <div>

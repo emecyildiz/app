@@ -50,7 +50,7 @@ const MovieCard = ({ movie, index = 0, showFavoriteButton = true }) => {
             {/* Rating Badge */}
             <div className="absolute top-3 right-3 glass px-2 py-1 rounded-lg flex items-center gap-1">
               <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-              <span className="text-white font-semibold text-sm">{movie.rating.toFixed(1)}</span>
+              <span className="text-white font-semibold text-sm">{movie.rating ? movie.rating.toFixed(1) : 'N/A'}</span>
             </div>
 
             {/* Favorite Button */}
