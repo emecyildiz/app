@@ -7,7 +7,7 @@ const USE_MOCK_DATA = true // Temporarily use mock data due to API issues
 
 class MovieService {
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_URL || 'https://app-production-6b7a.up.railway.app'
+    this.baseURL = import.meta.env.VITE_API_URL || 'https://zonal-essence-production.up.railway.app'
     this.apiClient = axios.create({
       baseURL: this.baseURL,
       headers: {
