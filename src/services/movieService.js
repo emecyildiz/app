@@ -3,7 +3,7 @@ import { mockMovies, mockGenres } from '../utils/mockData'
 
 // For development, we'll use mock data
 // In production, replace with actual API endpoints
-const USE_MOCK_DATA = true // Temporarily use mock data due to API issues
+const USE_MOCK_DATA = false // Now using real API since Railway is working
 
 class MovieService {
   constructor() {
