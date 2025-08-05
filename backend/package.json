@@ -4,7 +4,7 @@
   "description": "CinemaHub Backend API - Cloud Ready",
   "main": "src/app.js",
   "scripts": {
-    "start": "node src/app.js",
+    "start": "npx prisma generate && npx prisma migrate deploy && node src/app.js",
     "dev": "nodemon src/app.js",
     "build": "echo 'No build step required'",
     "test": "jest",
