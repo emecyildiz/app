@@ -1,12 +1,9 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import toast from 'react-hot-toast'
+import axios from 'axios'
 
-// Admin credentials
-const ADMIN_CREDENTIALS = {
-  email: 'emecyildiz01@gmail.com',
-  password: 'Nova2357'
-}
+const API_URL = import.meta.env.VITE_API_URL || 'https://zonal-essence-production.up.railway.app'
 
 const useAuthStore = create(
   persist(
@@ -14,6 +11,7 @@ const useAuthStore = create(
       user: null,
       isAuthenticated: false,
       isLoading: false,
+      token: null,
       users: [], // All users for admin management
       operators: [
         {
@@ -55,256 +53,313 @@ const useAuthStore = create(
       login: async (credentials) => {
         set({ isLoading: true })
         try {
-          // Simulate API call
-          await new Promise((resolve) => setTimeout(resolve, 1000))
+          const response = await axios.post(`${API_URL}/api/auth/login`, credentials)
           
-          // Check if admin login
-          if (credentials.email === ADMIN_CREDENTIALS.email && 
-              credentials.password === ADMIN_CREDENTIALS.password) {
-            const adminUser = {
-              id: 'admin-1',
-              email: credentials.email,
-              name: 'Admin',
-              username: 'admin',
-              role: 'admin',
-              bio: 'Sistem Yöneticisi',
-              location: 'Türkiye',
-              avatar: `https://ui-avatars.com/api/?name=Admin&background=dc2626&color=fff`,
-              memberSince: new Date('2023-01-01').toISOString(),
-              socialLinks: {
-                twitter: '',
-                instagram: '',
-                letterboxd: ''
-              }
-            }
+          if (response.data.success) {
+            const { user, token } = response.data.data
             
-            set({ user: adminUser, isAuthenticated: true, isLoading: false })
-            toast.success('Admin girişi başarılı!')
+            // Set auth headers for future requests
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+            
+            set({ 
+              user, 
+              isAuthenticated: true, 
+              isLoading: false, 
+              token 
+            })
+            
+            toast.success('Giriş başarılı!')
             return { success: true }
+          } else {
+            set({ isLoading: false })
+            toast.error(response.data.message || 'Giriş başarısız!')
+            return { success: false, error: response.data.message }
           }
-          
-          // Check if operator login
-          const operators = get().operators
-          const operator = operators.find(op => 
-            op.email === credentials.email && op.password === credentials.password
-          )
-          
-          if (operator) {
-            set({ user: operator, isAuthenticated: true, isLoading: false })
-            toast.success('Operatör girişi başarılı!')
-            return { success: true }
-          }
-          
-          // Regular user login
-          const user = {
-            id: Date.now().toString(),
-            email: credentials.email,
-            name: 'John Doe',
-            username: 'johndoe',
-            role: 'user',
-            bio: 'Film tutkunu, sinema aşığı',
-            location: 'İstanbul, Türkiye',
-            avatar: `https://ui-avatars.com/api/?name=John+Doe&background=ef4444&color=fff`,
-            memberSince: new Date('2023-01-15').toISOString(),
-            socialLinks: {
-              twitter: '',
-              instagram: '',
-              letterboxd: ''
-            }
-          }
-          
-          // Add user to users list if not exists
-          const existingUsers = get().users
-          if (!existingUsers.find(u => u.email === user.email)) {
-            set({ users: [...existingUsers, user] })
-          }
-          
-          set({ user, isAuthenticated: true, isLoading: false })
-          toast.success('Giriş başarılı!')
-          return { success: true }
         } catch (error) {
           set({ isLoading: false })
-          toast.error('Giriş başarısız!')
-          return { success: false, error: error.message }
+          const errorMessage = error.response?.data?.message || 'Giriş başarısız!'
+          toast.error(errorMessage)
+          return { success: false, error: errorMessage }
         }
       },
 
       register: async (userData) => {
         set({ isLoading: true })
         try {
-          // Simulate API call
-          await new Promise((resolve) => setTimeout(resolve, 1000))
+          const response = await axios.post(`${API_URL}/api/auth/register`, userData)
           
-          // Mock user data
-          const user = {
-            id: Date.now().toString(),
-            email: userData.email,
-            name: userData.name,
-            username: userData.username || userData.email.split('@')[0],
-            role: 'user',
-            bio: '',
-            location: '',
-            avatar: `https://ui-avatars.com/api/?name=${userData.name.replace(' ', '+')}&background=ef4444&color=fff`,
-            memberSince: new Date().toISOString(),
-            socialLinks: {
-              twitter: '',
-              instagram: '',
-              letterboxd: ''
-            }
+          if (response.data.success) {
+            const { user, token } = response.data.data
+            
+            // Set auth headers for future requests
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+            
+            set({ 
+              user, 
+              isAuthenticated: true, 
+              isLoading: false, 
+              token 
+            })
+            
+            toast.success('Kayıt başarılı!')
+            return { success: true }
+          } else {
+            set({ isLoading: false })
+            toast.error(response.data.message || 'Kayıt başarısız!')
+            return { success: false, error: response.data.message }
           }
-          
-          // Add user to users list
-          const existingUsers = get().users
-          set({ users: [...existingUsers, user] })
-          
-          set({ user, isAuthenticated: true, isLoading: false })
-          toast.success('Kayıt başarılı!')
-          return { success: true }
         } catch (error) {
           set({ isLoading: false })
-          toast.error('Kayıt başarısız!')
-          return { success: false, error: error.message }
+          const errorMessage = error.response?.data?.message || 'Kayıt başarısız!'
+          toast.error(errorMessage)
+          return { success: false, error: errorMessage }
         }
       },
 
-      logout: () => {
-        set({ user: null, isAuthenticated: false })
+      logout: async () => {
+        try {
+          // Call logout endpoint
+          await axios.post(`${API_URL}/api/auth/logout`, {}, {
+            headers: { Authorization: `Bearer ${get().token}` }
+          })
+        } catch (error) {
+          console.error('Logout error:', error)
+        }
+        
+        // Clear auth headers
+        delete axios.defaults.headers.common['Authorization']
+        
+        set({ 
+          user: null, 
+          isAuthenticated: false, 
+          token: null 
+        })
         toast.success('Çıkış yapıldı!')
+      },
+
+      getCurrentUser: async () => {
+        const token = get().token
+        if (!token) return null
+        
+        try {
+          const response = await axios.get(`${API_URL}/api/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+          
+          if (response.data.success) {
+            set({ user: response.data.data.user })
+            return response.data.data.user
+          }
+        } catch (error) {
+          console.error('Get current user error:', error)
+          // Token might be expired, logout user
+          get().logout()
+        }
+        
+        return null
       },
 
       updateProfile: async (updates) => {
         set({ isLoading: true })
         try {
-          // Simulate API call
-          await new Promise((resolve) => setTimeout(resolve, 1000))
+          const response = await axios.put(`${API_URL}/api/users/profile`, updates, {
+            headers: { Authorization: `Bearer ${get().token}` }
+          })
           
-          set((state) => ({
-            user: { ...state.user, ...updates },
-            isLoading: false,
-          }))
-          toast.success('Profil güncellendi!')
-          return { success: true }
+          if (response.data.success) {
+            set((state) => ({
+              user: { ...state.user, ...response.data.data.user },
+              isLoading: false,
+            }))
+            toast.success('Profil güncellendi!')
+            return { success: true }
+          } else {
+            set({ isLoading: false })
+            toast.error(response.data.message || 'Profil güncellenemedi!')
+            return { success: false, error: response.data.message }
+          }
         } catch (error) {
           set({ isLoading: false })
-          toast.error('Profil güncellenemedi!')
-          return { success: false, error: error.message }
+          const errorMessage = error.response?.data?.message || 'Profil güncellenemedi!'
+          toast.error(errorMessage)
+          return { success: false, error: errorMessage }
         }
       },
 
       updateAvatar: async (avatarUrl) => {
         set({ isLoading: true })
         try {
-          // Simulate API call
-          await new Promise((resolve) => setTimeout(resolve, 1000))
+          const response = await axios.put(`${API_URL}/api/users/avatar`, { avatarUrl }, {
+            headers: { Authorization: `Bearer ${get().token}` }
+          })
           
-          set((state) => ({
-            user: { ...state.user, avatar: avatarUrl },
-            isLoading: false,
-          }))
-          toast.success('Profil fotoğrafı güncellendi!')
-          return { success: true }
+          if (response.data.success) {
+            set((state) => ({
+              user: { ...state.user, avatarUrl },
+              isLoading: false,
+            }))
+            toast.success('Profil fotoğrafı güncellendi!')
+            return { success: true }
+          } else {
+            set({ isLoading: false })
+            toast.error(response.data.message || 'Profil fotoğrafı güncellenemedi!')
+            return { success: false, error: response.data.message }
+          }
         } catch (error) {
           set({ isLoading: false })
-          toast.error('Profil fotoğrafı güncellenemedi!')
-          return { success: false, error: error.message }
+          const errorMessage = error.response?.data?.message || 'Profil fotoğrafı güncellenemedi!'
+          toast.error(errorMessage)
+          return { success: false, error: errorMessage }
         }
       },
 
       // Admin functions
       addOperator: async (operatorData) => {
         const currentUser = get().user
-        if (currentUser?.role !== 'admin') {
+        if (currentUser?.role !== 'ADMIN') {
           toast.error('Bu işlem için yetkiniz yok!')
           return { success: false, error: 'Unauthorized' }
         }
 
         try {
-          const newOperator = {
-            id: Date.now().toString(),
-            ...operatorData,
-            role: 'operator',
-            avatar: `https://ui-avatars.com/api/?name=${operatorData.name.replace(' ', '+')}&background=3b82f6&color=fff`,
-            memberSince: new Date().toISOString(),
-            socialLinks: {
-              twitter: '',
-              instagram: '',
-              letterboxd: ''
-            }
+          const response = await axios.post(`${API_URL}/api/admin/operators`, operatorData, {
+            headers: { Authorization: `Bearer ${get().token}` }
+          })
+          
+          if (response.data.success) {
+            toast.success('Operatör başarıyla eklendi!')
+            return { success: true }
+          } else {
+            toast.error(response.data.message || 'Operatör eklenemedi!')
+            return { success: false, error: response.data.message }
           }
-
-          set((state) => ({
-            operators: [...state.operators, newOperator]
-          }))
-
-          toast.success('Operatör başarıyla eklendi!')
-          return { success: true }
         } catch (error) {
-          toast.error('Operatör eklenemedi!')
-          return { success: false, error: error.message }
+          const errorMessage = error.response?.data?.message || 'Operatör eklenemedi!'
+          toast.error(errorMessage)
+          return { success: false, error: errorMessage }
         }
       },
 
       removeOperator: async (operatorId) => {
         const currentUser = get().user
-        if (currentUser?.role !== 'admin') {
+        if (currentUser?.role !== 'ADMIN') {
           toast.error('Bu işlem için yetkiniz yok!')
           return { success: false, error: 'Unauthorized' }
         }
 
-        set((state) => ({
-          operators: state.operators.filter(op => op.id !== operatorId)
-        }))
-
-        toast.success('Operatör kaldırıldı!')
-        return { success: true }
+        try {
+          const response = await axios.delete(`${API_URL}/api/admin/operators/${operatorId}`, {
+            headers: { Authorization: `Bearer ${get().token}` }
+          })
+          
+          if (response.data.success) {
+            toast.success('Operatör kaldırıldı!')
+            return { success: true }
+          } else {
+            toast.error(response.data.message || 'Operatör kaldırılamadı!')
+            return { success: false, error: response.data.message }
+          }
+        } catch (error) {
+          const errorMessage = error.response?.data?.message || 'Operatör kaldırılamadı!'
+          toast.error(errorMessage)
+          return { success: false, error: errorMessage }
+        }
       },
 
       updateUserProfile: async (userId, updates) => {
         const currentUser = get().user
-        if (currentUser?.role !== 'admin' && currentUser?.role !== 'operator') {
+        if (currentUser?.role !== 'ADMIN' && currentUser?.role !== 'OPERATOR') {
           toast.error('Bu işlem için yetkiniz yok!')
           return { success: false, error: 'Unauthorized' }
         }
 
-        set((state) => ({
-          users: state.users.map(user => 
-            user.id === userId ? { ...user, ...updates } : user
-          )
-        }))
-
-        toast.success('Kullanıcı profili güncellendi!')
-        return { success: true }
+        try {
+          const response = await axios.put(`${API_URL}/api/admin/users/${userId}`, updates, {
+            headers: { Authorization: `Bearer ${get().token}` }
+          })
+          
+          if (response.data.success) {
+            toast.success('Kullanıcı profili güncellendi!')
+            return { success: true }
+          } else {
+            toast.error(response.data.message || 'Kullanıcı profili güncellenemedi!')
+            return { success: false, error: response.data.message }
+          }
+        } catch (error) {
+          const errorMessage = error.response?.data?.message || 'Kullanıcı profili güncellenemedi!'
+          toast.error(errorMessage)
+          return { success: false, error: errorMessage }
+        }
       },
 
       deleteUser: async (userId) => {
         const currentUser = get().user
-        if (currentUser?.role !== 'admin' && currentUser?.role !== 'operator') {
+        if (currentUser?.role !== 'ADMIN' && currentUser?.role !== 'OPERATOR') {
           toast.error('Bu işlem için yetkiniz yok!')
           return { success: false, error: 'Unauthorized' }
         }
 
-        set((state) => ({
-          users: state.users.filter(user => user.id !== userId)
-        }))
-
-        toast.success('Kullanıcı silindi!')
-        return { success: true }
+        try {
+          const response = await axios.delete(`${API_URL}/api/admin/users/${userId}`, {
+            headers: { Authorization: `Bearer ${get().token}` }
+          })
+          
+          if (response.data.success) {
+            toast.success('Kullanıcı silindi!')
+            return { success: true }
+          } else {
+            toast.error(response.data.message || 'Kullanıcı silinemedi!')
+            return { success: false, error: response.data.message }
+          }
+        } catch (error) {
+          const errorMessage = error.response?.data?.message || 'Kullanıcı silinemedi!'
+          toast.error(errorMessage)
+          return { success: false, error: errorMessage }
+        }
       },
 
-      getAllUsers: () => {
+      getAllUsers: async () => {
         const currentUser = get().user
-        if (currentUser?.role !== 'admin' && currentUser?.role !== 'operator') {
+        if (currentUser?.role !== 'ADMIN' && currentUser?.role !== 'OPERATOR') {
           return []
         }
-        return get().users
+
+        try {
+          const response = await axios.get(`${API_URL}/api/admin/users`, {
+            headers: { Authorization: `Bearer ${get().token}` }
+          })
+          
+          if (response.data.success) {
+            set({ users: response.data.data.users })
+            return response.data.data.users
+          }
+        } catch (error) {
+          console.error('Get users error:', error)
+        }
+        
+        return []
       },
 
-      getAllOperators: () => {
+      getAllOperators: async () => {
         const currentUser = get().user
-        if (currentUser?.role !== 'admin') {
+        if (currentUser?.role !== 'ADMIN') {
           return []
         }
-        return get().operators
+
+        try {
+          const response = await axios.get(`${API_URL}/api/admin/operators`, {
+            headers: { Authorization: `Bearer ${get().token}` }
+          })
+          
+          if (response.data.success) {
+            set({ operators: response.data.data.operators })
+            return response.data.data.operators
+          }
+        } catch (error) {
+          console.error('Get operators error:', error)
+        }
+        
+        return []
       }
     }),
     {

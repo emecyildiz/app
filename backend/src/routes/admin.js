@@ -1,112 +1,341 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const { supabase } = require('../config/supabase');
 const router = express.Router();
 
-// TODO: Import admin controller when created
-// const adminController = require('../controllers/adminController');
-
-// Temporary mock responses for development
-router.get('/dashboard', (req, res) => {
-  res.status(200).json({
-    success: true,
-    data: {
-      stats: {
-        totalUsers: 1250,
-        totalMovies: 450,
-        totalRatings: 8500,
-        activeUsers: 890
-      },
-      recentActivity: [
-        {
-          id: 1,
-          type: 'user_registration',
-          message: 'New user registered: john.doe@example.com',
-          timestamp: new Date().toISOString()
-        },
-        {
-          id: 2,
-          type: 'movie_rating',
-          message: 'New rating for Inception: 9/10',
-          timestamp: new Date().toISOString()
-        }
-      ]
-    }
-  });
-});
-
-router.get('/users', (req, res) => {
-  res.status(200).json({
-    success: true,
-    data: {
-      users: [
-        {
-          id: 'user-1',
-          email: 'user1@example.com',
-          name: 'John Doe',
-          username: 'johndoe',
-          role: 'user',
-          memberSince: '2023-01-01T00:00:00.000Z',
-          isActive: true
-        },
-        {
-          id: 'user-2',
-          email: 'user2@example.com',
-          name: 'Jane Smith',
-          username: 'janesmith',
-          role: 'user',
-          memberSince: '2023-02-01T00:00:00.000Z',
-          isActive: true
-        },
-        {
-          id: 'operator-1',
-          email: 'operator@example.com',
-          name: 'Ahmet Yılmaz',
-          username: 'ahmetyilmaz',
-          role: 'operator',
-          memberSince: '2023-06-01T00:00:00.000Z',
-          isActive: true
-        }
-      ]
-    }
-  });
-});
-
-router.get('/movies', (req, res) => {
-  res.status(200).json({
-    success: true,
-    data: {
-      movies: [
-        {
-          id: 1,
-          title: 'Inception',
-          releaseYear: 2010,
-          averageRating: 8.8,
-          totalRatings: 2500000,
-          createdAt: '2023-01-01T00:00:00.000Z'
-        },
-        {
-          id: 2,
-          title: 'The Shawshank Redemption',
-          releaseYear: 1994,
-          averageRating: 9.3,
-          totalRatings: 2800000,
-          createdAt: '2023-01-02T00:00:00.000Z'
-        }
-      ]
-    }
-  });
-});
-
-router.post('/users/:id/role', (req, res) => {
-  const { role } = req.body;
+// Middleware to verify JWT token and admin role
+const authenticateAdmin = (req, res, next) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
   
-  res.status(200).json({
-    success: true,
-    message: `User role updated to ${role} successfully (mock)`,
-    data: {
-      userId: req.params.id,
-      newRole: role
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: 'Token gerekli'
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (decoded.role !== 'ADMIN') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin yetkisi gerekli'
+      });
     }
-  });
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: 'Geçersiz token'
+    });
+  }
+};
+
+// Middleware to verify JWT token and admin/operator role
+const authenticateAdminOrOperator = (req, res, next) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: 'Token gerekli'
+    });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (decoded.role !== 'ADMIN' && decoded.role !== 'OPERATOR') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin veya operatör yetkisi gerekli'
+      });
+    }
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: 'Geçersiz token'
+    });
+  }
+};
+
+// Get admin dashboard stats
+router.get('/dashboard', authenticateAdmin, async (req, res) => {
+  try {
+    // Get total users
+    const { count: totalUsers } = await supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true });
+
+    // Get total movies
+    const { count: totalMovies } = await supabase
+      .from('movies')
+      .select('*', { count: 'exact', head: true });
+
+    // Get total ratings
+    const { count: totalRatings } = await supabase
+      .from('ratings')
+      .select('*', { count: 'exact', head: true });
+
+    // Get active users (users with activity in last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const { count: activeUsers } = await supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true })
+      .gte('updatedAt', thirtyDaysAgo.toISOString());
+
+    res.status(200).json({
+      success: true,
+      data: {
+        stats: {
+          totalUsers: totalUsers || 0,
+          totalMovies: totalMovies || 0,
+          totalRatings: totalRatings || 0,
+          activeUsers: activeUsers || 0
+        },
+        recentActivity: [] // TODO: Implement activity tracking
+      }
+    });
+  } catch (error) {
+    console.error('Dashboard error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Sunucu hatası'
+    });
+  }
+});
+
+// Get all users (admin/operator)
+router.get('/users', authenticateAdminOrOperator, async (req, res) => {
+  try {
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('createdAt', { ascending: false });
+
+    if (error) {
+      console.error('Get users error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Kullanıcılar yüklenemedi'
+      });
+    }
+
+    // Remove passwords from response
+    const usersWithoutPasswords = users.map(user => {
+      const { passwordHash: _, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        users: usersWithoutPasswords
+      }
+    });
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Sunucu hatası'
+    });
+  }
+});
+
+// Get all operators (admin only)
+router.get('/operators', authenticateAdmin, async (req, res) => {
+  try {
+    const { data: operators, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('role', 'OPERATOR')
+      .order('createdAt', { ascending: false });
+
+    if (error) {
+      console.error('Get operators error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Operatörler yüklenemedi'
+      });
+    }
+
+    // Remove passwords from response
+    const operatorsWithoutPasswords = operators.map(operator => {
+      const { passwordHash: _, ...operatorWithoutPassword } = operator;
+      return operatorWithoutPassword;
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        operators: operatorsWithoutPasswords
+      }
+    });
+  } catch (error) {
+    console.error('Get operators error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Sunucu hatası'
+    });
+  }
+});
+
+// Add operator (admin only)
+router.post('/operators', authenticateAdmin, async (req, res) => {
+  try {
+    const { email, password, name, username } = req.body;
+
+    // Validate input
+    if (!email || !password || !name) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email, password ve name alanları zorunludur'
+      });
+    }
+
+    // Hash password
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    // Create operator in Supabase
+    const { data: operator, error } = await supabase
+      .from('users')
+      .insert({
+        email,
+        passwordHash,
+        name,
+        username: username || email.split('@')[0],
+        role: 'OPERATOR'
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Add operator error:', error);
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'Operatör eklenemedi'
+      });
+    }
+
+    // Remove password from response
+    const { passwordHash: _, ...operatorWithoutPassword } = operator;
+
+    res.status(201).json({
+      success: true,
+      message: 'Operatör başarıyla eklendi',
+      data: {
+        operator: operatorWithoutPassword
+      }
+    });
+  } catch (error) {
+    console.error('Add operator error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Sunucu hatası'
+    });
+  }
+});
+
+// Remove operator (admin only)
+router.delete('/operators/:id', authenticateAdmin, async (req, res) => {
+  try {
+    // Check if user is actually an operator
+    const { data: operator, error: getError } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', req.params.id)
+      .single();
+
+    if (getError || !operator) {
+      return res.status(404).json({
+        success: false,
+        message: 'Operatör bulunamadı'
+      });
+    }
+
+    if (operator.role !== 'OPERATOR') {
+      return res.status(400).json({
+        success: false,
+        message: 'Bu kullanıcı bir operatör değil'
+      });
+    }
+
+    // Delete operator
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', req.params.id);
+
+    if (error) {
+      console.error('Remove operator error:', error);
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'Operatör kaldırılamadı'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Operatör başarıyla kaldırıldı'
+    });
+  } catch (error) {
+    console.error('Remove operator error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Sunucu hatası'
+    });
+  }
+});
+
+// Update user role (admin only)
+router.put('/users/:id/role', authenticateAdmin, async (req, res) => {
+  try {
+    const { role } = req.body;
+
+    if (!role || !['USER', 'OPERATOR', 'ADMIN'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Geçerli bir rol belirtin (USER, OPERATOR, ADMIN)'
+      });
+    }
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .update({ role, updatedAt: new Date() })
+      .eq('id', req.params.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Update role error:', error);
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'Rol güncellenemedi'
+      });
+    }
+
+    // Remove password from response
+    const { passwordHash: _, ...userWithoutPassword } = user;
+
+    res.status(200).json({
+      success: true,
+      message: 'Kullanıcı rolü başarıyla güncellendi',
+      data: {
+        user: userWithoutPassword
+      }
+    });
+  } catch (error) {
+    console.error('Update role error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Sunucu hatası'
+    });
+  }
 });
 
 module.exports = router; 

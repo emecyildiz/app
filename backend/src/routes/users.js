@@ -1,72 +1,293 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
+const { supabase } = require('../config/supabase');
 const router = express.Router();
 
-// TODO: Import user controller when created
-// const userController = require('../controllers/userController');
+// Middleware to verify JWT token
+const authenticateToken = (req, res, next) => {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: 'Token gerekli'
+    });
+  }
 
-// Temporary mock responses for development
-router.get('/', (req, res) => {
-  res.status(200).json({
-    success: true,
-    data: {
-      users: [
-        {
-          id: 'user-1',
-          email: 'user1@example.com',
-          name: 'John Doe',
-          username: 'johndoe',
-          role: 'user',
-          memberSince: '2023-01-01T00:00:00.000Z'
-        },
-        {
-          id: 'user-2',
-          email: 'user2@example.com',
-          name: 'Jane Smith',
-          username: 'janesmith',
-          role: 'user',
-          memberSince: '2023-02-01T00:00:00.000Z'
-        }
-      ]
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: 'Geçersiz token'
+    });
+  }
+};
+
+// Get user profile
+router.get('/profile', authenticateToken, async (req, res) => {
+  try {
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', req.user.userId)
+      .single();
+
+    if (error || !user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Kullanıcı bulunamadı'
+      });
     }
-  });
-});
 
-router.get('/:id', (req, res) => {
-  res.status(200).json({
-    success: true,
-    data: {
-      user: {
-        id: req.params.id,
-        email: 'user@example.com',
-        name: 'Mock User',
-        username: 'mockuser',
-        role: 'user',
-        bio: 'This is a mock user',
-        location: 'Istanbul, Turkey',
-        memberSince: '2023-01-01T00:00:00.000Z'
+    // Remove password from response
+    const { passwordHash: _, ...userWithoutPassword } = user;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user: userWithoutPassword
       }
-    }
-  });
+    });
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Sunucu hatası'
+    });
+  }
 });
 
-router.put('/:id', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'User updated successfully (mock)',
-    data: {
-      user: {
-        id: req.params.id,
-        ...req.body
+// Update user profile
+router.put('/profile', authenticateToken, async (req, res) => {
+  try {
+    const { name, username, bio, location, socialLinks } = req.body;
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .update({
+        name,
+        username,
+        bio,
+        location,
+        socialLinks,
+        updatedAt: new Date()
+      })
+      .eq('id', req.user.userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Update profile error:', error);
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'Profil güncellenemedi'
+      });
+    }
+
+    // Remove password from response
+    const { passwordHash: _, ...userWithoutPassword } = user;
+
+    res.status(200).json({
+      success: true,
+      message: 'Profil başarıyla güncellendi',
+      data: {
+        user: userWithoutPassword
       }
-    }
-  });
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Sunucu hatası'
+    });
+  }
 });
 
-router.delete('/:id', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'User deleted successfully (mock)'
-  });
+// Update user avatar
+router.put('/avatar', authenticateToken, async (req, res) => {
+  try {
+    const { avatarUrl } = req.body;
+
+    if (!avatarUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'Avatar URL gerekli'
+      });
+    }
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .update({
+        avatarUrl,
+        updatedAt: new Date()
+      })
+      .eq('id', req.user.userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Update avatar error:', error);
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'Avatar güncellenemedi'
+      });
+    }
+
+    // Remove password from response
+    const { passwordHash: _, ...userWithoutPassword } = user;
+
+    res.status(200).json({
+      success: true,
+      message: 'Avatar başarıyla güncellendi',
+      data: {
+        user: userWithoutPassword
+      }
+    });
+  } catch (error) {
+    console.error('Update avatar error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Sunucu hatası'
+    });
+  }
+});
+
+// Get user by ID (for admin/operator use)
+router.get('/:id', authenticateToken, async (req, res) => {
+  try {
+    // Check if user has admin or operator role
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'OPERATOR') {
+      return res.status(403).json({
+        success: false,
+        message: 'Bu işlem için yetkiniz yok'
+      });
+    }
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
+
+    if (error || !user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Kullanıcı bulunamadı'
+      });
+    }
+
+    // Remove password from response
+    const { passwordHash: _, ...userWithoutPassword } = user;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user: userWithoutPassword
+      }
+    });
+  } catch (error) {
+    console.error('Get user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Sunucu hatası'
+    });
+  }
+});
+
+// Update user by ID (for admin/operator use)
+router.put('/:id', authenticateToken, async (req, res) => {
+  try {
+    // Check if user has admin or operator role
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'OPERATOR') {
+      return res.status(403).json({
+        success: false,
+        message: 'Bu işlem için yetkiniz yok'
+      });
+    }
+
+    const { name, username, bio, location, socialLinks, role, isActive } = req.body;
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .update({
+        name,
+        username,
+        bio,
+        location,
+        socialLinks,
+        role,
+        isActive,
+        updatedAt: new Date()
+      })
+      .eq('id', req.params.id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Update user error:', error);
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'Kullanıcı güncellenemedi'
+      });
+    }
+
+    // Remove password from response
+    const { passwordHash: _, ...userWithoutPassword } = user;
+
+    res.status(200).json({
+      success: true,
+      message: 'Kullanıcı başarıyla güncellendi',
+      data: {
+        user: userWithoutPassword
+      }
+    });
+  } catch (error) {
+    console.error('Update user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Sunucu hatası'
+    });
+  }
+});
+
+// Delete user by ID (for admin/operator use)
+router.delete('/:id', authenticateToken, async (req, res) => {
+  try {
+    // Check if user has admin or operator role
+    if (req.user.role !== 'ADMIN' && req.user.role !== 'OPERATOR') {
+      return res.status(403).json({
+        success: false,
+        message: 'Bu işlem için yetkiniz yok'
+      });
+    }
+
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', req.params.id);
+
+    if (error) {
+      console.error('Delete user error:', error);
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'Kullanıcı silinemedi'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Kullanıcı başarıyla silindi'
+    });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Sunucu hatası'
+    });
+  }
 });
 
 module.exports = router; 

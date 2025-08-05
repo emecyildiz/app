@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { useAuthStore } from './store/authStore'
@@ -21,7 +21,14 @@ const AdminUserEdit = lazy(() => import('./pages/AdminUserEdit'))
 const OperatorDashboard = lazy(() => import('./pages/OperatorDashboard'))
 
 function App() {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, token, getCurrentUser } = useAuthStore()
+
+  // Check token on app load
+  useEffect(() => {
+    if (token && !isAuthenticated) {
+      getCurrentUser()
+    }
+  }, [token, isAuthenticated, getCurrentUser])
 
   return (
     <Router>
