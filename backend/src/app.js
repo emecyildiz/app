@@ -3,7 +3,11 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const { PrismaClient } = require('@prisma/client');
 require('dotenv').config();
+
+// Initialize Prisma client
+const prisma = new PrismaClient();
 
 const app = express();
 
@@ -71,6 +75,25 @@ app.get('/test', (req, res) => {
   });
 });
 
+// Database test endpoint
+app.get('/db-test', async (req, res) => {
+  try {
+    await prisma.$connect();
+    res.status(200).json({
+      success: true,
+      message: 'Database connection successful!',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Database connection failed!',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // API Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
@@ -97,11 +120,28 @@ app.use('*', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 CinemaHub Backend API running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
   console.log(`☁️  Cloud Ready: ${process.env.NODE_ENV === 'production' ? 'Yes' : 'No'}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  await prisma.$disconnect();
+  server.close(() => {
+    console.log('Process terminated');
+  });
+});
+
+process.on('SIGINT', async () => {
+  console.log('SIGINT received, shutting down gracefully');
+  await prisma.$disconnect();
+  server.close(() => {
+    console.log('Process terminated');
+  });
 });
 
 module.exports = app; 
