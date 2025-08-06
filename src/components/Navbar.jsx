@@ -23,7 +23,6 @@ const Navbar = () => {
   const navLinks = [
     { path: '/', label: 'Ana Sayfa', icon: Home },
     { path: '/movies', label: 'Filmler', icon: Film },
-    { path: '/user-search', label: 'Kullanıcılar', icon: Users },
     { path: '/about', label: 'Hakkında', icon: Info },
     ...(isAuthenticated ? [{ path: '/profile', label: 'Profil', icon: User }] : []),
     ...(user?.role === 'ADMIN' ? [{ path: '/admin', label: 'Admin Panel', icon: Shield }] : []),

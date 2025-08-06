@@ -20,7 +20,7 @@ const Register = lazy(() => import('./pages/Register'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const AdminUserEdit = lazy(() => import('./pages/AdminUserEdit'))
 const OperatorDashboard = lazy(() => import('./pages/OperatorDashboard'))
-const UserSearch = lazy(() => import('./pages/UserSearch'))
+
 
 function App() {
   const { isAuthenticated, token, getCurrentUser, initializeAuth } = useAuthStore()
@@ -131,16 +131,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="user-search"
-            element={
-              <ProtectedRoute>
-                <Suspense fallback={<LoadingSpinner fullScreen />}>
-                  <UserSearch />
-                </Suspense>
-              </ProtectedRoute>
-            }
-          />
+
         </Route>
         
         <Route path="/login" element={
