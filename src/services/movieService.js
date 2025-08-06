@@ -7,7 +7,7 @@ const USE_MOCK_DATA = false // Now using real API since Railway is working
 
 class MovieService {
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_URL || 'https://zonal-essence-production.up.railway.app'
+    this.baseURL = 'https://zonal-essence-production.up.railway.app'
     this.apiClient = axios.create({
       baseURL: this.baseURL,
       headers: {
