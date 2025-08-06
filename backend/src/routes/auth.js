@@ -36,7 +36,7 @@ router.post('/register', async (req, res) => {
       .from('users')
       .insert({
         email,
-        passwordHash,
+        passwordhash: passwordHash,
         name,
         username: username || email.split('@')[0],
         role: 'USER'
@@ -60,7 +60,7 @@ router.post('/register', async (req, res) => {
     );
 
     // Remove password from response
-    const { passwordHash: _, ...userWithoutPassword } = user;
+    const { passwordhash: _, ...userWithoutPassword } = user;
 
     res.status(201).json({
       success: true,
@@ -121,12 +121,12 @@ router.post('/login', async (req, res) => {
       id: user.id,
       email: user.email,
       role: user.role,
-      hasPasswordHash: !!user.passwordHash,
-      passwordHashLength: user.passwordHash ? user.passwordHash.length : 0
+      hasPasswordHash: !!user.passwordhash,
+      passwordHashLength: user.passwordhash ? user.passwordhash.length : 0
     });
 
     // Check if passwordHash exists
-    if (!user.passwordHash) {
+    if (!user.passwordhash) {
       console.error('Password hash is missing for user:', user.id);
       return res.status(401).json({
         success: false,
@@ -135,7 +135,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Check password
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    const isPasswordValid = await bcrypt.compare(password, user.passwordhash);
     console.log('Password validation result:', isPasswordValid);
     
     if (!isPasswordValid) {
@@ -161,7 +161,7 @@ router.post('/login', async (req, res) => {
     );
 
     // Remove password from response
-    const { passwordHash: _, ...userWithoutPassword } = user;
+    const { passwordhash: _, ...userWithoutPassword } = user;
 
     console.log('Login successful for user:', user.email);
 
@@ -212,7 +212,7 @@ router.get('/me', async (req, res) => {
     }
 
     // Remove password from response
-    const { passwordHash: _, ...userWithoutPassword } = user;
+    const { passwordhash: _, ...userWithoutPassword } = user;
 
     res.status(200).json({
       success: true,
