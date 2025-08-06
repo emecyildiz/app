@@ -29,7 +29,7 @@ export default function OperatorDashboard() {
   })
 
   // Redirect if not operator
-  if (!user || user.role !== 'operator') {
+  if (!user || user.role !== 'OPERATOR') {
     return <Navigate to="/" />
   }
 
