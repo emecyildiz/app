@@ -295,8 +295,9 @@ const useAuthStore = create(
           })
           
           if (response.data.success) {
-            set({ users: response.data.data.users })
-            return response.data.data.users
+            const users = response.data.data.users || []
+            set({ users })
+            return users
           }
         } catch (error) {
           console.error('Get users error:', error)
@@ -317,8 +318,9 @@ const useAuthStore = create(
           })
           
           if (response.data.success) {
-            set({ operators: response.data.data.operators })
-            return response.data.data.operators
+            const operators = response.data.data.operators || []
+            set({ operators })
+            return operators
           }
         } catch (error) {
           console.error('Get operators error:', error)

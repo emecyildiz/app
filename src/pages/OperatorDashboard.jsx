@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuthStore } from '../store/authStore'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { 
@@ -27,13 +27,31 @@ export default function OperatorDashboard() {
     bio: '',
     location: ''
   })
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
 
   // Redirect if not operator
   if (!user || user.role !== 'OPERATOR') {
     return <Navigate to="/" />
   }
 
-  const users = getAllUsers()
+  // Load data on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true)
+      try {
+        const usersData = await getAllUsers()
+        setUsers(usersData)
+      } catch (error) {
+        console.error('Error loading operator data:', error)
+        toast.error('Veriler yüklenirken hata oluştu!')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [getAllUsers])
 
   const handleViewUser = (user) => {
     setSelectedUser(user)
@@ -93,7 +111,7 @@ export default function OperatorDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Aktif Kullanıcılar</p>
-                <p className="text-3xl font-bold text-white mt-1">{users.filter(u => u.role === 'user').length}</p>
+                <p className="text-3xl font-bold text-white mt-1">{users.filter(u => u.role === 'USER').length}</p>
               </div>
               <UserGroupIcon className="w-12 h-12 text-green-600" />
             </div>
@@ -222,65 +240,75 @@ export default function OperatorDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map((userItem) => (
-                      <tr key={userItem.id} className="border-b border-gray-800 hover:bg-gray-800/50">
-                        <td className="p-4">
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={userItem.avatar}
-                              alt={userItem.name}
-                              className="w-10 h-10 rounded-full"
-                            />
-                            <div>
-                              <p className="text-white font-medium">{userItem.name}</p>
-                              <p className="text-gray-400 text-sm">@{userItem.username}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="p-4 text-gray-300">{userItem.email}</td>
-                        <td className="p-4">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            userItem.role === 'admin' 
-                              ? 'bg-red-900/50 text-red-400'
-                              : userItem.role === 'operator'
-                              ? 'bg-blue-900/50 text-blue-400'
-                              : 'bg-gray-800 text-gray-400'
-                          }`}>
-                            {userItem.role === 'admin' ? 'Admin' : userItem.role === 'operator' ? 'Operatör' : 'Kullanıcı'}
-                          </span>
-                        </td>
-                        <td className="p-4 text-gray-300">
-                          {new Date(userItem.memberSince).toLocaleDateString('tr-TR')}
-                        </td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleViewUser(userItem)}
-                              className="text-blue-500 hover:text-blue-400 text-sm flex items-center gap-1"
-                            >
-                              <EyeIcon className="w-4 h-4" />
-                              Görüntüle
-                            </button>
-                            <button
-                              onClick={() => handleViewUser(userItem)}
-                              className="text-green-500 hover:text-green-400 text-sm flex items-center gap-1"
-                            >
-                              <PencilIcon className="w-4 h-4" />
-                              Düzenle
-                            </button>
-                            {userItem.role === 'user' && (
-                              <button
-                                onClick={() => handleDeleteUser(userItem.id)}
-                                className="text-red-500 hover:text-red-400 text-sm flex items-center gap-1"
-                              >
-                                <TrashIcon className="w-4 h-4" />
-                                Sil
-                              </button>
-                            )}
-                          </div>
-                        </td>
+                    {loading ? (
+                      <tr>
+                        <td colSpan="5" className="p-4 text-center text-gray-400">Yükleniyor...</td>
                       </tr>
-                    ))}
+                    ) : users.length === 0 ? (
+                      <tr>
+                        <td colSpan="5" className="p-4 text-center text-gray-400">Aktif kullanıcı bulunamadı.</td>
+                      </tr>
+                    ) : (
+                      users.map((userItem) => (
+                        <tr key={userItem.id} className="border-b border-gray-800 hover:bg-gray-800/50">
+                          <td className="p-4">
+                            <div className="flex items-center gap-3">
+                              <img
+                                src={userItem.avatar}
+                                alt={userItem.name}
+                                className="w-10 h-10 rounded-full"
+                              />
+                              <div>
+                                <p className="text-white font-medium">{userItem.name}</p>
+                                <p className="text-gray-400 text-sm">@{userItem.username}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4 text-gray-300">{userItem.email}</td>
+                          <td className="p-4">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              userItem.role === 'ADMIN' 
+                                ? 'bg-red-900/50 text-red-400'
+                                : userItem.role === 'OPERATOR'
+                                ? 'bg-blue-900/50 text-blue-400'
+                                : 'bg-gray-800 text-gray-400'
+                            }`}>
+                              {userItem.role === 'ADMIN' ? 'Admin' : userItem.role === 'OPERATOR' ? 'Operatör' : 'Kullanıcı'}
+                            </span>
+                          </td>
+                          <td className="p-4 text-gray-300">
+                            {new Date(userItem.memberSince).toLocaleDateString('tr-TR')}
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleViewUser(userItem)}
+                                className="text-blue-500 hover:text-blue-400 text-sm flex items-center gap-1"
+                              >
+                                <EyeIcon className="w-4 h-4" />
+                                Görüntüle
+                              </button>
+                              <button
+                                onClick={() => handleViewUser(userItem)}
+                                className="text-green-500 hover:text-green-400 text-sm flex items-center gap-1"
+                              >
+                                <PencilIcon className="w-4 h-4" />
+                                Düzenle
+                              </button>
+                              {userItem.role === 'USER' && (
+                                <button
+                                  onClick={() => handleDeleteUser(userItem.id)}
+                                  className="text-red-500 hover:text-red-400 text-sm flex items-center gap-1"
+                                >
+                                  <TrashIcon className="w-4 h-4" />
+                                  Sil
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
