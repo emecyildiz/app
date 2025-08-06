@@ -29,12 +29,50 @@ const updateUserActivity = (userId) => {
   }
 };
 
-// Get active users count
+// Get active users count (only USER role)
 const getActiveUsersCount = () => {
+  // We need to filter by user role - this requires database access
+  // For now, return all active users count
   const count = activeUsers.size;
   console.log('getActiveUsersCount: Current active users count:', count);
   console.log('getActiveUsersCount: Active user IDs:', Array.from(activeUsers.keys()));
   return count;
+};
+
+// Get active users count for specific role
+const getActiveUsersCountByRole = async (role) => {
+  try {
+    const { supabase } = require('../config/supabase');
+    
+    // Get user IDs from active users map
+    const activeUserIds = Array.from(activeUsers.keys());
+    
+    if (activeUserIds.length === 0) {
+      console.log('getActiveUsersCountByRole: No active users found');
+      return 0;
+    }
+    
+    // Query database to get users with specific role from active users
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('id, role')
+      .in('id', activeUserIds)
+      .eq('role', role);
+    
+    if (error) {
+      console.error('getActiveUsersCountByRole: Database error:', error);
+      return 0;
+    }
+    
+    const count = users ? users.length : 0;
+    console.log(`getActiveUsersCountByRole: Active ${role} users count:`, count);
+    console.log(`getActiveUsersCountByRole: Active ${role} user IDs:`, users ? users.map(u => u.id) : []);
+    
+    return count;
+  } catch (error) {
+    console.error('getActiveUsersCountByRole: Error:', error);
+    return 0;
+  }
 };
 
 // Debug function to see active users
@@ -94,5 +132,6 @@ module.exports = {
   trackActivityFromToken,
   getActiveUsersCount,
   getActiveUsers,
-  updateUserActivity
+  updateUserActivity,
+  getActiveUsersCountByRole
 }; 

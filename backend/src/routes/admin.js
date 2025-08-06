@@ -2,7 +2,12 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { supabase } = require('../config/supabase');
-const { trackUserActivity, getActiveUsersCount, getActiveUsers } = require('../middleware/activityTracker');
+const { 
+  trackUserActivity, 
+  getActiveUsersCount, 
+  getActiveUsers,
+  getActiveUsersCountByRole
+} = require('../middleware/activityTracker');
 const router = express.Router();
 
 // Middleware to verify JWT token and admin role
@@ -66,8 +71,8 @@ const authenticateAdminOrOperator = (req, res, next) => {
 // Debug endpoint for active users
 router.get('/debug/active-users', authenticateAdminOrOperator, async (req, res) => {
   try {
-    const activeCount = getActiveUsersCount();
-    const activeUsers = getActiveUsers();
+    const activeCount = await getActiveUsersCountByRole('USER');
+    const allActiveUsers = getActiveUsers();
     
     console.log('Debug active users request from:', req.user.role, 'User ID:', req.user.userId);
     
@@ -75,7 +80,8 @@ router.get('/debug/active-users', authenticateAdminOrOperator, async (req, res) 
       success: true,
       data: {
         activeCount,
-        activeUsers: Array.from(activeUsers)
+        activeUsers: Array.from(allActiveUsers),
+        message: 'Only USER role active users are counted'
       }
     });
   } catch (error) {
@@ -114,8 +120,8 @@ router.get('/dashboard', authenticateAdmin, trackUserActivity, async (req, res) 
       .select('*', { count: 'exact', head: true })
       .gte('updatedat', thirtyDaysAgo.toISOString());
 
-    // Get real-time active users
-    const realTimeActiveUsers = getActiveUsersCount();
+    // Get real-time active users (only USER role)
+    const realTimeActiveUsers = await getActiveUsersCountByRole('USER');
 
     res.status(200).json({
       success: true,

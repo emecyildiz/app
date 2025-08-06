@@ -26,10 +26,10 @@ export const activityService = {
   startTracking: () => {
     console.log('activityService: Starting activity tracking...')
     
-    // Track activity every 30 seconds (very frequent for testing)
+    // Track activity every 15 seconds (very frequent for testing)
     const interval = setInterval(() => {
       activityService.trackActivity()
-    }, 30 * 1000) // 30 seconds
+    }, 15 * 1000) // 15 seconds
 
     // Track initial activity
     activityService.trackActivity()
