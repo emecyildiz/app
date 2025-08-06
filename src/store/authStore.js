@@ -4,6 +4,8 @@ import axios from 'axios'
 
 const API_URL = 'https://zonal-essence-production.up.railway.app'
 
+console.log('AuthStore - API_URL:', API_URL)
+
 const useAuthStore = create((set, get) => ({
   user: null,
   isAuthenticated: false,
@@ -398,6 +400,9 @@ const useAuthStore = create((set, get) => ({
 
   // Search users
   searchUsers: async (query) => {
+    console.log('searchUsers - API_URL:', API_URL)
+    console.log('searchUsers - Full URL:', `${API_URL}/api/users/search?q=${encodeURIComponent(query)}`)
+    
     try {
       const response = await axios.get(`${API_URL}/api/users/search?q=${encodeURIComponent(query)}`, {
         headers: { Authorization: `Bearer ${get().token}` }

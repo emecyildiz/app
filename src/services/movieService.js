@@ -8,6 +8,8 @@ const USE_MOCK_DATA = false // Now using real API since Railway is working
 class MovieService {
   constructor() {
     this.baseURL = 'https://zonal-essence-production.up.railway.app'
+    console.log('MovieService - baseURL:', this.baseURL)
+    
     this.apiClient = axios.create({
       baseURL: this.baseURL,
       headers: {
