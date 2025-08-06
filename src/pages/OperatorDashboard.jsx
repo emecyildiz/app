@@ -16,7 +16,7 @@ import {
 import toast from 'react-hot-toast'
 
 export default function OperatorDashboard() {
-  const { user, getAllUsers, updateUserProfile, deleteUser, getDashboardStats } = useAuthStore()
+  const { user, getAllUsers, updateUserProfile, deleteUser, getDashboardStats, get } = useAuthStore()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('overview')
   const [selectedUser, setSelectedUser] = useState(null)

@@ -13,7 +13,7 @@ import {
 import toast from 'react-hot-toast'
 
 export default function AdminDashboard() {
-  const { user, getAllUsers, getAllOperators, addOperator, removeOperator, deleteUser, updateUserProfile, getDashboardStats } = useAuthStore()
+  const { user, getAllUsers, getAllOperators, addOperator, removeOperator, deleteUser, updateUserProfile, getDashboardStats, get } = useAuthStore()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('overview')
   const [showAddOperator, setShowAddOperator] = useState(false)
