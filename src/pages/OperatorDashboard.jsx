@@ -151,14 +151,14 @@ export default function OperatorDashboard() {
               <div>
                 <p className="text-gray-400 text-sm">Aktif Kullanıcılar</p>
                 <p className="text-3xl font-bold text-white mt-1">{dashboardStats.realTimeActiveUsers}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <p className="text-xs text-green-400">Manuel güncelleme</p>
+                <div className="flex items-center gap-2 mt-2">
                   <button
                     onClick={refreshActiveUsers}
                     disabled={refreshingStats}
-                    className="text-blue-400 hover:text-blue-300 disabled:opacity-50"
+                    className="flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-xs rounded-lg transition-colors"
                   >
-                    <ArrowPathIcon className={`w-4 h-4 ${refreshingStats ? 'animate-spin' : ''}`} />
+                    <ArrowPathIcon className={`w-3 h-3 ${refreshingStats ? 'animate-spin' : ''}`} />
+                    Aktif Kullanıcı Sayısını Gör
                   </button>
                 </div>
               </div>

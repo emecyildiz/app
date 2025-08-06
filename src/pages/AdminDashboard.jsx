@@ -7,7 +7,8 @@ import {
   CogIcon,
   ChartBarIcon,
   ShieldCheckIcon,
-  UsersIcon
+  UsersIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 
@@ -34,6 +35,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([])
   const [operators, setOperators] = useState([])
   const [loading, setLoading] = useState(true)
+  const [refreshingStats, setRefreshingStats] = useState(false)
   const [dashboardStats, setDashboardStats] = useState({
     totalUsers: 0,
     totalMovies: 0,
@@ -74,24 +76,27 @@ export default function AdminDashboard() {
     }
 
     loadData()
-
-    // Set up real-time updates for active users
-    const interval = setInterval(async () => {
-      try {
-        const stats = await getDashboardStats()
-        if (stats) {
-          setDashboardStats(prev => ({
-            ...prev,
-            realTimeActiveUsers: stats.realTimeActiveUsers
-          }))
-        }
-      } catch (error) {
-        console.error('Error updating active users:', error)
-      }
-    }, 30000) // Update every 30 seconds
-
-    return () => clearInterval(interval)
   }, [getAllUsers, getAllOperators, getDashboardStats])
+
+  // Manual refresh function for active users
+  const refreshActiveUsers = async () => {
+    setRefreshingStats(true)
+    try {
+      const stats = await getDashboardStats()
+      if (stats) {
+        setDashboardStats(prev => ({
+          ...prev,
+          realTimeActiveUsers: stats.realTimeActiveUsers
+        }))
+        toast.success('Aktif kullanıcı sayısı güncellendi!')
+      }
+    } catch (error) {
+      console.error('Error refreshing active users:', error)
+      toast.error('Aktif kullanıcı sayısı güncellenirken hata oluştu!')
+    } finally {
+      setRefreshingStats(false)
+    }
+  }
 
   const handleAddOperator = async (e) => {
     e.preventDefault()
@@ -225,7 +230,16 @@ export default function AdminDashboard() {
                   <div>
                     <p className="text-gray-400 text-sm">Aktif Kullanıcılar</p>
                     <p className="text-3xl font-bold text-white mt-1">{dashboardStats.realTimeActiveUsers}</p>
-                    <p className="text-xs text-green-400 mt-1">Gerçek zamanlı</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <button
+                        onClick={refreshActiveUsers}
+                        disabled={refreshingStats}
+                        className="flex items-center gap-2 px-3 py-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white text-xs rounded-lg transition-colors"
+                      >
+                        <ArrowPathIcon className={`w-3 h-3 ${refreshingStats ? 'animate-spin' : ''}`} />
+                        Aktif Kullanıcı Sayısını Gör
+                      </button>
+                    </div>
                   </div>
                   <ChartBarIcon className="w-12 h-12 text-green-600" />
                 </div>
