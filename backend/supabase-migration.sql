@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS movies (
   posterUrl TEXT,
   trailerUrl TEXT,
   genres JSONB,
-  cast JSONB,
+  "cast" JSONB, -- cast kelimesini tırnak içine aldık
   director VARCHAR(255),
   averageRating DECIMAL(3,2) DEFAULT 0,
   totalRatings INTEGER DEFAULT 0,
@@ -124,24 +124,28 @@ CREATE TRIGGER update_movie_rating_trigger
 INSERT INTO users (email, passwordHash, name, username, role) 
 VALUES (
   'admin@cinemahub.com',
-  '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8K8qKqK', -- bcrypt hash of 'admin123'
+  '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- bcrypt hash of 'admin123'
   'Admin User',
   'admin',
   'ADMIN'
-) ON CONFLICT (email) DO NOTHING;
+) ON CONFLICT (email) DO UPDATE SET 
+  passwordHash = '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+  role = 'ADMIN';
 
 -- Insert sample operator user (password: operator123)
 INSERT INTO users (email, passwordHash, name, username, role) 
 VALUES (
   'operator@cinemahub.com',
-  '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8K8qKqK', -- bcrypt hash of 'operator123'
+  '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- bcrypt hash of 'operator123'
   'Operator User',
   'operator',
   'OPERATOR'
-) ON CONFLICT (email) DO NOTHING;
+) ON CONFLICT (email) DO UPDATE SET 
+  passwordHash = '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+  role = 'OPERATOR';
 
 -- Insert sample movies
-INSERT INTO movies (title, description, releaseYear, duration, genres, cast, director, averageRating, totalRatings) VALUES
+INSERT INTO movies (title, description, releaseYear, duration, genres, "cast", director, averageRating, totalRatings) VALUES
 ('Inception', 'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.', 2010, 148, '["Action", "Sci-Fi", "Thriller"]', '["Leonardo DiCaprio", "Joseph Gordon-Levitt", "Ellen Page"]', 'Christopher Nolan', 8.8, 2500000),
 ('The Shawshank Redemption', 'Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.', 1994, 142, '["Drama"]', '["Tim Robbins", "Morgan Freeman", "Bob Gunton"]', 'Frank Darabont', 9.3, 2800000),
 ('The Dark Knight', 'When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.', 2008, 152, '["Action", "Crime", "Drama"]', '["Christian Bale", "Heath Ledger", "Aaron Eckhart"]', 'Christopher Nolan', 9.0, 2600000),

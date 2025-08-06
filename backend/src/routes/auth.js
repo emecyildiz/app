@@ -81,6 +81,8 @@ router.post('/login', async (req, res) => {
       });
     }
 
+    console.log('Login attempt for email:', email);
+
     // Get user from Supabase
     const { data: user, error } = await supabase
       .from('users')
@@ -88,7 +90,33 @@ router.post('/login', async (req, res) => {
       .eq('email', email)
       .single();
 
-    if (error || !user) {
+    if (error) {
+      console.error('Supabase error:', error);
+      return res.status(401).json({
+        success: false,
+        message: 'Geçersiz email veya şifre'
+      });
+    }
+
+    if (!user) {
+      console.log('User not found for email:', email);
+      return res.status(401).json({
+        success: false,
+        message: 'Geçersiz email veya şifre'
+      });
+    }
+
+    console.log('User found:', {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      hasPasswordHash: !!user.passwordHash,
+      passwordHashLength: user.passwordHash ? user.passwordHash.length : 0
+    });
+
+    // Check if passwordHash exists
+    if (!user.passwordHash) {
+      console.error('Password hash is missing for user:', user.id);
       return res.status(401).json({
         success: false,
         message: 'Geçersiz email veya şifre'
@@ -97,6 +125,8 @@ router.post('/login', async (req, res) => {
 
     // Check password
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    console.log('Password validation result:', isPasswordValid);
+    
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
@@ -121,6 +151,8 @@ router.post('/login', async (req, res) => {
 
     // Remove password from response
     const { passwordHash: _, ...userWithoutPassword } = user;
+
+    console.log('Login successful for user:', user.email);
 
     res.status(200).json({
       success: true,
