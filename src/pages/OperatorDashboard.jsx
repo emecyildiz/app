@@ -10,13 +10,12 @@ import {
   UsersIcon,
   EyeIcon,
   PencilIcon,
-  TrashIcon,
-  ArrowPathIcon
+  TrashIcon
 } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 
 export default function OperatorDashboard() {
-  const { user, getAllUsers, updateUserProfile, deleteUser, getDashboardStats, get } = useAuthStore()
+  const { user, getAllUsers, updateUserProfile, deleteUser } = useAuthStore()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('overview')
   const [selectedUser, setSelectedUser] = useState(null)
@@ -30,14 +29,6 @@ export default function OperatorDashboard() {
   })
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
-  const [refreshingStats, setRefreshingStats] = useState(false)
-  const [dashboardStats, setDashboardStats] = useState({
-    totalUsers: 0,
-    totalMovies: 0,
-    totalRatings: 0,
-    activeUsers: 0,
-    realTimeActiveUsers: 0
-  })
 
   // Redirect if not operator
   if (!user || user.role !== 'OPERATOR') {
@@ -49,14 +40,8 @@ export default function OperatorDashboard() {
     const loadData = async () => {
       setLoading(true)
       try {
-        const [usersData, statsData] = await Promise.all([
-          getAllUsers(),
-          getDashboardStats()
-        ])
+        const usersData = await getAllUsers()
         setUsers(usersData)
-        if (statsData) {
-          setDashboardStats(statsData)
-        }
       } catch (error) {
         console.error('Error loading operator data:', error)
         toast.error('Veriler yüklenirken hata oluştu!')
@@ -66,52 +51,7 @@ export default function OperatorDashboard() {
     }
 
     loadData()
-  }, [getAllUsers, getDashboardStats])
-
-  // Manual refresh function for active users
-  const refreshActiveUsers = async () => {
-    setRefreshingStats(true)
-    try {
-      const stats = await getDashboardStats()
-      if (stats) {
-        setDashboardStats(prev => ({
-          ...prev,
-          realTimeActiveUsers: stats.realTimeActiveUsers
-        }))
-        toast.success('Aktif kullanıcı sayısı güncellendi!')
-      }
-      
-      // Debug: Check active users (for admin and operator)
-      if (user.role === 'ADMIN' || user.role === 'OPERATOR') {
-        try {
-          console.log('Operator/Admin: Requesting debug active users...')
-          const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://zonal-essence-production.up.railway.app'}/api/admin/debug/active-users`, {
-            headers: {
-              'Authorization': `Bearer ${get().token}`
-            }
-          })
-          const debugData = await response.json()
-          console.log('Debug active users response:', debugData)
-          
-          // Show debug info in toast for admin and operator
-          if (debugData.success) {
-            toast.success(`Debug: ${debugData.data.activeCount} aktif kullanıcı bulundu`)
-            console.log('Active users list:', debugData.data.activeUsers)
-          } else {
-            console.error('Debug request failed:', debugData)
-          }
-        } catch (debugError) {
-          console.error('Debug error:', debugError)
-        }
-      }
-      
-    } catch (error) {
-      console.error('Error refreshing active users:', error)
-      toast.error('Aktif kullanıcı sayısı güncellenirken hata oluştu!')
-    } finally {
-      setRefreshingStats(false)
-    }
-  }
+  }, [getAllUsers])
 
   const handleViewUser = (user) => {
     setSelectedUser(user)
@@ -160,7 +100,7 @@ export default function OperatorDashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
             <div className="flex items-center justify-between">
               <div>
@@ -168,29 +108,6 @@ export default function OperatorDashboard() {
                 <p className="text-3xl font-bold text-white mt-1">{users.filter(u => u.role === 'USER').length}</p>
               </div>
               <UsersIcon className="w-12 h-12 text-blue-600" />
-            </div>
-          </div>
-
-          <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-400 text-sm">Aktif Kullanıcılar</p>
-                <p className="text-3xl font-bold text-white mt-1">{dashboardStats.realTimeActiveUsers}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <button
-                    onClick={refreshActiveUsers}
-                    disabled={refreshingStats}
-                    className="flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white text-xs rounded-lg transition-colors"
-                  >
-                    <ArrowPathIcon className={`w-3 h-3 ${refreshingStats ? 'animate-spin' : ''}`} />
-                    Aktif Kullanıcı Sayısını Gör
-                  </button>
-                  {(user.role === 'ADMIN' || user.role === 'OPERATOR') && (
-                    <span className="text-xs text-green-400">(Debug)</span>
-                  )}
-                </div>
-              </div>
-              <UserGroupIcon className="w-12 h-12 text-green-600" />
             </div>
           </div>
 
