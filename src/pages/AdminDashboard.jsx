@@ -91,14 +91,19 @@ export default function AdminDashboard() {
         toast.success('Aktif kullanıcı sayısı güncellendi!')
       }
       
-      // Debug: Check active users
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://zonal-essence-production.up.railway.app'}/api/admin/debug/active-users`, {
-        headers: {
-          'Authorization': `Bearer ${get().token}`
-        }
-      })
-      const debugData = await response.json()
-      console.log('Debug active users:', debugData)
+      // Debug: Check active users (optional - don't fail if this fails)
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://zonal-essence-production.up.railway.app'}/api/admin/debug/active-users`, {
+          headers: {
+            'Authorization': `Bearer ${get().token}`
+          }
+        })
+        const debugData = await response.json()
+        console.log('Debug active users:', debugData)
+      } catch (debugError) {
+        console.error('Debug request failed:', debugError)
+        // Don't show error toast for debug request failure
+      }
       
     } catch (error) {
       console.error('Error refreshing active users:', error)
