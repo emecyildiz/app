@@ -71,7 +71,7 @@ class MovieService {
     }
 
     try {
-      const response = await this.apiClient.get('/api/genres')
+      const response = await this.apiClient.get('/api/movies/genres')
       return response.data.data || mockGenres // Fallback to mock data
     } catch (error) {
       console.error('Error fetching genres:', error)
@@ -136,7 +136,7 @@ class MovieService {
     }
 
     try {
-      const response = await this.apiClient.get('/api/actors')
+      const response = await this.apiClient.get('/api/movies/actors')
       return response.data.data || []
     } catch (error) {
       console.error('Error fetching actors:', error)

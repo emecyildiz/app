@@ -5,6 +5,57 @@ const router = express.Router();
 // TODO: Import movie controller when created
 // const movieController = require('../controllers/movieController');
 
+// Get all actors
+router.get('/actors', trackActivityFromToken, (req, res) => {
+  res.status(200).json({
+    success: true,
+    data: [
+      'Leonardo DiCaprio',
+      'Morgan Freeman',
+      'Tom Hanks',
+      'Brad Pitt',
+      'Johnny Depp',
+      'Robert Downey Jr.',
+      'Chris Evans',
+      'Scarlett Johansson',
+      'Emma Stone',
+      'Jennifer Lawrence',
+      'Meryl Streep',
+      'Denzel Washington',
+      'Will Smith',
+      'Tom Cruise',
+      'Julia Roberts'
+    ]
+  });
+});
+
+// Get all genres
+router.get('/genres', trackActivityFromToken, (req, res) => {
+  res.status(200).json({
+    success: true,
+    data: [
+      { id: 1, name: 'Action' },
+      { id: 2, name: 'Adventure' },
+      { id: 3, name: 'Animation' },
+      { id: 4, name: 'Comedy' },
+      { id: 5, name: 'Crime' },
+      { id: 6, name: 'Documentary' },
+      { id: 7, name: 'Drama' },
+      { id: 8, name: 'Family' },
+      { id: 9, name: 'Fantasy' },
+      { id: 10, name: 'History' },
+      { id: 11, name: 'Horror' },
+      { id: 12, name: 'Music' },
+      { id: 13, name: 'Mystery' },
+      { id: 14, name: 'Romance' },
+      { id: 15, name: 'Sci-Fi' },
+      { id: 16, name: 'Thriller' },
+      { id: 17, name: 'War' },
+      { id: 18, name: 'Western' }
+    ]
+  });
+});
+
 // Temporary mock responses for development
 router.get('/', trackActivityFromToken, (req, res) => {
   const { page = 1, limit = 12, genre, search } = req.query;
