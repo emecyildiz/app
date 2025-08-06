@@ -87,7 +87,7 @@ router.get('/dashboard', authenticateAdmin, async (req, res) => {
     const { count: activeUsers } = await supabase
       .from('users')
       .select('*', { count: 'exact', head: true })
-      .gte('updatedAt', thirtyDaysAgo.toISOString());
+      .gte('updated_at', thirtyDaysAgo.toISOString());
 
     res.status(200).json({
       success: true,
@@ -116,7 +116,7 @@ router.get('/users', authenticateAdminOrOperator, async (req, res) => {
     const { data: users, error } = await supabase
       .from('users')
       .select('*')
-      .order('createdAt', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Get users error:', error);
@@ -155,7 +155,7 @@ router.get('/operators', authenticateAdmin, async (req, res) => {
       .from('users')
       .select('*')
       .eq('role', 'OPERATOR')
-      .order('createdAt', { ascending: false });
+      .order('created_at', { ascending: false });
 
     console.log('Supabase operators query result:', { operators, error })
 
@@ -311,7 +311,7 @@ router.put('/users/:id/role', authenticateAdmin, async (req, res) => {
 
     const { data: user, error } = await supabase
       .from('users')
-      .update({ role, updatedAt: new Date() })
+      .update({ role, updated_at: new Date() })
       .eq('id', req.params.id)
       .select()
       .single();
