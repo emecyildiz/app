@@ -1,11 +1,12 @@
 const express = require('express');
+const { trackActivityFromToken } = require('../middleware/activityTracker');
 const router = express.Router();
 
 // TODO: Import movie controller when created
 // const movieController = require('../controllers/movieController');
 
 // Temporary mock responses for development
-router.get('/', (req, res) => {
+router.get('/', trackActivityFromToken, (req, res) => {
   const { page = 1, limit = 12, genre, search } = req.query;
   
   res.status(200).json({
@@ -49,7 +50,7 @@ router.get('/', (req, res) => {
   });
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', trackActivityFromToken, (req, res) => {
   res.status(200).json({
     success: true,
     data: {
@@ -72,7 +73,7 @@ router.get('/:id', (req, res) => {
   });
 });
 
-router.post('/:id/rate', (req, res) => {
+router.post('/:id/rate', trackActivityFromToken, (req, res) => {
   const { rating, review } = req.body;
   
   res.status(200).json({
@@ -85,7 +86,7 @@ router.post('/:id/rate', (req, res) => {
   });
 });
 
-router.get('/search', (req, res) => {
+router.get('/search', trackActivityFromToken, (req, res) => {
   const { q, page = 1, limit = 12 } = req.query;
   
   res.status(200).json({

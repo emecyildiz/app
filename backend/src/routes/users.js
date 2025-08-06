@@ -1,6 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { supabase } = require('../config/supabase');
+const { trackUserActivity } = require('../middleware/activityTracker');
 const router = express.Router();
 
 // Middleware to verify JWT token
@@ -27,7 +28,7 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Get user profile
-router.get('/profile', authenticateToken, async (req, res) => {
+router.get('/profile', authenticateToken, trackUserActivity, async (req, res) => {
   try {
     const { data: user, error } = await supabase
       .from('users')
@@ -61,7 +62,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
 });
 
 // Update user profile
-router.put('/profile', authenticateToken, async (req, res) => {
+router.put('/profile', authenticateToken, trackUserActivity, async (req, res) => {
   try {
     const { name, username, bio, location, socialLinks } = req.body;
 

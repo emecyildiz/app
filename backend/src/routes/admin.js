@@ -2,40 +2,8 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { supabase } = require('../config/supabase');
+const { trackUserActivity, getActiveUsersCount } = require('../middleware/activityTracker');
 const router = express.Router();
-
-// Active users tracking
-const activeUsers = new Map(); // userId -> { lastActivity, sessionId }
-
-// Update user activity
-const updateUserActivity = (userId) => {
-  const now = new Date();
-  activeUsers.set(userId, {
-    lastActivity: now,
-    sessionId: Math.random().toString(36).substring(7)
-  });
-  
-  // Clean up inactive users (5 minutes of inactivity)
-  const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
-  for (const [id, data] of activeUsers.entries()) {
-    if (data.lastActivity < fiveMinutesAgo) {
-      activeUsers.delete(id);
-    }
-  }
-};
-
-// Get active users count
-const getActiveUsersCount = () => {
-  return activeUsers.size;
-};
-
-// Middleware to track user activity
-const trackUserActivity = (req, res, next) => {
-  if (req.user && req.user.id) {
-    updateUserActivity(req.user.id);
-  }
-  next();
-};
 
 // Middleware to verify JWT token and admin role
 const authenticateAdmin = (req, res, next) => {

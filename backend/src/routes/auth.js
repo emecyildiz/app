@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { supabase } = require('../config/supabase');
+const { updateUserActivity } = require('../middleware/activityTracker');
 const router = express.Router();
 
 // Test endpoint for password hashing (REMOVE AFTER TESTING)
@@ -59,6 +60,9 @@ router.post('/register', async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
 
+    // Track user activity
+    updateUserActivity(user.id);
+
     // Remove password from response
     const { passwordhash: _, ...userWithoutPassword } = user;
 
@@ -101,60 +105,21 @@ router.post('/login', async (req, res) => {
       .eq('email', email)
       .single();
 
-    if (error) {
-      console.error('Supabase error:', error);
+    if (error || !user) {
       return res.status(401).json({
         success: false,
-        message: 'Geçersiz email veya şifre'
+        message: 'Geçersiz email veya password'
       });
     }
 
-    if (!user) {
-      console.log('User not found for email:', email);
+    // Verify password
+    const isValidPassword = await bcrypt.compare(password, user.passwordhash);
+    if (!isValidPassword) {
       return res.status(401).json({
         success: false,
-        message: 'Geçersiz email veya şifre'
+        message: 'Geçersiz email veya password'
       });
     }
-
-    console.log('User found:', {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      hasPasswordHash: !!user.passwordhash,
-      passwordHashLength: user.passwordhash ? user.passwordhash.length : 0
-    });
-
-    // Check if passwordHash exists
-    if (!user.passwordhash) {
-      console.error('Password hash is missing for user:', user.id);
-      return res.status(401).json({
-        success: false,
-        message: 'Geçersiz email veya şifre'
-      });
-    }
-
-    // Check password
-    const isPasswordValid = await bcrypt.compare(password, user.passwordhash);
-    console.log('Password validation result:', isPasswordValid);
-    
-    if (!isPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        message: 'Geçersiz email veya şifre'
-      });
-    }
-
-    // Debug: isActive değerini kontrol et
-    console.log('User isActive status:', user.isActive);
-
-    // Check if user is active (geçici olarak kaldırıldı)
-    // if (!user.isActive) {
-    //   return res.status(401).json({
-    //     success: false,
-    //     message: 'Hesabınız devre dışı bırakılmış'
-    //   });
-    // }
 
     // Generate JWT token
     const token = jwt.sign(
@@ -163,10 +128,11 @@ router.post('/login', async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
     );
 
+    // Track user activity
+    updateUserActivity(user.id);
+
     // Remove password from response
     const { passwordhash: _, ...userWithoutPassword } = user;
-
-    console.log('Login successful for user:', user.email);
 
     res.status(200).json({
       success: true,
