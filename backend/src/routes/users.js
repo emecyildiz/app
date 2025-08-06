@@ -300,4 +300,99 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-module.exports = router; 
+// Search users endpoint
+router.get('/search', authenticateToken, async (req, res) => {
+  try {
+    const { q } = req.query
+    
+    if (!q || q.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Arama terimi en az 2 karakter olmalıdır'
+      })
+    }
+
+    const searchTerm = q.trim().toLowerCase()
+    
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('*')
+      .or(`username.ilike.%${searchTerm}%,name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
+      .order('createdat', { ascending: false })
+
+    if (error) {
+      console.error('Search users error:', error)
+      return res.status(500).json({
+        success: false,
+        message: 'Kullanıcı arama sırasında hata oluştu'
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      data: users || []
+    })
+  } catch (error) {
+    console.error('Search users error:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Kullanıcı arama sırasında hata oluştu'
+    })
+  }
+})
+
+// Get user profile with stats
+router.get('/profile/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params
+    
+    // Get user info
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single()
+
+    if (userError || !user) {
+      return res.status(404).json({
+        success: false,
+        message: 'Kullanıcı bulunamadı'
+      })
+    }
+
+    // Get user stats (mock data for now)
+    const stats = {
+      favoriteMovies: Math.floor(Math.random() * 20) + 1,
+      reviews: Math.floor(Math.random() * 15) + 1,
+      ratings: Math.floor(Math.random() * 30) + 1,
+      memberSince: user.createdat
+    }
+
+    // Get user favorites (mock data for now)
+    const favorites = [
+      { id: 1, title: 'Inception', poster: 'https://example.com/poster1.jpg', rating: 5 },
+      { id: 2, title: 'The Dark Knight', poster: 'https://example.com/poster2.jpg', rating: 4 },
+      { id: 3, title: 'Interstellar', poster: 'https://example.com/poster3.jpg', rating: 5 },
+      { id: 4, title: 'Pulp Fiction', poster: 'https://example.com/poster4.jpg', rating: 4 },
+      { id: 5, title: 'Fight Club', poster: 'https://example.com/poster5.jpg', rating: 5 },
+      { id: 6, title: 'The Matrix', poster: 'https://example.com/poster6.jpg', rating: 4 }
+    ]
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user,
+        stats,
+        favorites
+      }
+    })
+  } catch (error) {
+    console.error('Get user profile error:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Kullanıcı profili alınırken hata oluştu'
+    })
+  }
+})
+
+module.exports = router 

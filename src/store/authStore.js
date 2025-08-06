@@ -394,6 +394,42 @@ const useAuthStore = create((set, get) => ({
     }
     
     return null
+  },
+
+  // Search users
+  searchUsers: async (query) => {
+    try {
+      const response = await axios.get(`${API_URL}/api/users/search?q=${encodeURIComponent(query)}`, {
+        headers: { Authorization: `Bearer ${get().token}` }
+      })
+      
+      if (response.data.success) {
+        return response.data.data
+      }
+    } catch (error) {
+      console.error('Search users error:', error)
+      toast.error('Kullanıcı arama sırasında hata oluştu!')
+    }
+    
+    return []
+  },
+
+  // Get user profile with stats
+  getUserProfile: async (userId) => {
+    try {
+      const response = await axios.get(`${API_URL}/api/users/profile/${userId}`, {
+        headers: { Authorization: `Bearer ${get().token}` }
+      })
+      
+      if (response.data.success) {
+        return response.data.data
+      }
+    } catch (error) {
+      console.error('Get user profile error:', error)
+      toast.error('Kullanıcı profili alınırken hata oluştu!')
+    }
+    
+    return null
   }
 }))
 
