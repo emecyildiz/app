@@ -21,7 +21,13 @@ const AdminUserEdit = lazy(() => import('./pages/AdminUserEdit'))
 const OperatorDashboard = lazy(() => import('./pages/OperatorDashboard'))
 
 function App() {
-  const { isAuthenticated, token, getCurrentUser } = useAuthStore()
+  const { isAuthenticated, token, getCurrentUser, initializeAuth } = useAuthStore()
+
+  // Initialize auth state on app load
+  useEffect(() => {
+    // Initialize auth from sessionStorage
+    initializeAuth()
+  }, [initializeAuth])
 
   // Check token on app load
   useEffect(() => {
