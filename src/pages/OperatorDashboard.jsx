@@ -245,7 +245,9 @@ export default function OperatorDashboard() {
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm">Son Giriş</p>
-                  <p className="text-white font-medium">{new Date().toLocaleString('tr-TR')}</p>
+                  <p className="text-white font-medium">
+                    {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('tr-TR') : 'Bilinmiyor'}
+                  </p>
                 </div>
               </div>
             </div>

@@ -17,11 +17,12 @@ const updateUserActivity = (userId) => {
   });
   
   console.log('updateUserActivity: Active users count after update:', activeUsers.size);
+  console.log('updateUserActivity: All active users:', Array.from(activeUsers.keys()));
   
-  // Clean up inactive users (15 minutes of inactivity - increased from 5 minutes)
-  const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
+  // Clean up inactive users (30 minutes of inactivity - increased for testing)
+  const thirtyMinutesAgo = new Date(now.getTime() - 30 * 60 * 1000);
   for (const [id, data] of activeUsers.entries()) {
-    if (data.lastActivity < fifteenMinutesAgo) {
+    if (data.lastActivity < thirtyMinutesAgo) {
       console.log('updateUserActivity: Removing inactive user:', id);
       activeUsers.delete(id);
     }
@@ -32,6 +33,7 @@ const updateUserActivity = (userId) => {
 const getActiveUsersCount = () => {
   const count = activeUsers.size;
   console.log('getActiveUsersCount: Current active users count:', count);
+  console.log('getActiveUsersCount: Active user IDs:', Array.from(activeUsers.keys()));
   return count;
 };
 

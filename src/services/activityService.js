@@ -9,10 +9,10 @@ export const activityService = {
       const token = sessionStorage.getItem('auth-token')
       if (token) {
         console.log('activityService: Tracking activity...')
-        await axios.post(`${API_URL}/api/users/activity`, {}, {
+        const response = await axios.post(`${API_URL}/api/users/activity`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         })
-        console.log('activityService: Activity tracked successfully')
+        console.log('activityService: Activity tracked successfully', response.data)
       } else {
         console.log('activityService: No token found')
       }
@@ -26,10 +26,10 @@ export const activityService = {
   startTracking: () => {
     console.log('activityService: Starting activity tracking...')
     
-    // Track activity every 1 minute (increased frequency)
+    // Track activity every 30 seconds (very frequent for testing)
     const interval = setInterval(() => {
       activityService.trackActivity()
-    }, 1 * 60 * 1000) // 1 minute
+    }, 30 * 1000) // 30 seconds
 
     // Track initial activity
     activityService.trackActivity()

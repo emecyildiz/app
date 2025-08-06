@@ -40,7 +40,8 @@ router.post('/register', async (req, res) => {
         passwordhash: passwordHash,
         name,
         username: username || email.split('@')[0],
-        role: 'USER'
+        role: 'USER',
+        lastLoginAt: new Date().toISOString()
       })
       .select()
       .single();
@@ -119,6 +120,19 @@ router.post('/login', async (req, res) => {
         success: false,
         message: 'Geçersiz email veya password'
       });
+    }
+
+    // Update last login time
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ 
+        lastLoginAt: new Date().toISOString(),
+        updatedat: new Date().toISOString()
+      })
+      .eq('id', user.id);
+
+    if (updateError) {
+      console.error('Update last login error:', updateError);
     }
 
     // Generate JWT token
