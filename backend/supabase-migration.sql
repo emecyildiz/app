@@ -152,3 +152,9 @@ INSERT INTO movies (title, description, releaseYear, duration, genres, "cast", d
 ('Pulp Fiction', 'The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.', 1994, 154, '["Crime", "Drama"]', '["John Travolta", "Uma Thurman", "Samuel L. Jackson"]', 'Quentin Tarantino', 8.9, 2000000),
 ('Fight Club', 'An insomniac office worker and a devil-may-care soapmaker form an underground fight club that evolves into something much, much more.', 1999, 139, '["Drama"]', '["Brad Pitt", "Edward Norton", "Helena Bonham Carter"]', 'David Fincher', 8.8, 2200000)
 ON CONFLICT DO NOTHING; 
+
+-- Add lastLoginAt column to users table
+ALTER TABLE users ADD COLUMN IF NOT EXISTS "lastLoginAt" TIMESTAMP WITH TIME ZONE;
+
+-- Update existing users to have a default lastLoginAt
+UPDATE users SET "lastLoginAt" = "createdat" WHERE "lastLoginAt" IS NULL; 

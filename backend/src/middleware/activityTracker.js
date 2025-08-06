@@ -52,6 +52,9 @@ const getActiveUsersCountByRole = async (role) => {
       return 0;
     }
     
+    console.log('getActiveUsersCountByRole: Checking role:', role);
+    console.log('getActiveUsersCountByRole: Active user IDs to check:', activeUserIds);
+    
     // Query database to get users with specific role from active users
     const { data: users, error } = await supabase
       .from('users')

@@ -41,7 +41,7 @@ router.post('/register', async (req, res) => {
         name,
         username: username || email.split('@')[0],
         role: 'USER',
-        lastLoginAt: new Date().toISOString()
+        "lastLoginAt": new Date().toISOString()
       })
       .select()
       .single();
@@ -126,13 +126,14 @@ router.post('/login', async (req, res) => {
     const { error: updateError } = await supabase
       .from('users')
       .update({ 
-        lastLoginAt: new Date().toISOString(),
-        updatedat: new Date().toISOString()
+        "lastLoginAt": new Date().toISOString(),
+        "updatedat": new Date().toISOString()
       })
       .eq('id', user.id);
 
     if (updateError) {
       console.error('Update last login error:', updateError);
+      // Don't fail the login if this update fails
     }
 
     // Generate JWT token

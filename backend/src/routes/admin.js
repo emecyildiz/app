@@ -76,11 +76,22 @@ router.get('/debug/active-users', authenticateAdminOrOperator, async (req, res) 
     
     console.log('Debug active users request from:', req.user.role, 'User ID:', req.user.userId);
     
+    // Get all users with their roles for debugging
+    const { data: allUsers, error: usersError } = await supabase
+      .from('users')
+      .select('id, email, role, "lastLoginAt"')
+      .order('createdat', { ascending: false });
+    
+    if (usersError) {
+      console.error('Debug: Error getting all users:', usersError);
+    }
+    
     res.status(200).json({
       success: true,
       data: {
         activeCount,
         activeUsers: Array.from(allActiveUsers),
+        allUsers: allUsers || [],
         message: 'Only USER role active users are counted'
       }
     });
