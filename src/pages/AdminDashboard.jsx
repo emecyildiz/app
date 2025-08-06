@@ -93,7 +93,7 @@ export default function AdminDashboard() {
       
       // Debug: Check active users (optional - don't fail if this fails)
       try {
-        const response = await fetch(`https://zonal-essence-production.up.railway.app/api/admin/debug/active-users`, {
+        const response = await fetch(`http://localhost:5000/api/admin/debug/active-users`, {
           headers: {
             'Authorization': `Bearer ${get().token}`
           }

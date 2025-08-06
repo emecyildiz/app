@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import toast from 'react-hot-toast'
 import axios from 'axios'
 
-const API_URL = 'https://zonal-essence-production.up.railway.app'
+const API_URL = 'http://localhost:5000'
 
 console.log('AuthStore - API_URL:', API_URL)
 
