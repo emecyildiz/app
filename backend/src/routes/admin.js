@@ -113,10 +113,17 @@ router.get('/dashboard', authenticateAdmin, async (req, res) => {
 // Get all users (admin/operator)
 router.get('/users', authenticateAdminOrOperator, async (req, res) => {
   try {
-    const { data: users, error } = await supabase
+    let query = supabase
       .from('users')
       .select('*')
       .order('createdat', { ascending: false });
+
+    // If operator, only show USER role users
+    if (req.user.role === 'OPERATOR') {
+      query = query.eq('role', 'USER');
+    }
+
+    const { data: users, error } = await query;
 
     if (error) {
       console.error('Get users error:', error);

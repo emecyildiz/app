@@ -101,7 +101,7 @@ export default function OperatorDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Toplam Kullanıcı</p>
-                <p className="text-3xl font-bold text-white mt-1">{users.length}</p>
+                <p className="text-3xl font-bold text-white mt-1">{users.filter(u => u.role === 'USER').length}</p>
               </div>
               <UsersIcon className="w-12 h-12 text-blue-600" />
             </div>
@@ -111,7 +111,7 @@ export default function OperatorDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Aktif Kullanıcılar</p>
-                <p className="text-3xl font-bold text-white mt-1">{users.filter(u => u.role === 'USER').length}</p>
+                <p className="text-3xl font-bold text-white mt-1">{users.filter(u => u.role === 'USER' && u.isActive !== false).length}</p>
               </div>
               <UserGroupIcon className="w-12 h-12 text-green-600" />
             </div>
@@ -226,7 +226,7 @@ export default function OperatorDashboard() {
             <div className="bg-gray-900 rounded-lg border border-gray-800">
               <div className="p-6 border-b border-gray-800">
                 <h2 className="text-xl font-semibold text-white">Kullanıcı Yönetimi</h2>
-                <p className="text-gray-400 mt-1">Kullanıcı hesaplarını görüntüle ve yönet</p>
+                <p className="text-gray-400 mt-1">Normal kullanıcı hesaplarını görüntüle ve yönet</p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -246,7 +246,7 @@ export default function OperatorDashboard() {
                       </tr>
                     ) : users.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="p-4 text-center text-gray-400">Aktif kullanıcı bulunamadı.</td>
+                        <td colSpan="5" className="p-4 text-center text-gray-400">Henüz normal kullanıcı bulunamadı.</td>
                       </tr>
                     ) : (
                       users.map((userItem) => (

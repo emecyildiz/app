@@ -131,7 +131,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-400 text-sm">Toplam Kullanıcı</p>
-                    <p className="text-3xl font-bold text-white mt-1">{users.length}</p>
+                    <p className="text-3xl font-bold text-white mt-1">{users.filter(u => u.role === 'USER').length}</p>
                   </div>
                   <UsersIcon className="w-12 h-12 text-red-600" />
                 </div>
@@ -245,7 +245,8 @@ export default function AdminDashboard() {
               <div className="space-y-6">
                 <div className="bg-gray-900 rounded-lg border border-gray-800">
                   <div className="p-6 border-b border-gray-800">
-                    <h2 className="text-xl font-semibold text-white">Kullanıcı Listesi</h2>
+                    <h2 className="text-xl font-semibold text-white">Tüm Kullanıcılar</h2>
+                    <p className="text-gray-400 mt-1">Sistemdeki tüm kullanıcıları görüntüle ve yönet</p>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full">
