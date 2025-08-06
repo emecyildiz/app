@@ -4,6 +4,17 @@ const jwt = require('jsonwebtoken');
 const { supabase } = require('../config/supabase');
 const router = express.Router();
 
+// Test endpoint for password hashing (REMOVE AFTER TESTING)
+router.post('/test-hash', async (req, res) => {
+  try {
+    const { password } = req.body;
+    const hash = await bcrypt.hash(password, 12);
+    res.json({ password, hash });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Register endpoint
 router.post('/register', async (req, res) => {
   try {

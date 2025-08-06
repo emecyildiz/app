@@ -136,12 +136,12 @@ VALUES (
 INSERT INTO users (email, passwordHash, name, username, role) 
 VALUES (
   'operator@cinemahub.com',
-  '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- bcrypt hash of 'operator123'
+  '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8K8qKqK', -- bcrypt hash of 'operator123'
   'Operator User',
   'operator',
   'OPERATOR'
 ) ON CONFLICT (email) DO UPDATE SET 
-  passwordHash = '$2a$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+  passwordHash = '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8K8qKqK',
   role = 'OPERATOR';
 
 -- Insert sample movies
