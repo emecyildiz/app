@@ -12,10 +12,19 @@ import {
 import toast from 'react-hot-toast'
 
 export default function AdminDashboard() {
-  const { user, getAllUsers, getAllOperators, addOperator, removeOperator, deleteUser } = useAuthStore()
+  const { user, getAllUsers, getAllOperators, addOperator, removeOperator, deleteUser, updateUserProfile } = useAuthStore()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('overview')
   const [showAddOperator, setShowAddOperator] = useState(false)
+  const [showEditUser, setShowEditUser] = useState(false)
+  const [selectedUser, setSelectedUser] = useState(null)
+  const [editForm, setEditForm] = useState({
+    name: '',
+    email: '',
+    username: '',
+    bio: '',
+    location: ''
+  })
   const [operatorForm, setOperatorForm] = useState({
     email: '',
     password: '',
@@ -107,6 +116,41 @@ export default function AdminDashboard() {
         setOperators(operatorsData)
         toast.success('Kullanıcı başarıyla silindi!')
       }
+    }
+  }
+
+  const handleEditUser = (user) => {
+    setSelectedUser(user)
+    setEditForm({
+      name: user.name || '',
+      email: user.email || '',
+      username: user.username || '',
+      bio: user.bio || '',
+      location: user.location || ''
+    })
+    setShowEditUser(true)
+  }
+
+  const handleUpdateUser = async (e) => {
+    e.preventDefault()
+    
+    if (!editForm.name || !editForm.email) {
+      toast.error('Lütfen gerekli alanları doldurun!')
+      return
+    }
+
+    const result = await updateUserProfile(selectedUser.id, editForm)
+    if (result.success) {
+      setShowEditUser(false)
+      setSelectedUser(null)
+      // Reload data after updating user
+      const [usersData, operatorsData] = await Promise.all([
+        getAllUsers(),
+        getAllOperators()
+      ])
+      setUsers(usersData)
+      setOperators(operatorsData)
+      toast.success('Kullanıcı başarıyla güncellendi!')
     }
   }
 
@@ -284,7 +328,7 @@ export default function AdminDashboard() {
                               <td className="p-4">
                                 <div className="flex items-center gap-2">
                                   <button
-                                    onClick={() => navigate(`/admin/user/${user.id}`)}
+                                    onClick={() => handleEditUser(user)}
                                     className="text-blue-500 hover:text-blue-400 text-sm"
                                   >
                                     Düzenle
@@ -501,6 +545,114 @@ export default function AdminDashboard() {
           </>
         )}
       </div>
+
+      {/* User Edit Modal */}
+      {showEditUser && selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-900 rounded-lg p-6 w-full max-w-2xl mx-4 border border-gray-800">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-white">Kullanıcı Düzenle</h3>
+              <button
+                onClick={() => setShowEditUser(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <form onSubmit={handleUpdateUser} className="space-y-4">
+              <div className="flex items-center gap-4 mb-6">
+                <img
+                  src={selectedUser.avatar}
+                  alt={selectedUser.name}
+                  className="w-16 h-16 rounded-full"
+                />
+                <div>
+                  <h4 className="text-lg font-medium text-white">{selectedUser.name}</h4>
+                  <p className="text-gray-400">{selectedUser.email}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">
+                    Ad Soyad
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-600"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">
+                    E-posta
+                  </label>
+                  <input
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-600"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">
+                    Kullanıcı Adı
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.username}
+                    onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">
+                    Konum
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.location}
+                    onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-600"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">
+                  Hakkında
+                </label>
+                <textarea
+                  value={editForm.bio}
+                  onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                  rows="3"
+                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-600"
+                />
+              </div>
+              
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowEditUser(false)}
+                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                >
+                  Güncelle
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -77,6 +77,10 @@ export default function OperatorDashboard() {
     if (result.success) {
       setShowUserDetails(false)
       setSelectedUser(null)
+      // Reload data after updating user
+      const usersData = await getAllUsers()
+      setUsers(usersData)
+      toast.success('Kullanıcı başarıyla güncellendi!')
     }
   }
 

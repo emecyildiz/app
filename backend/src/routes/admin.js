@@ -350,4 +350,163 @@ router.put('/users/:id/role', authenticateAdmin, async (req, res) => {
   }
 });
 
+// Update user profile (admin/operator)
+router.put('/users/:id', authenticateAdminOrOperator, async (req, res) => {
+  try {
+    const { name, email, username, bio, location } = req.body;
+    const userId = req.params.id;
+
+    // Validate input
+    if (!name || !email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ad ve email alanları zorunludur'
+      });
+    }
+
+    // Check if user exists
+    const { data: existingUser, error: getError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (getError || !existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'Kullanıcı bulunamadı'
+      });
+    }
+
+    // If operator, only allow updating USER role users
+    if (req.user.role === 'OPERATOR' && existingUser.role !== 'USER') {
+      return res.status(403).json({
+        success: false,
+        message: 'Sadece normal kullanıcıları düzenleyebilirsiniz'
+      });
+    }
+
+    // Check if email is already taken by another user
+    if (email !== existingUser.email) {
+      const { data: emailExists } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', email)
+        .neq('id', userId)
+        .single();
+
+      if (emailExists) {
+        return res.status(400).json({
+          success: false,
+          message: 'Bu email adresi zaten kullanılıyor'
+        });
+      }
+    }
+
+    // Update user
+    const updateData = {
+      name,
+      email,
+      username: username || email.split('@')[0],
+      bio: bio || null,
+      location: location || null,
+      updatedat: new Date()
+    };
+
+    const { data: updatedUser, error } = await supabase
+      .from('users')
+      .update(updateData)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Update user error:', error);
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'Kullanıcı güncellenemedi'
+      });
+    }
+
+    // Remove password from response
+    const { passwordhash: _, ...userWithoutPassword } = updatedUser;
+
+    res.status(200).json({
+      success: true,
+      message: 'Kullanıcı başarıyla güncellendi',
+      data: {
+        user: userWithoutPassword
+      }
+    });
+  } catch (error) {
+    console.error('Update user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Sunucu hatası'
+    });
+  }
+});
+
+// Delete user (admin/operator)
+router.delete('/users/:id', authenticateAdminOrOperator, async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Check if user exists
+    const { data: existingUser, error: getError } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', userId)
+      .single();
+
+    if (getError || !existingUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'Kullanıcı bulunamadı'
+      });
+    }
+
+    // If operator, only allow deleting USER role users
+    if (req.user.role === 'OPERATOR' && existingUser.role !== 'USER') {
+      return res.status(403).json({
+        success: false,
+        message: 'Sadece normal kullanıcıları silebilirsiniz'
+      });
+    }
+
+    // Admin cannot delete themselves
+    if (req.user.id === userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Kendi hesabınızı silemezsiniz'
+      });
+    }
+
+    // Delete user
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', userId);
+
+    if (error) {
+      console.error('Delete user error:', error);
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'Kullanıcı silinemedi'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Kullanıcı başarıyla silindi'
+    });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Sunucu hatası'
+    });
+  }
+});
+
 module.exports = router; 
