@@ -90,6 +90,20 @@ router.get('/debug/active-users', authenticateAdminOrOperator, async (req, res) 
     const activeUserIds = Array.from(activeUsers.keys());
     console.log('Debug: Active user IDs in memory:', activeUserIds);
     
+    // Check which active users are USER role
+    const { data: activeUserRoles, error: rolesError } = await supabase
+      .from('users')
+      .select('id, email, role')
+      .in('id', activeUserIds);
+    
+    if (rolesError) {
+      console.error('Debug: Error getting active user roles:', rolesError);
+    }
+    
+    const userRoleCount = activeUserRoles ? activeUserRoles.filter(u => u.role === 'USER').length : 0;
+    console.log('Debug: USER role active users count:', userRoleCount);
+    console.log('Debug: Active users with roles:', activeUserRoles);
+    
     res.status(200).json({
       success: true,
       data: {
@@ -97,6 +111,8 @@ router.get('/debug/active-users', authenticateAdminOrOperator, async (req, res) 
         activeUsers: Array.from(allActiveUsers),
         allUsers: allUsers || [],
         activeUserIds: activeUserIds,
+        activeUserRoles: activeUserRoles || [],
+        userRoleCount: userRoleCount,
         message: 'Only USER role active users are counted'
       }
     });
