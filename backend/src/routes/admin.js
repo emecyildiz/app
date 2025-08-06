@@ -86,12 +86,17 @@ router.get('/debug/active-users', authenticateAdminOrOperator, async (req, res) 
       console.error('Debug: Error getting all users:', usersError);
     }
     
+    // Get active user IDs from memory
+    const activeUserIds = Array.from(activeUsers.keys());
+    console.log('Debug: Active user IDs in memory:', activeUserIds);
+    
     res.status(200).json({
       success: true,
       data: {
         activeCount,
         activeUsers: Array.from(allActiveUsers),
         allUsers: allUsers || [],
+        activeUserIds: activeUserIds,
         message: 'Only USER role active users are counted'
       }
     });
