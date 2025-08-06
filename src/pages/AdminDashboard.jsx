@@ -12,7 +12,7 @@ import {
 import toast from 'react-hot-toast'
 
 export default function AdminDashboard() {
-  const { user, getAllUsers, getAllOperators, addOperator, removeOperator, deleteUser, updateUserProfile } = useAuthStore()
+  const { user, getAllUsers, getAllOperators, addOperator, removeOperator, deleteUser, updateUserProfile, getDashboardStats } = useAuthStore()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('overview')
   const [showAddOperator, setShowAddOperator] = useState(false)
@@ -34,6 +34,13 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([])
   const [operators, setOperators] = useState([])
   const [loading, setLoading] = useState(true)
+  const [dashboardStats, setDashboardStats] = useState({
+    totalUsers: 0,
+    totalMovies: 0,
+    totalRatings: 0,
+    activeUsers: 0,
+    realTimeActiveUsers: 0
+  })
 
   // Redirect if not admin
   if (!user || user.role !== 'ADMIN') {
@@ -45,14 +52,19 @@ export default function AdminDashboard() {
     const loadData = async () => {
       setLoading(true)
       try {
-        const [usersData, operatorsData] = await Promise.all([
+        const [usersData, operatorsData, statsData] = await Promise.all([
           getAllUsers(),
-          getAllOperators()
+          getAllOperators(),
+          getDashboardStats()
         ])
         console.log('Admin Dashboard - Users Data:', usersData)
         console.log('Admin Dashboard - Operators Data:', operatorsData)
+        console.log('Admin Dashboard - Stats Data:', statsData)
         setUsers(usersData)
         setOperators(operatorsData)
+        if (statsData) {
+          setDashboardStats(statsData)
+        }
       } catch (error) {
         console.error('Error loading admin data:', error)
         toast.error('Veriler yüklenirken hata oluştu!')
@@ -62,7 +74,24 @@ export default function AdminDashboard() {
     }
 
     loadData()
-  }, [getAllUsers, getAllOperators])
+
+    // Set up real-time updates for active users
+    const interval = setInterval(async () => {
+      try {
+        const stats = await getDashboardStats()
+        if (stats) {
+          setDashboardStats(prev => ({
+            ...prev,
+            realTimeActiveUsers: stats.realTimeActiveUsers
+          }))
+        }
+      } catch (error) {
+        console.error('Error updating active users:', error)
+      }
+    }, 30000) // Update every 30 seconds
+
+    return () => clearInterval(interval)
+  }, [getAllUsers, getAllOperators, getDashboardStats])
 
   const handleAddOperator = async (e) => {
     e.preventDefault()
@@ -194,8 +223,9 @@ export default function AdminDashboard() {
               <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm">Aktif Oturumlar</p>
-                    <p className="text-3xl font-bold text-white mt-1">1</p>
+                    <p className="text-gray-400 text-sm">Aktif Kullanıcılar</p>
+                    <p className="text-3xl font-bold text-white mt-1">{dashboardStats.realTimeActiveUsers}</p>
+                    <p className="text-xs text-green-400 mt-1">Gerçek zamanlı</p>
                   </div>
                   <ChartBarIcon className="w-12 h-12 text-green-600" />
                 </div>

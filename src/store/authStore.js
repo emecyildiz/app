@@ -373,6 +373,27 @@ const useAuthStore = create((set, get) => ({
     }
     
     return []
+  },
+
+  getDashboardStats: async () => {
+    const currentUser = get().user
+    if (currentUser?.role !== 'ADMIN' && currentUser?.role !== 'OPERATOR') {
+      return null
+    }
+
+    try {
+      const response = await axios.get(`${API_URL}/api/admin/dashboard`, {
+        headers: { Authorization: `Bearer ${get().token}` }
+      })
+      
+      if (response.data.success) {
+        return response.data.data.stats
+      }
+    } catch (error) {
+      console.error('Get dashboard stats error:', error)
+    }
+    
+    return null
   }
 }))
 

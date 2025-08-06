@@ -4,6 +4,39 @@ const bcrypt = require('bcryptjs');
 const { supabase } = require('../config/supabase');
 const router = express.Router();
 
+// Active users tracking
+const activeUsers = new Map(); // userId -> { lastActivity, sessionId }
+
+// Update user activity
+const updateUserActivity = (userId) => {
+  const now = new Date();
+  activeUsers.set(userId, {
+    lastActivity: now,
+    sessionId: Math.random().toString(36).substring(7)
+  });
+  
+  // Clean up inactive users (5 minutes of inactivity)
+  const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+  for (const [id, data] of activeUsers.entries()) {
+    if (data.lastActivity < fiveMinutesAgo) {
+      activeUsers.delete(id);
+    }
+  }
+};
+
+// Get active users count
+const getActiveUsersCount = () => {
+  return activeUsers.size;
+};
+
+// Middleware to track user activity
+const trackUserActivity = (req, res, next) => {
+  if (req.user && req.user.id) {
+    updateUserActivity(req.user.id);
+  }
+  next();
+};
+
 // Middleware to verify JWT token and admin role
 const authenticateAdmin = (req, res, next) => {
   const token = req.headers.authorization?.replace('Bearer ', '');
@@ -63,7 +96,7 @@ const authenticateAdminOrOperator = (req, res, next) => {
 };
 
 // Get admin dashboard stats
-router.get('/dashboard', authenticateAdmin, async (req, res) => {
+router.get('/dashboard', authenticateAdmin, trackUserActivity, async (req, res) => {
   try {
     // Get total users
     const { count: totalUsers } = await supabase
@@ -84,10 +117,13 @@ router.get('/dashboard', authenticateAdmin, async (req, res) => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     
-    const { count: activeUsers } = await supabase
+    const { count: activeUsersCount } = await supabase
       .from('users')
       .select('*', { count: 'exact', head: true })
       .gte('updatedat', thirtyDaysAgo.toISOString());
+
+    // Get real-time active users
+    const realTimeActiveUsers = getActiveUsersCount();
 
     res.status(200).json({
       success: true,
@@ -96,7 +132,8 @@ router.get('/dashboard', authenticateAdmin, async (req, res) => {
           totalUsers: totalUsers || 0,
           totalMovies: totalMovies || 0,
           totalRatings: totalRatings || 0,
-          activeUsers: activeUsers || 0
+          activeUsers: activeUsersCount || 0,
+          realTimeActiveUsers: realTimeActiveUsers
         },
         recentActivity: [] // TODO: Implement activity tracking
       }
@@ -111,7 +148,7 @@ router.get('/dashboard', authenticateAdmin, async (req, res) => {
 });
 
 // Get all users (admin/operator)
-router.get('/users', authenticateAdminOrOperator, async (req, res) => {
+router.get('/users', authenticateAdminOrOperator, trackUserActivity, async (req, res) => {
   try {
     let query = supabase
       .from('users')
@@ -155,16 +192,16 @@ router.get('/users', authenticateAdminOrOperator, async (req, res) => {
 });
 
 // Get all operators (admin only)
-router.get('/operators', authenticateAdmin, async (req, res) => {
+router.get('/operators', authenticateAdmin, trackUserActivity, async (req, res) => {
   try {
-    console.log('Get operators request received')
+    console.log('Get operators request received') // Debug log
     const { data: operators, error } = await supabase
       .from('users')
       .select('*')
       .eq('role', 'OPERATOR')
       .order('createdat', { ascending: false });
 
-    console.log('Supabase operators query result:', { operators, error })
+    console.log('Supabase operators query result:', { operators, error }) // Debug log
 
     if (error) {
       console.error('Get operators error:', error);
@@ -180,7 +217,7 @@ router.get('/operators', authenticateAdmin, async (req, res) => {
       return operatorWithoutPassword;
     });
 
-    console.log('Operators without passwords:', operatorsWithoutPasswords)
+    console.log('Operators without passwords:', operatorsWithoutPasswords) // Debug log
 
     res.status(200).json({
       success: true,

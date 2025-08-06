@@ -15,7 +15,7 @@ import {
 import toast from 'react-hot-toast'
 
 export default function OperatorDashboard() {
-  const { user, getAllUsers, updateUserProfile, deleteUser } = useAuthStore()
+  const { user, getAllUsers, updateUserProfile, deleteUser, getDashboardStats } = useAuthStore()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('overview')
   const [selectedUser, setSelectedUser] = useState(null)
@@ -29,6 +29,13 @@ export default function OperatorDashboard() {
   })
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [dashboardStats, setDashboardStats] = useState({
+    totalUsers: 0,
+    totalMovies: 0,
+    totalRatings: 0,
+    activeUsers: 0,
+    realTimeActiveUsers: 0
+  })
 
   // Redirect if not operator
   if (!user || user.role !== 'OPERATOR') {
@@ -40,8 +47,14 @@ export default function OperatorDashboard() {
     const loadData = async () => {
       setLoading(true)
       try {
-        const usersData = await getAllUsers()
+        const [usersData, statsData] = await Promise.all([
+          getAllUsers(),
+          getDashboardStats()
+        ])
         setUsers(usersData)
+        if (statsData) {
+          setDashboardStats(statsData)
+        }
       } catch (error) {
         console.error('Error loading operator data:', error)
         toast.error('Veriler yüklenirken hata oluştu!')
@@ -51,7 +64,24 @@ export default function OperatorDashboard() {
     }
 
     loadData()
-  }, [getAllUsers])
+
+    // Set up real-time updates for active users
+    const interval = setInterval(async () => {
+      try {
+        const stats = await getDashboardStats()
+        if (stats) {
+          setDashboardStats(prev => ({
+            ...prev,
+            realTimeActiveUsers: stats.realTimeActiveUsers
+          }))
+        }
+      } catch (error) {
+        console.error('Error updating active users:', error)
+      }
+    }, 30000) // Update every 30 seconds
+
+    return () => clearInterval(interval)
+  }, [getAllUsers, getDashboardStats])
 
   const handleViewUser = (user) => {
     setSelectedUser(user)
@@ -115,7 +145,8 @@ export default function OperatorDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Aktif Kullanıcılar</p>
-                <p className="text-3xl font-bold text-white mt-1">{users.filter(u => u.role === 'USER' && u.isActive !== false).length}</p>
+                <p className="text-3xl font-bold text-white mt-1">{dashboardStats.realTimeActiveUsers}</p>
+                <p className="text-xs text-green-400 mt-1">Gerçek zamanlı</p>
               </div>
               <UserGroupIcon className="w-12 h-12 text-green-600" />
             </div>
