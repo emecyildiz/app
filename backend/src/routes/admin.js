@@ -2,7 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { supabase } = require('../config/supabase');
-const { trackUserActivity, getActiveUsersCount } = require('../middleware/activityTracker');
+const { trackUserActivity, getActiveUsersCount, getActiveUsers } = require('../middleware/activityTracker');
 const router = express.Router();
 
 // Middleware to verify JWT token and admin role
@@ -62,6 +62,28 @@ const authenticateAdminOrOperator = (req, res, next) => {
     });
   }
 };
+
+// Debug endpoint to see active users (admin only)
+router.get('/debug/active-users', authenticateAdmin, async (req, res) => {
+  try {
+    const activeUsers = getActiveUsers();
+    const activeCount = getActiveUsersCount();
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        activeCount,
+        activeUsers
+      }
+    });
+  } catch (error) {
+    console.error('Debug active users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Sunucu hatası'
+    });
+  }
+});
 
 // Get admin dashboard stats
 router.get('/dashboard', authenticateAdmin, trackUserActivity, async (req, res) => {

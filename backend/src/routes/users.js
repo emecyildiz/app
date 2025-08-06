@@ -107,6 +107,15 @@ router.put('/profile', authenticateToken, trackUserActivity, async (req, res) =>
   }
 });
 
+// Track user activity (for frontend to ping)
+router.post('/activity', trackUserActivity, async (req, res) => {
+  console.log('POST /api/users/activity: Activity tracking endpoint called');
+  res.status(200).json({
+    success: true,
+    message: 'Activity tracked'
+  });
+});
+
 // Update user avatar
 router.put('/avatar', authenticateToken, async (req, res) => {
   try {

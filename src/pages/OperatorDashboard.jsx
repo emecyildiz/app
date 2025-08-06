@@ -80,6 +80,18 @@ export default function OperatorDashboard() {
         }))
         toast.success('Aktif kullanıcı sayısı güncellendi!')
       }
+      
+      // Debug: Check active users (if admin)
+      if (user.role === 'ADMIN') {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://zonal-essence-production.up.railway.app'}/api/admin/debug/active-users`, {
+          headers: {
+            'Authorization': `Bearer ${get().token}`
+          }
+        })
+        const debugData = await response.json()
+        console.log('Debug active users:', debugData)
+      }
+      
     } catch (error) {
       console.error('Error refreshing active users:', error)
       toast.error('Aktif kullanıcı sayısı güncellenirken hata oluştu!')

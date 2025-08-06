@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { useAuthStore } from './store/authStore'
+import { activityService } from './services/activityService'
 
 // Layout components
 import Layout from './components/Layout'
@@ -35,6 +36,23 @@ function App() {
       getCurrentUser()
     }
   }, [token, isAuthenticated, getCurrentUser])
+
+  // Start activity tracking when user is authenticated
+  useEffect(() => {
+    let activityInterval = null
+    
+    if (isAuthenticated && token) {
+      // Start activity tracking
+      activityInterval = activityService.startTracking()
+    }
+
+    // Cleanup on unmount or when auth changes
+    return () => {
+      if (activityInterval) {
+        activityService.stopTracking(activityInterval)
+      }
+    }
+  }, [isAuthenticated, token])
 
   return (
     <Router>
