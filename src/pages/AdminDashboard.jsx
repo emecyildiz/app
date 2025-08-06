@@ -65,18 +65,46 @@ export default function AdminDashboard() {
     if (result.success) {
       setOperatorForm({ email: '', password: '', name: '', username: '' })
       setShowAddOperator(false)
+      // Reload data after adding operator
+      const [usersData, operatorsData] = await Promise.all([
+        getAllUsers(),
+        getAllOperators()
+      ])
+      setUsers(usersData)
+      setOperators(operatorsData)
+      toast.success('Operatör başarıyla eklendi!')
     }
   }
 
   const handleRemoveOperator = async (operatorId) => {
     if (window.confirm('Bu operatörü kaldırmak istediğinizden emin misiniz?')) {
-      await removeOperator(operatorId)
+      const result = await removeOperator(operatorId)
+      if (result.success) {
+        // Reload data after removing operator
+        const [usersData, operatorsData] = await Promise.all([
+          getAllUsers(),
+          getAllOperators()
+        ])
+        setUsers(usersData)
+        setOperators(operatorsData)
+        toast.success('Operatör başarıyla kaldırıldı!')
+      }
     }
   }
 
   const handleDeleteUser = async (userId) => {
     if (window.confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?')) {
-      await deleteUser(userId)
+      const result = await deleteUser(userId)
+      if (result.success) {
+        // Reload data after deleting user
+        const [usersData, operatorsData] = await Promise.all([
+          getAllUsers(),
+          getAllOperators()
+        ])
+        setUsers(usersData)
+        setOperators(operatorsData)
+        toast.success('Kullanıcı başarıyla silindi!')
+      }
     }
   }
 

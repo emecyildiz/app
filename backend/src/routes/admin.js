@@ -128,7 +128,7 @@ router.get('/users', authenticateAdminOrOperator, async (req, res) => {
 
     // Remove passwords from response
     const usersWithoutPasswords = users.map(user => {
-      const { passwordHash: _, ...userWithoutPassword } = user;
+      const { passwordhash: _, ...userWithoutPassword } = user;
       return userWithoutPassword;
     });
 
@@ -166,7 +166,7 @@ router.get('/operators', authenticateAdmin, async (req, res) => {
 
     // Remove passwords from response
     const operatorsWithoutPasswords = operators.map(operator => {
-      const { passwordHash: _, ...operatorWithoutPassword } = operator;
+      const { passwordhash: _, ...operatorWithoutPassword } = operator;
       return operatorWithoutPassword;
     });
 
@@ -206,7 +206,7 @@ router.post('/operators', authenticateAdmin, async (req, res) => {
       .from('users')
       .insert({
         email,
-        passwordHash,
+        passwordhash: passwordHash,
         name,
         username: username || email.split('@')[0],
         role: 'OPERATOR'
@@ -223,7 +223,7 @@ router.post('/operators', authenticateAdmin, async (req, res) => {
     }
 
     // Remove password from response
-    const { passwordHash: _, ...operatorWithoutPassword } = operator;
+    const { passwordhash: _, ...operatorWithoutPassword } = operator;
 
     res.status(201).json({
       success: true,
