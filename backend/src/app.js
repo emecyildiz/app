@@ -27,8 +27,10 @@ const limiter = rateLimit({
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: 'https://app-seven-flax-12.vercel.app',
-  credentials: true
+  origin: true, // Allow all origins
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
