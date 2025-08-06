@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Film, Home, Info, User, LogIn, UserPlus, Search, Menu, X, LogOut, Shield } from 'lucide-react'
+import { Film, Home, Info, User, LogIn, UserPlus, Menu, X, LogOut, Shield } from 'lucide-react'
 import { useAuthStore } from '../store/authStore'
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
   const location = useLocation()
   const navigate = useNavigate()
   const { isAuthenticated, user, logout } = useAuthStore()
@@ -20,14 +19,6 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
-
-  const handleSearch = (e) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      navigate(`/movies?search=${encodeURIComponent(searchQuery)}`)
-      setSearchQuery('')
-    }
-  }
 
   const navLinks = [
     { path: '/', label: 'Ana Sayfa', icon: Home },
@@ -79,23 +70,6 @@ const Navbar = () => {
                 )
               })}
             </ul>
-
-            {/* Search Bar */}
-            <form onSubmit={handleSearch} className="relative">
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Film ara..."
-                className="w-64 px-4 py-2 pr-10 rounded-lg bg-dark-200 border border-dark-500 text-gray-100 placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200"
-              />
-              <button
-                type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-400 transition-colors"
-              >
-                <Search className="w-5 h-5" />
-              </button>
-            </form>
 
             {/* Auth Buttons */}
             <div className="flex items-center gap-3">
@@ -161,25 +135,6 @@ const Navbar = () => {
             className="md:hidden glass-dark border-t border-white/10"
           >
             <div className="container mx-auto px-4 py-4">
-              {/* Mobile Search */}
-              <form onSubmit={handleSearch} className="mb-4">
-                <div className="relative">
-                  <input
-                    type="search"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Film ara..."
-                    className="w-full px-4 py-2 pr-10 rounded-lg bg-dark-200 border border-dark-500 text-gray-100 placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20"
-                  />
-                  <button
-                    type="submit"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary-400 transition-colors"
-                  >
-                    <Search className="w-5 h-5" />
-                  </button>
-                </div>
-              </form>
-
               {/* Mobile Nav Links */}
               <ul className="space-y-2 mb-4">
                 {navLinks.map((link) => {
