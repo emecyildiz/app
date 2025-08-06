@@ -145,13 +145,16 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Check if user is active
-    if (!user.isActive) {
-      return res.status(401).json({
-        success: false,
-        message: 'Hesabınız devre dışı bırakılmış'
-      });
-    }
+    // Debug: isActive değerini kontrol et
+    console.log('User isActive status:', user.isActive);
+
+    // Check if user is active (geçici olarak kaldırıldı)
+    // if (!user.isActive) {
+    //   return res.status(401).json({
+    //     success: false,
+    //     message: 'Hesabınız devre dışı bırakılmış'
+    //   });
+    // }
 
     // Generate JWT token
     const token = jwt.sign(
