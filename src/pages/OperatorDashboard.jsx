@@ -83,13 +83,22 @@ export default function OperatorDashboard() {
       
       // Debug: Check active users (if admin)
       if (user.role === 'ADMIN') {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://zonal-essence-production.up.railway.app'}/api/admin/debug/active-users`, {
-          headers: {
-            'Authorization': `Bearer ${get().token}`
+        try {
+          const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://zonal-essence-production.up.railway.app'}/api/admin/debug/active-users`, {
+            headers: {
+              'Authorization': `Bearer ${get().token}`
+            }
+          })
+          const debugData = await response.json()
+          console.log('Debug active users:', debugData)
+          
+          // Show debug info in toast for admin
+          if (debugData.success) {
+            toast.success(`Debug: ${debugData.data.activeCount} aktif kullanıcı bulundu`)
           }
-        })
-        const debugData = await response.json()
-        console.log('Debug active users:', debugData)
+        } catch (debugError) {
+          console.error('Debug error:', debugError)
+        }
       }
       
     } catch (error) {
@@ -172,6 +181,9 @@ export default function OperatorDashboard() {
                     <ArrowPathIcon className={`w-3 h-3 ${refreshingStats ? 'animate-spin' : ''}`} />
                     Aktif Kullanıcı Sayısını Gör
                   </button>
+                  {user.role === 'ADMIN' && (
+                    <span className="text-xs text-green-400">(Admin Debug)</span>
+                  )}
                 </div>
               </div>
               <UserGroupIcon className="w-12 h-12 text-green-600" />
