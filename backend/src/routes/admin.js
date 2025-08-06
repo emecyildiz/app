@@ -63,24 +63,26 @@ const authenticateAdminOrOperator = (req, res, next) => {
   }
 };
 
-// Debug endpoint to see active users (admin only)
-router.get('/debug/active-users', authenticateAdmin, async (req, res) => {
+// Debug endpoint for active users
+router.get('/debug/active-users', authenticateAdminOrOperator, async (req, res) => {
   try {
-    const activeUsers = getActiveUsers();
     const activeCount = getActiveUsersCount();
+    const activeUsers = getActiveUsers();
+    
+    console.log('Debug active users request from:', req.user.role, 'User ID:', req.user.userId);
     
     res.status(200).json({
       success: true,
       data: {
         activeCount,
-        activeUsers
+        activeUsers: Array.from(activeUsers)
       }
     });
   } catch (error) {
     console.error('Debug active users error:', error);
     res.status(500).json({
       success: false,
-      message: 'Sunucu hatası'
+      message: 'Debug bilgisi alınamadı'
     });
   }
 });

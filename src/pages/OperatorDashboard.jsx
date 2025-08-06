@@ -81,20 +81,24 @@ export default function OperatorDashboard() {
         toast.success('Aktif kullanıcı sayısı güncellendi!')
       }
       
-      // Debug: Check active users (if admin)
-      if (user.role === 'ADMIN') {
+      // Debug: Check active users (for admin and operator)
+      if (user.role === 'ADMIN' || user.role === 'OPERATOR') {
         try {
+          console.log('Operator/Admin: Requesting debug active users...')
           const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://zonal-essence-production.up.railway.app'}/api/admin/debug/active-users`, {
             headers: {
               'Authorization': `Bearer ${get().token}`
             }
           })
           const debugData = await response.json()
-          console.log('Debug active users:', debugData)
+          console.log('Debug active users response:', debugData)
           
-          // Show debug info in toast for admin
+          // Show debug info in toast for admin and operator
           if (debugData.success) {
             toast.success(`Debug: ${debugData.data.activeCount} aktif kullanıcı bulundu`)
+            console.log('Active users list:', debugData.data.activeUsers)
+          } else {
+            console.error('Debug request failed:', debugData)
           }
         } catch (debugError) {
           console.error('Debug error:', debugError)
@@ -181,8 +185,8 @@ export default function OperatorDashboard() {
                     <ArrowPathIcon className={`w-3 h-3 ${refreshingStats ? 'animate-spin' : ''}`} />
                     Aktif Kullanıcı Sayısını Gör
                   </button>
-                  {user.role === 'ADMIN' && (
-                    <span className="text-xs text-green-400">(Admin Debug)</span>
+                  {(user.role === 'ADMIN' || user.role === 'OPERATOR') && (
+                    <span className="text-xs text-green-400">(Debug)</span>
                   )}
                 </div>
               </div>
