@@ -150,11 +150,14 @@ router.get('/users', authenticateAdminOrOperator, async (req, res) => {
 // Get all operators (admin only)
 router.get('/operators', authenticateAdmin, async (req, res) => {
   try {
+    console.log('Get operators request received')
     const { data: operators, error } = await supabase
       .from('users')
       .select('*')
       .eq('role', 'OPERATOR')
       .order('createdAt', { ascending: false });
+
+    console.log('Supabase operators query result:', { operators, error })
 
     if (error) {
       console.error('Get operators error:', error);
@@ -169,6 +172,8 @@ router.get('/operators', authenticateAdmin, async (req, res) => {
       const { passwordhash: _, ...operatorWithoutPassword } = operator;
       return operatorWithoutPassword;
     });
+
+    console.log('Operators without passwords:', operatorsWithoutPasswords)
 
     res.status(200).json({
       success: true,
@@ -320,7 +325,7 @@ router.put('/users/:id/role', authenticateAdmin, async (req, res) => {
     }
 
     // Remove password from response
-    const { passwordHash: _, ...userWithoutPassword } = user;
+    const { passwordhash: _, ...userWithoutPassword } = user;
 
     res.status(200).json({
       success: true,

@@ -317,8 +317,11 @@ const useAuthStore = create(
             headers: { Authorization: `Bearer ${get().token}` }
           })
           
+          console.log('getAllOperators - Response:', response.data)
+          
           if (response.data.success) {
             const operators = response.data.data.operators || []
+            console.log('getAllOperators - Operators:', operators)
             set({ operators })
             return operators
           }

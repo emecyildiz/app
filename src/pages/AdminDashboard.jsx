@@ -40,6 +40,8 @@ export default function AdminDashboard() {
           getAllUsers(),
           getAllOperators()
         ])
+        console.log('Admin Dashboard - Users Data:', usersData)
+        console.log('Admin Dashboard - Operators Data:', operatorsData)
         setUsers(usersData)
         setOperators(operatorsData)
       } catch (error) {
