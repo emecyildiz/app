@@ -38,7 +38,7 @@ const MovieCard = ({ movie, index = 0, showFavoriteButton = true }) => {
           {/* Poster */}
           <div className="aspect-[2/3] overflow-hidden">
             <img
-              src={movie.poster}
+              src={movie.posterUrl || movie.poster}
               alt={movie.title}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               loading="lazy"
@@ -50,7 +50,7 @@ const MovieCard = ({ movie, index = 0, showFavoriteButton = true }) => {
             {/* Rating Badge */}
             <div className="absolute top-3 right-3 glass px-2 py-1 rounded-lg flex items-center gap-1">
               <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-              <span className="text-white font-semibold text-sm">{movie.rating ? movie.rating.toFixed(1) : 'N/A'}</span>
+              <span className="text-white font-semibold text-sm">{movie.averageRating ? movie.averageRating.toFixed(1) : movie.rating ? movie.rating.toFixed(1) : 'N/A'}</span>
             </div>
 
             {/* Favorite Button */}
@@ -85,27 +85,27 @@ const MovieCard = ({ movie, index = 0, showFavoriteButton = true }) => {
             <div className="flex items-center gap-4 text-xs text-gray-500">
               <div className="flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
-                <span>{new Date(movie.releaseDate).getFullYear()}</span>
+                <span>{movie.releaseYear || new Date(movie.releaseDate).getFullYear()}</span>
               </div>
-              {movie.runtime && (
+              {(movie.duration || movie.runtime) && (
                 <div className="flex items-center gap-1">
                   <Clock className="w-3 h-3" />
-                  <span>{movie.runtime} dk</span>
+                  <span>{movie.duration || movie.runtime} dk</span>
                 </div>
               )}
             </div>
 
             {/* Genres */}
             <div className="flex flex-wrap gap-1 mt-3">
-              {movie.genres.slice(0, 2).map((genre) => (
+              {movie.genres && movie.genres.slice(0, 2).map((genre, index) => (
                 <span
-                  key={genre.id}
+                  key={genre.id || index}
                   className="px-2 py-1 text-xs bg-dark-300 text-gray-300 rounded-md"
                 >
-                  {genre.name}
+                  {typeof genre === 'string' ? genre : genre.name}
                 </span>
               ))}
-              {movie.genres.length > 2 && (
+              {movie.genres && movie.genres.length > 2 && (
                 <span className="px-2 py-1 text-xs bg-dark-300 text-gray-300 rounded-md">
                   +{movie.genres.length - 2}
                 </span>
