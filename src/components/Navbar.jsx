@@ -34,8 +34,8 @@ const Navbar = () => {
     { path: '/movies', label: 'Filmler', icon: Film },
     { path: '/about', label: 'Hakkında', icon: Info },
     ...(isAuthenticated ? [{ path: '/profile', label: 'Profil', icon: User }] : []),
-    ...(user?.role === 'admin' ? [{ path: '/admin', label: 'Admin Panel', icon: Shield }] : []),
-    ...(user?.role === 'operator' ? [{ path: '/operator', label: 'Operatör Paneli', icon: Shield }] : []),
+    ...(user?.role === 'ADMIN' ? [{ path: '/admin', label: 'Admin Panel', icon: Shield }] : []),
+    ...(user?.role === 'OPERATOR' ? [{ path: '/operator', label: 'Operatör Paneli', icon: Shield }] : []),
   ]
 
   return (
@@ -111,10 +111,10 @@ const Navbar = () => {
                       className="w-8 h-8 rounded-full"
                     />
                     <span className="font-medium">{user?.name}</span>
-                    {user?.role === 'admin' && (
+                    {user?.role === 'ADMIN' && (
                       <span className="px-2 py-0.5 text-xs bg-red-600 text-white rounded-full">Admin</span>
                     )}
-                    {user?.role === 'operator' && (
+                    {user?.role === 'OPERATOR' && (
                       <span className="px-2 py-0.5 text-xs bg-blue-600 text-white rounded-full">Operatör</span>
                     )}
                   </Link>
