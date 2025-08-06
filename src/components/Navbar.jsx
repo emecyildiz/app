@@ -47,8 +47,8 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-            {/* Nav Links */}
+          <div className="hidden md:flex items-center justify-between flex-1 max-w-2xl ml-8">
+            {/* Nav Links - Left Side */}
             <ul className="flex items-center gap-6">
               {navLinks.map((link) => {
                 const Icon = link.icon
@@ -71,7 +71,7 @@ const Navbar = () => {
               })}
             </ul>
 
-            {/* Auth Buttons */}
+            {/* Auth Buttons - Right Side */}
             <div className="flex items-center gap-3">
               {isAuthenticated ? (
                 <>
@@ -136,7 +136,7 @@ const Navbar = () => {
           >
             <div className="container mx-auto px-4 py-4">
               {/* Mobile Nav Links */}
-              <ul className="space-y-2 mb-4">
+              <ul className="space-y-2 mb-6">
                 {navLinks.map((link) => {
                   const Icon = link.icon
                   const isActive = location.pathname === link.path
