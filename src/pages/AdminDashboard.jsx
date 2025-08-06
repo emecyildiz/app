@@ -192,16 +192,6 @@ export default function AdminDashboard() {
                   Operatörler
                 </button>
                 <button
-                  onClick={() => setActiveTab('user-management')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === 'user-management'
-                      ? 'border-red-600 text-red-600'
-                      : 'border-transparent text-gray-400 hover:text-white'
-                  }`}
-                >
-                  Kullanıcı Yönetimi
-                </button>
-                <button
                   onClick={() => setActiveTab('settings')}
                   className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === 'settings'
@@ -245,8 +235,8 @@ export default function AdminDashboard() {
               <div className="space-y-6">
                 <div className="bg-gray-900 rounded-lg border border-gray-800">
                   <div className="p-6 border-b border-gray-800">
-                    <h2 className="text-xl font-semibold text-white">Tüm Kullanıcılar</h2>
-                    <p className="text-gray-400 mt-1">Sistemdeki tüm kullanıcıları görüntüle ve yönet</p>
+                    <h2 className="text-xl font-semibold text-white">Normal Kullanıcılar</h2>
+                    <p className="text-gray-400 mt-1">Sadece USER rolündeki kullanıcıları görüntüle ve yönet</p>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full">
@@ -260,56 +250,56 @@ export default function AdminDashboard() {
                         </tr>
                       </thead>
                       <tbody>
-                        {users.map((user) => (
-                          <tr key={user.id} className="border-b border-gray-800 hover:bg-gray-800/50">
-                            <td className="p-4">
-                              <div className="flex items-center gap-3">
-                                <img
-                                  src={user.avatar}
-                                  alt={user.name}
-                                  className="w-10 h-10 rounded-full"
-                                />
-                                <div>
-                                  <p className="text-white font-medium">{user.name}</p>
-                                  <p className="text-gray-400 text-sm">@{user.username}</p>
+                        {users.filter(user => user.role === 'USER').length === 0 ? (
+                          <tr>
+                            <td colSpan="5" className="p-8 text-center text-gray-400">
+                              Henüz normal kullanıcı bulunamadı
+                            </td>
+                          </tr>
+                        ) : (
+                          users.filter(user => user.role === 'USER').map((user) => (
+                            <tr key={user.id} className="border-b border-gray-800 hover:bg-gray-800/50">
+                              <td className="p-4">
+                                <div className="flex items-center gap-3">
+                                  <img
+                                    src={user.avatar}
+                                    alt={user.name}
+                                    className="w-10 h-10 rounded-full"
+                                  />
+                                  <div>
+                                    <p className="text-white font-medium">{user.name}</p>
+                                    <p className="text-gray-400 text-sm">@{user.username}</p>
+                                  </div>
                                 </div>
-                              </div>
-                            </td>
-                            <td className="p-4 text-gray-300">{user.email}</td>
-                            <td className="p-4">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                user.role === 'ADMIN' 
-                                  ? 'bg-red-900/50 text-red-400'
-                                  : user.role === 'OPERATOR'
-                                  ? 'bg-blue-900/50 text-blue-400'
-                                  : 'bg-gray-800 text-gray-400'
-                              }`}>
-                                {user.role === 'ADMIN' ? 'Admin' : user.role === 'OPERATOR' ? 'Operatör' : 'Kullanıcı'}
-                              </span>
-                            </td>
-                            <td className="p-4 text-gray-300">
-                              {new Date(user.memberSince).toLocaleDateString('tr-TR')}
-                            </td>
-                            <td className="p-4">
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => navigate(`/admin/user/${user.id}`)}
-                                  className="text-blue-500 hover:text-blue-400 text-sm"
-                                >
-                                  Düzenle
-                                </button>
-                                {user.role !== 'ADMIN' && (
+                              </td>
+                              <td className="p-4 text-gray-300">{user.email}</td>
+                              <td className="p-4">
+                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-800 text-gray-400">
+                                  Kullanıcı
+                                </span>
+                              </td>
+                              <td className="p-4 text-gray-300">
+                                {new Date(user.memberSince).toLocaleDateString('tr-TR')}
+                              </td>
+                              <td className="p-4">
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => navigate(`/admin/user/${user.id}`)}
+                                    className="text-blue-500 hover:text-blue-400 text-sm"
+                                  >
+                                    Düzenle
+                                  </button>
                                   <button
                                     onClick={() => handleDeleteUser(user.id)}
                                     className="text-red-500 hover:text-red-400 text-sm"
                                   >
                                     Sil
                                   </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -452,82 +442,6 @@ export default function AdminDashboard() {
                             </tr>
                           ))
                         )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'user-management' && (
-              <div className="space-y-6">
-                <div className="bg-gray-900 rounded-lg border border-gray-800">
-                  <div className="p-6 border-b border-gray-800">
-                    <h2 className="text-xl font-semibold text-white">Kullanıcı Yönetimi</h2>
-                    <p className="text-gray-400 mt-1">Tüm kullanıcı hesaplarını görüntüle ve yönet</p>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-gray-800">
-                          <th className="text-left p-4 text-gray-400 font-medium">Kullanıcı</th>
-                          <th className="text-left p-4 text-gray-400 font-medium">E-posta</th>
-                          <th className="text-left p-4 text-gray-400 font-medium">Rol</th>
-                          <th className="text-left p-4 text-gray-400 font-medium">Kayıt Tarihi</th>
-                          <th className="text-left p-4 text-gray-400 font-medium">İşlemler</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {users.map((userItem) => (
-                          <tr key={userItem.id} className="border-b border-gray-800 hover:bg-gray-800/50">
-                            <td className="p-4">
-                              <div className="flex items-center gap-3">
-                                <img
-                                  src={userItem.avatar}
-                                  alt={userItem.name}
-                                  className="w-10 h-10 rounded-full"
-                                />
-                                <div>
-                                  <p className="text-white font-medium">{userItem.name}</p>
-                                  <p className="text-gray-400 text-sm">@{userItem.username}</p>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="p-4 text-gray-300">{userItem.email}</td>
-                            <td className="p-4">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                userItem.role === 'ADMIN' 
-                                  ? 'bg-red-900/50 text-red-400'
-                                  : userItem.role === 'OPERATOR'
-                                  ? 'bg-blue-900/50 text-blue-400'
-                                  : 'bg-gray-800 text-gray-400'
-                              }`}>
-                                {userItem.role === 'ADMIN' ? 'Admin' : userItem.role === 'OPERATOR' ? 'Operatör' : 'Kullanıcı'}
-                              </span>
-                            </td>
-                            <td className="p-4 text-gray-300">
-                              {new Date(userItem.memberSince).toLocaleDateString('tr-TR')}
-                            </td>
-                            <td className="p-4">
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => navigate(`/admin/user/${userItem.id}`)}
-                                  className="text-blue-500 hover:text-blue-400 text-sm"
-                                >
-                                  Düzenle
-                                </button>
-                                {userItem.role !== 'ADMIN' && (
-                                  <button
-                                    onClick={() => handleDeleteUser(userItem.id)}
-                                    className="text-red-500 hover:text-red-400 text-sm"
-                                  >
-                                    Sil
-                                  </button>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
                       </tbody>
                     </table>
                   </div>
