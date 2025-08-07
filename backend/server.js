@@ -3,39 +3,32 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
+const router = express.Router();
 require('dotenv').config();
 
 const app = express();
 
 // Middleware
-// Basic CORS setup first
-app.use(cors());
+// CORS configuration
+const corsOptions = {
+  origin: 'https://app-eta-five-56.vercel.app',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  preflightContinue: true,
+  optionsSuccessStatus: 200
+};
 
-// Then detailed CORS for all routes
+// Apply CORS
+app.use(cors(corsOptions));
+
+// Log all requests
 app.use((req, res, next) => {
-  // Allow all origins temporarily for debugging
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  
-  // Allow all methods
-  res.setHeader('Access-Control-Allow-Methods', '*');
-  
-  // Allow all headers
-  res.setHeader('Access-Control-Allow-Headers', '*');
-  
-  // Handle preflight
-  if (req.method === 'OPTIONS') {
-    console.log('Handling OPTIONS request');
-    return res.status(200).end();
-  }
-
-  // Log for debugging
   console.log('Request:', {
     method: req.method,
     path: req.path,
-    origin: req.headers.origin,
-    headers: req.headers
+    origin: req.headers.origin
   });
-
   next();
 });
 
@@ -90,12 +83,27 @@ app.get('/', (req, res) => {
 });
 
 // Login endpoint
-app.post('/api/auth/login', async (req, res) => {
-  console.log('Login attempt:', {
+app.all('/api/auth/login', async (req, res) => {
+  // Log the request details
+  console.log('Login request details:', {
+    method: req.method,
     body: req.body,
     headers: req.headers,
     origin: req.headers.origin
   });
+
+  // Handle OPTIONS request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  // Only allow POST method
+  if (req.method !== 'POST') {
+    return res.status(405).json({
+      success: false,
+      message: 'Method not allowed. Use POST.'
+    });
+  }
   try {
     const { email, password } = req.body;
 
