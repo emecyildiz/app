@@ -1,11 +1,13 @@
 {
-  "name": "cinemahub-backend-simple",
+  "name": "cinemahub-backend",
   "version": "1.0.0",
-  "description": "Simple CinemaHub Backend API",
-  "main": "server.js",
+  "description": "CinemaHub Backend API",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "vercel-build": "echo 'Building backend...'",
+    "build": "echo 'Building backend...'"
   },
   "dependencies": {
     "express": "^4.18.2",
