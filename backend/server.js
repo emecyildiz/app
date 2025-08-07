@@ -8,12 +8,22 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-app.use(cors({
-  origin: ['https://app-eta-five-56.vercel.app', 'http://localhost:3000', 'http://localhost:3001'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
+// CORS middleware with specific configuration
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://app-eta-five-56.vercel.app');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle OPTIONS method
+  if (req.method === 'OPTIONS') {
+    return res.status(200).json({
+      body: "OK"
+    });
+  }
+  
+  next();
+});
 
 app.use(express.json());
 
@@ -30,11 +40,17 @@ const JWT_SECRET = process.env.JWT_SECRET || '595b4445839106846cff73051315ee9666
 
 // Health check
 app.get('/health', (req, res) => {
+  console.log('Health check request from:', req.get('origin'));
   res.json({
     status: 'OK',
     message: 'CinemaHub Backend API is running',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    cors: {
+      origin: req.get('origin'),
+      method: req.method,
+      headers: req.headers
+    }
   });
 });
 
@@ -53,6 +69,11 @@ app.get('/', (req, res) => {
 
 // Login endpoint
 app.post('/api/auth/login', async (req, res) => {
+  console.log('Login request received:', {
+    headers: req.headers,
+    body: req.body,
+    origin: req.get('origin')
+  });
   try {
     const { email, password } = req.body;
 
