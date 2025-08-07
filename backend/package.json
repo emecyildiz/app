@@ -13,7 +13,8 @@
     "prisma:migrate": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "deploy:railway": "railway up",
-    "deploy:vercel": "vercel --prod"
+    "deploy:vercel": "vercel --prod",
+    "postinstall": "prisma generate"
   },
   "keywords": [
     "cinema",

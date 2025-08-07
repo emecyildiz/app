@@ -24,27 +24,48 @@ const limiter = rateLimit({
   }
 });
 
-// CORS Configuration - Super simple
-app.use(cors({
-  origin: '*',
+// CORS Configuration - MUST BE FIRST!
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'https://app-seven-flax-12.vercel.app',
+      'https://app-seven-flax-12.vercel.app/',
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:5000'
+    ];
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(null, true); // Allow all for now
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: false
-}));
+  credentials: true,
+  optionsSuccessStatus: 200
+};
 
-// Handle OPTIONS requests
-app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  res.status(200).send();
-});
+app.use(cors(corsOptions));
 
-// Other middleware
-app.use(helmet());
+// Handle OPTIONS requests - MUST BE SECOND!
+app.options('*', cors(corsOptions));
+
+// Other middleware - AFTER CORS
 app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Helmet - AFTER CORS (Helmet can interfere with CORS headers)
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginEmbedderPolicy: false
+}));
 
 // Apply rate limiting to all routes
 app.use(limiter);
@@ -132,11 +153,13 @@ app.use('*', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 CinemaHub Backend API running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`☁️  Cloud Ready: ${process.env.NODE_ENV === 'production' ? 'Yes' : 'No'}`);
+  console.log(`🔧 Process ID: ${process.pid}`);
+  console.log(`📡 Server listening on 0.0.0.0:${PORT}`);
 });
 
 // Graceful shutdown
