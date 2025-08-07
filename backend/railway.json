@@ -12,7 +12,7 @@
     "numReplicas": 1
   },
   "proxy": {
-    "port": 3001,
-    "target": "http://localhost:3001"
+    "port": 8080,
+    "target": "http://localhost:8080"
   }
 } 

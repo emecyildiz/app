@@ -5,6 +5,15 @@ const { supabase } = require('../config/supabase');
 const { updateUserActivity } = require('../middleware/activityTracker');
 const router = express.Router();
 
+// OPTIONS route for CORS preflight
+router.options('*', (req, res) => {
+  console.log('🔍 Auth Debug - OPTIONS request to auth routes');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.status(200).end();
+});
+
 // Test endpoint for password hashing (REMOVE AFTER TESTING)
 router.post('/test-hash', async (req, res) => {
   try {
@@ -86,6 +95,21 @@ router.post('/register', async (req, res) => {
 
 // Login endpoint
 router.post('/login', async (req, res) => {
+  console.log('🔍 Auth Debug - Login request received:', {
+    method: req.method,
+    url: req.url,
+    origin: req.headers.origin,
+    contentType: req.headers['content-type'],
+    body: req.body
+  });
+  
+  // Set additional CORS headers for this route
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  console.log('🔍 Auth Debug - CORS headers set for login route');
+  
   try {
     const { email, password } = req.body;
 
