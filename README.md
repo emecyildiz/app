@@ -1,138 +1,160 @@
-# Film Kütüphanesi Uygulaması
+# CinemaHub Backend
 
-Modern ve kullanıcı dostu bir film kütüphanesi web uygulaması. React, Vite ve Tailwind CSS kullanılarak geliştirilmiştir.
+## 🚀 Deployment Sorun Giderme Kılavuzu
 
-## 🚀 Özellikler
+### CORS Hatası Çözümü
 
-- 🎬 Film arama ve listeleme
-- ⭐ Favori film yönetimi
-- 👤 Kullanıcı girişi ve kaydı
-- 📱 Responsive tasarım
-- 🌙 Modern ve şık arayüz
-- 🔍 Gelişmiş arama özellikleri
-- 📊 Film detayları ve bilgileri
+CORS hatası alındığında (`Access-Control-Allow-Origin header is present`):
 
-## 🛠️ Teknolojiler
-
-- **Frontend Framework:** React 18
-- **Build Tool:** Vite
-- **Styling:** Tailwind CSS
-- **State Management:** Zustand
-- **Form Handling:** React Hook Form
-- **Routing:** React Router v6
-- **Icons:** React Icons
-- **HTTP Client:** Axios
-
-## 📋 Gereksinimler
-
-- Node.js (v16 veya üzeri)
-- npm veya yarn
-
-## 🔧 Kurulum
-
-1. Projeyi klonlayın:
-```bash
-git clone [repository-url]
-cd film-kutuphanesi
+1. **Backend'de CORS Ayarları:**
+```javascript
+// server.js dosyasında
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://app-eta-five-56.vercel.app');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
 ```
 
-2. Bağımlılıkları yükleyin:
-```bash
-npm install
+2. **Environment Variables Kontrolü:**
+```env
+# Backend .env
+NODE_ENV=production
+DATABASE_URL=postgresql://postgres.iqmocrrunczqgjnnukcd:porche911BEL@aws-0-eu-north-1.pooler.supabase.com:6543/postgres
+SUPABASE_URL=https://iqmocrrunczqgjnnukcd.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+CORS_ORIGIN=https://app-eta-five-56.vercel.app
+
+# Frontend .env
+VITE_API_URL=https://app-production-c295.up.railway.app
+VITE_SUPABASE_URL=https://iqmocrrunczqgjnnukcd.supabase.co
+VITE_SUPABASE_ANON_KEY=your_anon_key
 ```
 
-3. Environment değişkenlerini ayarlayın:
-```bash
-cp .env.example .env
+3. **Railway Environment Variables:**
+- Railway dashboard'da tüm environment variables'ların doğru ayarlandığından emin olun
+- `PORT` değişkenini Railway'de ayarlamayın, otomatik atanmasına izin verin
+
+### Database Bağlantı Sorunları
+
+1. **Supabase Bağlantı URL'si:**
+- Pooler URL'sini kullanın: `postgresql://postgres.iqmocrrunczqgjnnukcd:password@aws-0-eu-north-1.pooler.supabase.co:6543/postgres`
+- Normal URL yerine pooler URL'si daha stabil çalışır
+
+2. **JWT Ayarları:**
+```javascript
+const JWT_SECRET = 'your_jwt_secret';
+const JWT_EXPIRES_IN = '7d';
 ```
 
-4. `.env` dosyasını düzenleyin ve gerekli API anahtarlarını ekleyin:
-```
-VITE_API_URL=your_api_url_here
-VITE_API_KEY=your_api_key_here
+### Railway Deployment Sorunları
+
+1. **package.json Yapılandırması:**
+```json
+{
+  "name": "cinemahub-backend",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "@supabase/supabase-js": "^2.53.0"
+  }
+}
 ```
 
-## 🚀 Çalıştırma
-
-### Development
-```bash
-npm run dev
+2. **Dosya Yapısı:**
 ```
-
-### Production Build
-```bash
-npm run build
-```
-
-### Preview Production Build
-```bash
-npm run preview
-```
-
-## 📁 Proje Yapısı
-
-```
-film-kutuphanesi/
+backend/
 ├── src/
-│   ├── components/     # React bileşenleri
-│   ├── pages/         # Sayfa bileşenleri
-│   ├── services/      # API servisleri
-│   ├── store/         # State yönetimi
-│   ├── styles/        # CSS dosyaları
-│   └── utils/         # Yardımcı fonksiyonlar
-├── public/            # Statik dosyalar
-├── .env.example       # Örnek environment dosyası
-├── .gitignore        # Git ignore dosyası
-├── package.json      # Proje bağımlılıkları
-└── vite.config.js    # Vite konfigürasyonu
+│   └── server.js
+├── .env
+├── .gitignore
+├── package.json
+└── README.md
 ```
 
-## 🔒 Güvenlik
+3. **Railway Yapılandırması:**
+- Automatic Deployments aktif olmalı
+- Environment variables doğru ayarlanmalı
+- Health check endpoint'i `/health` olarak ayarlı olmalı
 
-### Önemli Güvenlik Notları
+### Frontend-Backend Bağlantı Kontrolü
 
-1. **Environment Değişkenleri:**
-   - `.env` dosyasını ASLA git'e eklemeyin
-   - Tüm hassas bilgileri (API anahtarları, şifreler) `.env` dosyasında saklayın
-   - Production'da environment değişkenlerini güvenli bir şekilde yönetin
+1. **Frontend'de API URL Kontrolü:**
+```javascript
+// src/store/authStore.js
+const API_URL = import.meta.env.VITE_API_URL || 'https://app-production-c295.up.railway.app';
+```
 
-2. **API Anahtarları:**
-   - API anahtarlarınızı frontend kodunda doğrudan kullanmayın
-   - Mümkünse backend proxy kullanın
-   - CORS ayarlarını doğru yapılandırın
+2. **Vercel'de Environment Variables:**
+- `VITE_API_URL` Railway backend URL'si olmalı
+- Diğer Supabase credentials'ları doğru ayarlanmalı
 
-3. **Güvenlik Kontrol Listesi:**
-   - [ ] `.env` dosyası `.gitignore`'da mı?
-   - [ ] API anahtarları gizli mi?
-   - [ ] Hassas veriler şifreleniyor mu?
-   - [ ] HTTPS kullanılıyor mu?
-   - [ ] Input validasyonu yapılıyor mu?
+## 🔍 Hata Ayıklama
 
-4. **GitHub'a Yüklemeden Önce:**
-   - `.gitignore` dosyasını kontrol edin
-   - `git status` ile takip edilen dosyaları kontrol edin
-   - Hassas bilgi içeren dosyaların takip edilmediğinden emin olun
+### Backend Logları Kontrol:
+1. Railway dashboard'da Logs sekmesine gidin
+2. ERROR ve WARNING loglarını kontrol edin
+3. CORS ile ilgili logları inceleyin
 
-## 📝 API Kullanımı
+### Frontend Logları Kontrol:
+1. Browser Console'u açın (F12)
+2. Network sekmesinde API çağrılarını kontrol edin
+3. CORS veya authentication hataları var mı bakın
 
-Uygulama, film verilerini almak için harici bir API kullanmaktadır. API anahtarınızı `.env` dosyasına eklemeyi unutmayın.
+## 📝 Önemli Notlar
 
-## 🤝 Katkıda Bulunma
+1. **Güvenlik:**
+- JWT_SECRET değerini asla public repo'ya commit etmeyin
+- Tüm hassas bilgileri .env dosyasında tutun
+- .env dosyasını .gitignore'a ekleyin
 
-1. Projeyi fork edin
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Değişikliklerinizi commit edin (`git commit -m 'Add some amazing feature'`)
-4. Branch'inizi push edin (`git push origin feature/amazing-feature`)
-5. Pull Request açın
+2. **Deployment:**
+- Her zaman önce local'de test edin
+- Environment variables'ları double-check edin
+- Railway ve Vercel dashboard'larında hata loglarını kontrol edin
 
-## 📄 Lisans
+3. **Monitoring:**
+- `/health` endpoint'ini düzenli kontrol edin
+- Railway metrics'i takip edin
+- Error rate'i izleyin
 
-Bu proje MIT lisansı altında lisanslanmıştır.
+## 🆘 Yaygın Hatalar ve Çözümleri
 
-## 👥 İletişim
+1. **"ERR_CONNECTION_REFUSED":**
+- Backend'in çalışıp çalışmadığını kontrol edin
+- API_URL'nin doğru olduğunu kontrol edin
+- Railway deployment status'unu kontrol edin
 
-Proje ile ilgili sorularınız için issue açabilirsiniz.
+2. **"No Authorization header":**
+- Login response'unda token'ın döndüğünü kontrol edin
+- Token'ın localStorage'da saklandığını kontrol edin
+- Authorization header'ın doğru formatla gönderildiğini kontrol edin
 
----
+3. **Database Connection Error:**
+- DATABASE_URL'nin doğru olduğunu kontrol edin
+- Supabase dashboard'da database status'unu kontrol edin
+- IP restriction'ları kontrol edin
 
-**Not:** Bu proje eğitim amaçlı geliştirilmiştir. Production kullanımı için ek güvenlik önlemleri alınmalıdır. 
+## 🔄 Yeniden Başlatma Prosedürü
+
+Eğer hiçbir çözüm işe yaramazsa:
+
+1. Railway'de projeyi yeniden deploy edin
+2. Tüm environment variables'ları kontrol edin
+3. Frontend'i Vercel'de yeniden deploy edin
+4. Browser cache'ini temizleyin
+5. API endpoint'lerini test edin
