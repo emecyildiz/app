@@ -381,14 +381,14 @@ export default function AdminDashboard() {
                             <tr key={user.id} className="border-b border-gray-800 hover:bg-gray-800/50">
                               <td className="p-4">
                                 <div className="flex items-center gap-3">
-                                  <img
-                                    src={user.avatar}
-                                    alt={user.name}
-                                    className="w-10 h-10 rounded-full"
-                                  />
+                                  <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
+                                    <span className="text-white font-medium text-sm">
+                                      {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                                    </span>
+                                  </div>
                                   <div>
-                                    <p className="text-white font-medium">{user.name}</p>
-                                    <p className="text-gray-400 text-sm">@{user.username}</p>
+                                    <p className="text-white font-medium">{user.name || 'İsimsiz Kullanıcı'}</p>
+                                    <p className="text-gray-400 text-sm">@{user.username || 'kullanici'}</p>
                                   </div>
                                 </div>
                               </td>
@@ -399,7 +399,7 @@ export default function AdminDashboard() {
                                 </span>
                               </td>
                               <td className="p-4 text-gray-300">
-                                {new Date(user.memberSince).toLocaleDateString('tr-TR')}
+                                {user.created_at ? new Date(user.created_at).toLocaleDateString('tr-TR') : 'Bilinmiyor'}
                               </td>
                               <td className="p-4">
                                 <div className="flex items-center gap-2">
@@ -536,20 +536,20 @@ export default function AdminDashboard() {
                             <tr key={operator.id} className="border-b border-gray-800 hover:bg-gray-800/50">
                               <td className="p-4">
                                 <div className="flex items-center gap-3">
-                                  <img
-                                    src={operator.avatar}
-                                    alt={operator.name}
-                                    className="w-10 h-10 rounded-full"
-                                  />
+                                  <div className="w-10 h-10 rounded-full bg-blue-700 flex items-center justify-center">
+                                    <span className="text-white font-medium text-sm">
+                                      {operator.name ? operator.name.charAt(0).toUpperCase() : 'O'}
+                                    </span>
+                                  </div>
                                   <div>
-                                    <p className="text-white font-medium">{operator.name}</p>
-                                    <p className="text-gray-400 text-sm">@{operator.username}</p>
+                                    <p className="text-white font-medium">{operator.name || 'İsimsiz Operatör'}</p>
+                                    <p className="text-gray-400 text-sm">@{operator.username || 'operator'}</p>
                                   </div>
                                 </div>
                               </td>
                               <td className="p-4 text-gray-300">{operator.email}</td>
                               <td className="p-4 text-gray-300">
-                                {new Date(operator.memberSince).toLocaleDateString('tr-TR')}
+                                {operator.created_at ? new Date(operator.created_at).toLocaleDateString('tr-TR') : 'Bilinmiyor'}
                               </td>
                               <td className="p-4">
                                 <button
@@ -638,13 +638,13 @@ export default function AdminDashboard() {
             
             <form onSubmit={handleUpdateUser} className="space-y-4">
               <div className="flex items-center gap-4 mb-6">
-                <img
-                  src={selectedUser.avatar}
-                  alt={selectedUser.name}
-                  className="w-16 h-16 rounded-full"
-                />
+                <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center">
+                  <span className="text-white font-medium text-lg">
+                    {selectedUser.name ? selectedUser.name.charAt(0).toUpperCase() : 'U'}
+                  </span>
+                </div>
                 <div>
-                  <h4 className="text-lg font-medium text-white">{selectedUser.name}</h4>
+                  <h4 className="text-lg font-medium text-white">{selectedUser.name || 'İsimsiz Kullanıcı'}</h4>
                   <p className="text-gray-400">{selectedUser.email}</p>
                 </div>
               </div>
