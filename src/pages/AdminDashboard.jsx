@@ -56,27 +56,31 @@ export default function AdminDashboard() {
       setLoading(true)
       try {
         // Get user stats from backend
-        const { data: stats } = await userService.getUserStats();
+        const stats = await userService.getUserStats();
         
         // Update dashboard stats
         setDashboardStats(prev => ({
           ...prev,
-          totalUsers: stats.userCount,
-          totalOperators: stats.operatorCount
+          totalUsers: stats.totalUsers || 0,
+          totalOperators: stats.totalOperators || 0,
+          activeUsers: stats.activeUsers || 0,
+          realTimeActiveUsers: stats.realTimeActiveUsers || 0
         }));
 
         // Get detailed user and operator data
         const [usersData, operatorsData] = await Promise.all([
-          getAllUsers(),
-          getAllOperators()
+          userService.getAllUsers(),
+          userService.getAllOperators()
         ]);
 
-        setUsers(usersData);
-        setOperators(operatorsData);
+        setUsers(usersData || []);
+        setOperators(operatorsData || []);
 
         console.log('Admin Dashboard - Stats:', {
-          users: stats.userCount,
-          operators: stats.operatorCount
+          totalUsers: stats.totalUsers,
+          totalOperators: stats.totalOperators,
+          activeUsers: stats.activeUsers,
+          realTimeActiveUsers: stats.realTimeActiveUsers
         });
       } catch (error) {
         console.error('Error loading admin data:', error);
@@ -87,7 +91,7 @@ export default function AdminDashboard() {
     };
 
     loadData();
-  }, [getAllUsers, getAllOperators]);
+  }, []);
 
   // Manual refresh function for active users
   const refreshActiveUsers = async () => {

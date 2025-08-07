@@ -110,7 +110,7 @@ app.get('/api/admin/operators', async (req, res) => {
     const { data: operators, error } = await supabase
       .from('users')
       .select('*')
-      .eq('role', 'operator')
+      .eq('role', 'OPERATOR')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -122,6 +122,53 @@ app.get('/api/admin/operators', async (req, res) => {
   } catch (error) {
     console.error('Get operators error:', error);
     res.status(500).json({ message: 'Failed to get operators' });
+  }
+});
+
+// Delete user (admin only)
+app.delete('/api/admin/users/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', userId);
+
+    if (error) {
+      console.error('Supabase Error:', error);
+      throw error;
+    }
+
+    res.json({ success: true, message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({ message: 'Failed to delete user' });
+  }
+});
+
+// Update user (admin only)
+app.put('/api/admin/users/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const updateData = req.body;
+    
+    const { data, error } = await supabase
+      .from('users')
+      .update(updateData)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Supabase Error:', error);
+      throw error;
+    }
+
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error('Update user error:', error);
+    res.status(500).json({ message: 'Failed to update user' });
   }
 });
 
