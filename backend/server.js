@@ -9,12 +9,16 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: '*',
+  origin: ['https://app-eta-five-56.vercel.app', 'http://localhost:3000', 'http://localhost:3001'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 app.use(express.json());
+
+// Handle preflight requests
+app.options('*', cors());
 
 // Supabase client
 const supabaseUrl = process.env.SUPABASE_URL || 'https://iqmocrrunczqgjnnukcd.supabase.co';
@@ -245,7 +249,7 @@ app.use('*', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
   console.log(`🚀 CinemaHub Backend API running on port ${PORT}`);
