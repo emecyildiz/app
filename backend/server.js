@@ -35,11 +35,15 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 // Supabase client with error handling
+// Database configuration
+const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres.iqmocrrunczqgjnnukcd:porche911BEL@aws-0-eu-north-1.pooler.supabase.com:6543/postgres';
+
+// Supabase configuration
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Supabase credentials are missing!');
+if (!supabaseUrl || !supabaseKey || !DATABASE_URL) {
+  console.error('Required credentials are missing!');
   process.exit(1);
 }
 
@@ -47,6 +51,9 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false
+  },
+  db: {
+    schema: 'public'
   }
 });
 
