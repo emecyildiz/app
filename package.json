@@ -11,7 +11,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "vercel-build": "vite build",
-    "start": "node api/index.js"
+    "start": "node api/index.js",
+    "postinstall": "echo 'Dependencies installed successfully'"
   },
   "dependencies": {
     "react": "^18.2.0",
