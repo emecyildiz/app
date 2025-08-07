@@ -241,3 +241,11 @@ app.post('/api/auth/login', async (req, res) => {
 
 // Export the Express app for Vercel
 module.exports = app;
+
+// For Railway deployment
+if (process.env.NODE_ENV !== 'production' || process.env.RAILWAY_ENVIRONMENT) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
