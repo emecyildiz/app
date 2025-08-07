@@ -15,57 +15,22 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', message: 'Test server running' });
 });
 
-// Mock auth endpoints
+// Mock auth endpoints - Database'den gerçek kullanıcı verilerini kullan
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
   
-  // Mock login validation
-  if (email === 'admin@cinemahub.com' && password === 'admin123') {
-    res.json({
-      success: true,
-      data: {
-        user: {
-          id: 1,
-          name: 'Admin User',
-          email: 'admin@cinemahub.com',
-          role: 'ADMIN'
-        },
-        token: 'mock-jwt-token'
-      }
-    });
-  } else if (email === 'operator@cinemahub.com' && password === 'operator123') {
-    res.json({
-      success: true,
-      data: {
-        user: {
-          id: 2,
-          name: 'Operator User',
-          email: 'operator@cinemahub.com',
-          role: 'OPERATOR'
-        },
-        token: 'mock-jwt-token'
-      }
-    });
-  } else {
-    res.status(401).json({
-      success: false,
-      message: 'Geçersiz email veya şifre'
-    });
-  }
+  // Database'den kullanıcı kontrolü yapılmalı
+  // Bu endpoint artık gerçek auth sistemi kullanıyor
+  res.status(400).json({
+    success: false,
+    message: 'Test server: Lütfen gerçek backend server\'ı kullanın'
+  });
 });
 
 app.post('/api/auth/register', (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      user: {
-        id: 3,
-        name: 'New User',
-        email: req.body.email,
-        role: 'USER'
-      },
-      token: 'mock-jwt-token'
-    }
+  res.status(400).json({
+    success: false,
+    message: 'Test server: Lütfen gerçek backend server\'ı kullanın'
   });
 });
 
@@ -77,16 +42,9 @@ app.post('/api/auth/logout', (req, res) => {
 });
 
 app.get('/api/auth/me', (req, res) => {
-  res.json({
-    success: true,
-    data: {
-      user: {
-        id: 1,
-        name: 'Admin User',
-        email: 'admin@cinemahub.com',
-        role: 'ADMIN'
-      }
-    }
+  res.status(400).json({
+    success: false,
+    message: 'Test server: Lütfen gerçek backend server\'ı kullanın'
   });
 });
 
@@ -94,4 +52,6 @@ const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Test server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
+  console.log(`⚠️  Bu test server sadece health check için kullanılmalı`);
+  console.log(`🔐 Gerçek authentication için ana backend server'ı kullanın`);
 }); 
