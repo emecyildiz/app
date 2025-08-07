@@ -1,26 +1,15 @@
 {
   "name": "cinemahub-backend",
   "version": "1.0.0",
-  "description": "CinemaHub Backend API",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "vercel-build": "echo 'Building backend...'",
-    "build": "echo 'Building backend...'"
+    "build": "echo 'Build step...'"
   },
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2",
     "@supabase/supabase-js": "^2.53.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.2"
-  },
-  "engines": {
-    "node": ">=16.0.0"
   }
 }
