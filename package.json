@@ -1,7 +1,7 @@
 {
-  "name": "cinemahub-frontend",
+  "name": "cinemahub",
   "version": "1.0.0",
-  "description": "CinemaHub Frontend",
+  "description": "CinemaHub - Full Stack Application",
   "type": "module",
   "engines": {
     "node": ">=18.0.0"
