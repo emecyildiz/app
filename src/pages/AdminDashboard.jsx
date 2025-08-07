@@ -97,29 +97,14 @@ export default function AdminDashboard() {
   const refreshActiveUsers = async () => {
     setRefreshingStats(true)
     try {
-      const stats = await getDashboardStats()
+      const stats = await userService.getUserStats()
       if (stats) {
         setDashboardStats(prev => ({
           ...prev,
-          realTimeActiveUsers: stats.realTimeActiveUsers
+          realTimeActiveUsers: stats.realTimeActiveUsers || 0
         }))
         toast.success('Aktif kullanıcı sayısı güncellendi!')
       }
-      
-      // Debug: Check active users (optional - don't fail if this fails)
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/admin/debug/active-users`, {
-          headers: {
-            'Authorization': `Bearer ${get().token}`
-          }
-        })
-        const debugData = await response.json()
-        console.log('Debug active users:', debugData)
-      } catch (debugError) {
-        console.error('Debug request failed:', debugError)
-        // Don't show error toast for debug request failure
-      }
-      
     } catch (error) {
       console.error('Error refreshing active users:', error)
       toast.error('Aktif kullanıcı sayısı güncellenirken hata oluştu!')
