@@ -85,7 +85,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Get all users (admin only)
-app.get('/api/admin/users', async (req, res) => {
+app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { data: users, error } = await supabase
       .from('users')
@@ -105,7 +105,7 @@ app.get('/api/admin/users', async (req, res) => {
 });
 
 // Get all operators (admin only)
-app.get('/api/admin/operators', async (req, res) => {
+app.get('/api/admin/operators', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { data: operators, error } = await supabase
       .from('users')
@@ -126,7 +126,7 @@ app.get('/api/admin/operators', async (req, res) => {
 });
 
 // Delete user (admin only)
-app.delete('/api/admin/users/:userId', async (req, res) => {
+app.delete('/api/admin/users/:userId', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { userId } = req.params;
     
@@ -148,7 +148,7 @@ app.delete('/api/admin/users/:userId', async (req, res) => {
 });
 
 // Update user (admin only)
-app.put('/api/admin/users/:userId', async (req, res) => {
+app.put('/api/admin/users/:userId', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { userId } = req.params;
     const updateData = req.body;
@@ -173,7 +173,7 @@ app.put('/api/admin/users/:userId', async (req, res) => {
 });
 
 // Get dashboard stats
-app.get('/api/admin/dashboard', async (req, res) => {
+app.get('/api/admin/dashboard', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     // Get user stats
     const { data: users, error: userError } = await supabase
