@@ -127,8 +127,8 @@ export default function AdminDashboard() {
       setShowAddOperator(false)
       // Reload data after adding operator
       const [usersData, operatorsData] = await Promise.all([
-        getAllUsers(),
-        getAllOperators()
+        userService.getAllUsers(),
+        userService.getAllOperators()
       ])
       setUsers(usersData)
       setOperators(operatorsData)
@@ -142,8 +142,8 @@ export default function AdminDashboard() {
       if (result.success) {
         // Reload data after removing operator
         const [usersData, operatorsData] = await Promise.all([
-          getAllUsers(),
-          getAllOperators()
+          userService.getAllUsers(),
+          userService.getAllOperators()
         ])
         setUsers(usersData)
         setOperators(operatorsData)
@@ -158,8 +158,8 @@ export default function AdminDashboard() {
       if (result.success) {
         // Reload data after deleting user
         const [usersData, operatorsData] = await Promise.all([
-          getAllUsers(),
-          getAllOperators()
+          userService.getAllUsers(),
+          userService.getAllOperators()
         ])
         setUsers(usersData)
         setOperators(operatorsData)
@@ -194,8 +194,8 @@ export default function AdminDashboard() {
       setSelectedUser(null)
       // Reload data after updating user
       const [usersData, operatorsData] = await Promise.all([
-        getAllUsers(),
-        getAllOperators()
+        userService.getAllUsers(),
+        userService.getAllOperators()
       ])
       setUsers(usersData)
       setOperators(operatorsData)

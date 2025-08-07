@@ -85,7 +85,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Get all users (admin only)
-app.get('/api/admin/users', async (req, res) => {
+app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     console.log('Get all users requested');
     const { data: users, error } = await supabase
@@ -107,7 +107,7 @@ app.get('/api/admin/users', async (req, res) => {
 });
 
 // Get all operators (admin only)
-app.get('/api/admin/operators', async (req, res) => {
+app.get('/api/admin/operators', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     console.log('Get all operators requested');
     const { data: operators, error } = await supabase
@@ -177,7 +177,7 @@ app.put('/api/admin/users/:userId', authMiddleware, adminMiddleware, async (req,
 });
 
 // Get dashboard stats
-app.get('/api/admin/dashboard', async (req, res) => {
+app.get('/api/admin/dashboard', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     console.log('Dashboard stats requested');
     
