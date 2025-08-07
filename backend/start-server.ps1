@@ -3,7 +3,7 @@ Write-Host "Starting CinemaHub Backend Server..." -ForegroundColor Green
 # Start the server in background
 $job = Start-Job -ScriptBlock {
     Set-Location "C:\Users\Lenovo\OneDrive\Desktop\app\backend"
-    node test-server.js
+    node src/app.js
 }
 
 # Wait a moment for server to start
