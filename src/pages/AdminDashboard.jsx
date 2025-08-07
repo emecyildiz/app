@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../store/authStore'
+import { userService } from '../services/userService'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { 
   UserGroupIcon, 
@@ -54,29 +55,39 @@ export default function AdminDashboard() {
     const loadData = async () => {
       setLoading(true)
       try {
-        const [usersData, operatorsData, statsData] = await Promise.all([
-          getAllUsers(),
-          getAllOperators(),
-          getDashboardStats()
-        ])
-        console.log('Admin Dashboard - Users Data:', usersData)
-        console.log('Admin Dashboard - Operators Data:', operatorsData)
-        console.log('Admin Dashboard - Stats Data:', statsData)
-        setUsers(usersData)
-        setOperators(operatorsData)
-        if (statsData) {
-          setDashboardStats(statsData)
-        }
-      } catch (error) {
-        console.error('Error loading admin data:', error)
-        toast.error('Veriler yüklenirken hata oluştu!')
-      } finally {
-        setLoading(false)
-      }
-    }
+        // Get user stats from backend
+        const { data: stats } = await userService.getUserStats();
+        
+        // Update dashboard stats
+        setDashboardStats(prev => ({
+          ...prev,
+          totalUsers: stats.userCount,
+          totalOperators: stats.operatorCount
+        }));
 
-    loadData()
-  }, [getAllUsers, getAllOperators, getDashboardStats])
+        // Get detailed user and operator data
+        const [usersData, operatorsData] = await Promise.all([
+          getAllUsers(),
+          getAllOperators()
+        ]);
+
+        setUsers(usersData);
+        setOperators(operatorsData);
+
+        console.log('Admin Dashboard - Stats:', {
+          users: stats.userCount,
+          operators: stats.operatorCount
+        });
+      } catch (error) {
+        console.error('Error loading admin data:', error);
+        toast.error('Veriler yüklenirken hata oluştu!');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [getAllUsers, getAllOperators]);
 
   // Manual refresh function for active users
   const refreshActiveUsers = async () => {
@@ -224,7 +235,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-400 text-sm">Toplam Kullanıcı</p>
-                    <p className="text-3xl font-bold text-white mt-1">{users.filter(u => u.role === 'USER').length}</p>
+                    <p className="text-3xl font-bold text-white mt-1">{dashboardStats.totalUsers}</p>
                   </div>
                   <UsersIcon className="w-12 h-12 text-red-600" />
                 </div>
@@ -234,7 +245,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-gray-400 text-sm">Operatörler</p>
-                    <p className="text-3xl font-bold text-white mt-1">{operators.length}</p>
+                    <p className="text-3xl font-bold text-white mt-1">{dashboardStats.totalOperators}</p>
                   </div>
                   <ShieldCheckIcon className="w-12 h-12 text-blue-600" />
                 </div>
