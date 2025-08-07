@@ -1,8 +1,8 @@
 // Required imports
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { createClient } = require('@supabase/supabase-js');
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { createClient } from '@supabase/supabase-js';
 
 // Initialize express app
 const app = express();
@@ -12,13 +12,20 @@ app.use(express.json());
 
 // CORS middleware
 app.use((req, res, next) => {
-  const allowedOrigin = 'https://app-eta-five-56.vercel.app';
+  const allowedOrigins = [
+    'https://app-eta-five-56.vercel.app',
+    'https://app-production-c295.up.railway.app',
+    'http://localhost:3000',
+    'http://localhost:3001'
+  ];
   
-  // Always log the request
-  console.log(`${req.method} ${req.path} from ${req.headers.origin}`);
+  const origin = req.headers.origin;
+  console.log(`${req.method} ${req.path} from ${origin}`);
 
-  // Set basic CORS headers
-  res.header('Access-Control-Allow-Origin', allowedOrigin);
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  
   res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
@@ -240,7 +247,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // Export the Express app for Vercel
-module.exports = app;
+export default app;
 
 // For Railway deployment
 if (process.env.NODE_ENV !== 'production' || process.env.RAILWAY_ENVIRONMENT) {
