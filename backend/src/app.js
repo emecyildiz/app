@@ -25,47 +25,37 @@ const limiter = rateLimit({
 });
 
 // CORS Configuration - MUST BE FIRST!
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    const allowedOrigins = [
-      'https://app-seven-flax-12.vercel.app',
-      'https://app-seven-flax-12.vercel.app/',
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'http://localhost:5000'
-    ];
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('CORS blocked origin:', origin);
-      callback(null, true); // Allow all for now
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  credentials: true,
-  optionsSuccessStatus: 200
-};
+app.use((req, res, next) => {
+  // Set CORS headers for ALL requests
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+  
+  next();
+});
 
-app.use(cors(corsOptions));
-
-// Handle OPTIONS requests - MUST BE SECOND!
-app.options('*', cors(corsOptions));
+// Simple CORS middleware
+app.use(cors());
 
 // Other middleware - AFTER CORS
 app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Helmet - AFTER CORS (Helmet can interfere with CORS headers)
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" },
-  crossOriginEmbedderPolicy: false
-}));
+// Helmet temporarily disabled for CORS testing
+// app.use(helmet({
+//   crossOriginResourcePolicy: { policy: "cross-origin" },
+//   crossOriginEmbedderPolicy: false,
+//   contentSecurityPolicy: false,
+//   crossOriginOpenerPolicy: false
+// }));
 
 // Apply rate limiting to all routes
 app.use(limiter);
