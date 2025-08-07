@@ -1,14 +1,17 @@
+// Required imports
 const express = require('express');
-// CORS will be handled manually
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
-const router = express.Router();
 require('dotenv').config();
 
+// Initialize express app
 const app = express();
 
-// Simple CORS middleware
+// Middleware
+app.use(express.json());
+
+// CORS middleware
 app.use((req, res, next) => {
   const allowedOrigin = 'https://app-eta-five-56.vercel.app';
   
@@ -18,82 +21,26 @@ app.use((req, res, next) => {
   // Set basic CORS headers
   res.header('Access-Control-Allow-Origin', allowedOrigin);
   res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-    res.header('Access-Control-Max-Age', '86400'); // 24 hours
-    res.status(204).end();
-    return;
+    return res.status(204).end();
   }
 
   next();
 });
 
-app.use(express.json());
-
-// Database configuration
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres.iqmocrrunczqgjnnukcd:porche911BEL@aws-0-eu-north-1.pooler.supabase.com:6543/postgres';
-
 // Supabase configuration
-const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseUrl = process.env.SUPABASE_URL || 'https://iqmocrrunczqgjnnukcd.supabase.co';
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-if (!supabaseUrl || !supabaseKey || !DATABASE_URL) {
-  console.error('Required credentials are missing!');
-  process.exit(1);
-}
+// JWT configuration
+const JWT_SECRET = process.env.JWT_SECRET || 'zsDMe8f75FXWgBtWadkKmAmPx0vZio+MX6gFHGzY1YEWnehKuN2aH2WfYYNpDE/AENTMBoT6AyjGJZoGWEepdQ==';
 
-const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  },
-  db: {
-    schema: 'public'
-  }
-});
-
-// JWT Secret from Supabase
-const JWT_SECRET = 'zsDMe8f75FXWgBtWadkKmAmPx0vZio+MX6gFHGzY1YEWnehKuN2aH2WfYYNpDE/AENTMBoT6AyjGJZoGWEepdQ==';
-
-// User Stats Endpoint
-app.get('/api/users/stats', async (req, res) => {
-  try {
-    // Kullanıcı sayısı
-    const { data: users, error: userError } = await supabase
-      .from('users')
-      .select('role', { count: 'exact' })
-      .eq('role', 'user');
-
-    // Operatör sayısı
-    const { data: operators, error: operatorError } = await supabase
-      .from('users')
-      .select('role', { count: 'exact' })
-      .eq('role', 'operator');
-
-    if (userError || operatorError) {
-      throw new Error(userError || operatorError);
-    }
-
-    res.json({
-      success: true,
-      data: {
-        userCount: users.length,
-        operatorCount: operators.length
-      }
-    });
-  } catch (error) {
-    console.error('Stats error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'İstatistikler alınırken bir hata oluştu'
-    });
-  }
-});
-
-// Health check
+// Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
     status: 'OK',
@@ -108,19 +55,50 @@ app.get('/', (req, res) => {
     message: 'CinemaHub Backend API',
     endpoints: {
       health: '/health',
-      login: '/api/auth/login',
-      register: '/api/auth/register',
-      stats: '/api/users/stats'
+      stats: '/api/users/stats',
+      login: '/api/auth/login'
     }
   });
 });
 
+// User stats endpoint
+app.get('/api/users/stats', async (req, res) => {
+  try {
+    // Get user count
+    const { data: users, error: userError } = await supabase
+      .from('users')
+      .select('role', { count: 'exact' })
+      .eq('role', 'user');
+
+    // Get operator count
+    const { data: operators, error: operatorError } = await supabase
+      .from('users')
+      .select('role', { count: 'exact' })
+      .eq('role', 'operator');
+
+    if (userError || operatorError) {
+      console.error('Database error:', userError || operatorError);
+      throw new Error('Database query failed');
+    }
+
+    res.json({
+      success: true,
+      data: {
+        userCount: users?.length || 0,
+        operatorCount: operators?.length || 0
+      }
+    });
+  } catch (error) {
+    console.error('Stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'İstatistikler alınırken bir hata oluştu'
+    });
+  }
+});
+
 // Login endpoint
 app.post('/api/auth/login', async (req, res) => {
-  console.log('Processing login:', {
-    body: req.body,
-    origin: req.headers.origin
-  });
   try {
     const { email, password } = req.body;
 
@@ -181,7 +159,10 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// Start server
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
+  console.log(`CORS allowed origin: https://app-eta-five-56.vercel.app`);
 });
