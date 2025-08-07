@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import toast from 'react-hot-toast'
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+const API_URL = import.meta.env.VITE_API_URL || 'https://app-735rllqib-emecyildizs-projects.vercel.app'
 
 console.log('AuthStore - API_URL:', API_URL)
 

@@ -141,16 +141,21 @@ app.use('*', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 8080;
+// Vercel serverless function export
+module.exports = app;
 
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 CinemaHub Backend API running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`☁️  Cloud Ready: ${process.env.NODE_ENV === 'production' ? 'Yes' : 'No'}`);
-  console.log(`🔧 Process ID: ${process.pid}`);
-  console.log(`📡 Server listening on 0.0.0.0:${PORT}`);
-});
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 8080;
+  const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 CinemaHub Backend API running on port ${PORT}`);
+    console.log(`📊 Health check: http://localhost:${PORT}/health`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`☁️  Cloud Ready: ${process.env.NODE_ENV === 'production' ? 'Yes' : 'No'}`);
+    console.log(`🔧 Process ID: ${process.pid}`);
+    console.log(`📡 Server listening on 0.0.0.0:${PORT}`);
+  });
+}
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
