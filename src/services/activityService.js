@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://app-735rllqib-emecyildizs-projects.vercel.app'
+const API_URL = import.meta.env.VITE_API_URL || 'https://app-production-c295.up.railway.app'
 
 export const activityService = {
   // Track user activity
