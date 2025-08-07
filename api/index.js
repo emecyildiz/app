@@ -3,7 +3,6 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config();
 
 // Initialize express app
 const app = express();
@@ -70,7 +69,7 @@ const adminMiddleware = (req, res, next) => {
 };
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
     timestamp: new Date().toISOString(),
@@ -240,11 +239,5 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// Start server
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV}`);
-  console.log(`CORS allowed origin: https://app-eta-five-56.vercel.app`);
-  console.log(`Supabase URL: ${supabaseUrl}`);
-});
+// Export the Express app for Vercel
+module.exports = app;
