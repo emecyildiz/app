@@ -26,28 +26,14 @@ const limiter = rateLimit({
 
 // CORS Configuration - MUST BE FIRST!
 app.use((req, res, next) => {
-  console.log('🔍 CORS Debug - Request:', {
-    method: req.method,
-    url: req.url,
-    origin: req.headers.origin,
-    userAgent: req.headers['user-agent']
-  });
-  
   // Set CORS headers for ALL requests
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   
-  console.log('🔍 CORS Debug - Headers set:', {
-    'Access-Control-Allow-Origin': res.getHeader('Access-Control-Allow-Origin'),
-    'Access-Control-Allow-Methods': res.getHeader('Access-Control-Allow-Methods'),
-    'Access-Control-Allow-Headers': res.getHeader('Access-Control-Allow-Headers')
-  });
-  
   // Handle preflight requests
   if (req.method === 'OPTIONS') {
-    console.log('🔍 CORS Debug - OPTIONS request handled');
     res.status(200).end();
     return;
   }
@@ -155,7 +141,7 @@ app.use('*', (req, res) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 CinemaHub Backend API running on port ${PORT}`);
