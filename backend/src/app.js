@@ -39,18 +39,25 @@ const corsOptions = {
       'http://localhost:3001',  // React dev server (alternative port)
       'http://localhost:4173',  // Vite preview
       'https://app-seven-flax-12.vercel.app',  // Your actual Vercel app
+      'https://app-seven-flax-12.vercel.app',  // Vercel app (duplicate for safety)
       process.env.CORS_ORIGIN  // From environment variable
     ].filter(Boolean);
     
+    console.log('CORS Check - Origin:', origin);
+    console.log('CORS Check - Allowed Origins:', allowedOrigins);
+    console.log('CORS Check - NODE_ENV:', process.env.NODE_ENV);
+    
     if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      console.log('CORS: Allowing origin:', origin);
       callback(null, true);
     } else {
+      console.log('CORS: Blocking origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 };
 
 app.use(cors(corsOptions));
