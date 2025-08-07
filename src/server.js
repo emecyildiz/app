@@ -40,6 +40,30 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // JWT configuration
 const JWT_SECRET = process.env.JWT_SECRET || 'zsDMe8f75FXWgBtWadkKmAmPx0vZio+MX6gFHGzY1YEWnehKuN2aH2WfYYNpDE/AENTMBoT6AyjGJZoGWEepdQ==';
 
+// Auth middleware
+const authMiddleware = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+};
+
+// Admin middleware
+const adminMiddleware = (req, res, next) => {
+  if (req.user.role !== 'ADMIN') {
+    return res.status(403).json({ message: 'Admin access required' });
+  }
+  next();
+};
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
@@ -94,6 +118,92 @@ app.get('/api/users/stats', async (req, res) => {
       success: false,
       message: 'İstatistikler alınırken bir hata oluştu'
     });
+  }
+});
+
+// Activity tracking endpoint
+app.post('/api/users/activity', authMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const timestamp = new Date().toISOString();
+
+    const { error } = await supabase
+      .from('user_activity')
+      .insert([
+        { user_id: userId, timestamp, type: 'PAGE_VIEW' }
+      ]);
+
+    if (error) throw error;
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Activity tracking error:', error);
+    res.status(500).json({ success: false, message: 'Activity tracking failed' });
+  }
+});
+
+// Get all users (admin only)
+app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    res.json(users || []);
+  } catch (error) {
+    console.error('Get users error:', error);
+    res.status(500).json({ message: 'Failed to get users' });
+  }
+});
+
+// Get all operators (admin only)
+app.get('/api/admin/operators', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { data: operators, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('role', 'operator')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    res.json(operators || []);
+  } catch (error) {
+    console.error('Get operators error:', error);
+    res.status(500).json({ message: 'Failed to get operators' });
+  }
+});
+
+// Get dashboard stats (admin only)
+app.get('/api/admin/dashboard', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    // Get user stats
+    const { data: users } = await supabase
+      .from('users')
+      .select('role', { count: 'exact' });
+
+    // Get active users in last 15 minutes
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    const { data: activeUsers } = await supabase
+      .from('user_activity')
+      .select('user_id')
+      .gt('timestamp', fifteenMinutesAgo)
+      .order('timestamp', { ascending: false });
+
+    const stats = {
+      totalUsers: users?.filter(u => u.role === 'USER').length || 0,
+      totalOperators: users?.filter(u => u.role === 'OPERATOR').length || 0,
+      activeUsers: new Set(activeUsers?.map(a => a.user_id)).size || 0,
+      realTimeActiveUsers: new Set(activeUsers?.map(a => a.user_id)).size || 0
+    };
+
+    res.json(stats);
+  } catch (error) {
+    console.error('Get dashboard stats error:', error);
+    res.status(500).json({ message: 'Failed to get dashboard stats' });
   }
 });
 
