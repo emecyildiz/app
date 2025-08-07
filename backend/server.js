@@ -8,22 +8,31 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-// CORS Configuration
-const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://app-eta-five-56.vercel.app']
-    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:8080'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  credentials: true,
-  optionsSuccessStatus: 200
-};
-
-// Apply CORS middleware
-app.use(cors(corsOptions));
-
-// Handle preflight requests
-app.options('*', cors(corsOptions));
+// Enable CORS for all routes
+app.use((req, res, next) => {
+  // Allow specific origin
+  res.setHeader('Access-Control-Allow-Origin', 'https://app-eta-five-56.vercel.app');
+  
+  // Request methods you wish to allow
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  
+  // Request headers you wish to allow
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,Authorization');
+  
+  // Set to true if you need the website to include cookies in the requests sent
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle OPTIONS method
+  if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS request from:', req.get('origin'));
+    return res.sendStatus(200);
+  }
+  
+  // Log all requests
+  console.log(`${req.method} ${req.path} - Origin: ${req.get('origin')}`);
+  
+  next();
+});
 
 app.use(express.json());
 
