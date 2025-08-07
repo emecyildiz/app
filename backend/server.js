@@ -8,41 +8,57 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-// Enable CORS for all routes
+// Basic CORS setup first
+app.use(cors());
+
+// Then detailed CORS for all routes
 app.use((req, res, next) => {
-  // Allow specific origin
-  res.setHeader('Access-Control-Allow-Origin', 'https://app-eta-five-56.vercel.app');
+  // Allow all origins temporarily for debugging
+  res.setHeader('Access-Control-Allow-Origin', '*');
   
-  // Request methods you wish to allow
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  // Allow all methods
+  res.setHeader('Access-Control-Allow-Methods', '*');
   
-  // Request headers you wish to allow
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,Authorization');
+  // Allow all headers
+  res.setHeader('Access-Control-Allow-Headers', '*');
   
-  // Set to true if you need the website to include cookies in the requests sent
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  
-  // Handle OPTIONS method
+  // Handle preflight
   if (req.method === 'OPTIONS') {
-    console.log('Handling OPTIONS request from:', req.get('origin'));
-    return res.sendStatus(200);
+    console.log('Handling OPTIONS request');
+    return res.status(200).end();
   }
-  
-  // Log all requests
-  console.log(`${req.method} ${req.path} - Origin: ${req.get('origin')}`);
-  
+
+  // Log for debugging
+  console.log('Request:', {
+    method: req.method,
+    path: req.path,
+    origin: req.headers.origin,
+    headers: req.headers
+  });
+
   next();
 });
 
 app.use(express.json());
 
-// Supabase client
-const supabaseUrl = process.env.SUPABASE_URL || 'https://iqmocrrunczqgjnnukcd.supabase.co';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxbW9jcnJ1bmN6cWdqbm51a2NkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDM4OTYzOCwiZXhwIjoyMDY5OTY1NjM4fQ.BJLjF8FuWmV-GHQVfZFb6zEjoMerTG27e_CW8jH11y8';
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Supabase client with error handling
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// JWT Secret
-const JWT_SECRET = process.env.JWT_SECRET || '595b4445839106846cff73051315ee96667ca199a208a4e0c8daa4126cba200dd383650bdbd21880d78f3d199a66cdb0b9ccbe5f818734983550e17670d1a65a';
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Supabase credentials are missing!');
+  process.exit(1);
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+});
+
+// JWT Secret from Supabase
+const JWT_SECRET = 'zsDMe8f75FXWgBtWadkKmAmPx0vZio+MX6gFHGzY1YEWnehKuN2aH2WfYYNpDE/AENTMBoT6AyjGJZoGWEepdQ==';
 
 // Health check
 app.get('/health', (req, res) => {
@@ -75,10 +91,10 @@ app.get('/', (req, res) => {
 
 // Login endpoint
 app.post('/api/auth/login', async (req, res) => {
-  console.log('Login request received:', {
-    headers: req.headers,
+  console.log('Login attempt:', {
     body: req.body,
-    origin: req.get('origin')
+    headers: req.headers,
+    origin: req.headers.origin
   });
   try {
     const { email, password } = req.body;
