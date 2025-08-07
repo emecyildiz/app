@@ -27,34 +27,9 @@ const limiter = rateLimit({
 // Middleware
 app.use(helmet());
 
-// CORS Configuration
+// CORS Configuration - Simple and permissive
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    const allowedOrigins = [
-      'http://localhost:5173',  // Vite dev server
-      'http://localhost:3000',  // React dev server
-      'http://localhost:3001',  // React dev server (alternative port)
-      'http://localhost:4173',  // Vite preview
-      'https://app-seven-flax-12.vercel.app',  // Your actual Vercel app
-      'https://app-seven-flax-12.vercel.app',  // Vercel app (duplicate for safety)
-      process.env.CORS_ORIGIN  // From environment variable
-    ].filter(Boolean);
-    
-    console.log('CORS Check - Origin:', origin);
-    console.log('CORS Check - Allowed Origins:', allowedOrigins);
-    console.log('CORS Check - NODE_ENV:', process.env.NODE_ENV);
-    
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
-      console.log('CORS: Allowing origin:', origin);
-      callback(null, true);
-    } else {
-      console.log('CORS: Blocking origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true, // Allow all origins in production
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
