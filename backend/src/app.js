@@ -24,10 +24,7 @@ const limiter = rateLimit({
   }
 });
 
-// Middleware
-app.use(helmet());
-
-// CORS Configuration - Simple and permissive
+// CORS Configuration - MUST BE FIRST!
 const corsOptions = {
   origin: true, // Allow all origins in production
   credentials: true,
@@ -35,15 +32,13 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 };
 
+// CORS middleware - MUST BE FIRST!
 app.use(cors(corsOptions));
-app.use(morgan('combined'));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Handle preflight requests
+// Handle preflight requests - MUST BE SECOND!
 app.options('*', cors(corsOptions));
 
-// Add CORS headers to all responses
+// Add CORS headers to all responses - MUST BE THIRD!
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -56,6 +51,12 @@ app.use((req, res, next) => {
     next();
   }
 });
+
+// Other middleware
+app.use(helmet());
+app.use(morgan('combined'));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Apply rate limiting to all routes
 app.use(limiter);
