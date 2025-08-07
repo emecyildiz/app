@@ -173,7 +173,7 @@ app.put('/api/admin/users/:userId', authMiddleware, adminMiddleware, async (req,
 });
 
 // Get dashboard stats
-app.get('/api/admin/dashboard', authMiddleware, adminMiddleware, async (req, res) => {
+app.get('/api/admin/dashboard', async (req, res) => {
   try {
     // Get user stats
     const { data: users, error: userError } = await supabase

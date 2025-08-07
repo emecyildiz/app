@@ -20,9 +20,7 @@ class UserService {
 
   async getUserStats() {
     try {
-      const response = await axios.get(`${API_URL}/api/admin/dashboard`, {
-        headers: this.getAuthHeaders()
-      });
+      const response = await axios.get(`${API_URL}/api/admin/dashboard`);
       return response.data;
     } catch (error) {
       console.error('Error fetching user stats:', error);
