@@ -1,5 +1,5 @@
 const express = require('express');
-const cors = require('cors');
+// CORS will be handled manually
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
@@ -9,39 +9,27 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-// Enable CORS for all routes
+// Simple CORS middleware
 app.use((req, res, next) => {
-  // Set CORS headers
-  res.header('Access-Control-Allow-Origin', 'https://app-eta-five-56.vercel.app');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
+  const allowedOrigin = 'https://app-eta-five-56.vercel.app';
+  
+  // Always log the request
+  console.log(`${req.method} ${req.path} from ${req.headers.origin}`);
 
-  // Handle preflight
+  // Set basic CORS headers
+  res.header('Access-Control-Allow-Origin', allowedOrigin);
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  // Handle preflight requests
   if (req.method === 'OPTIONS') {
-    console.log('Handling OPTIONS request from:', req.headers.origin);
-    return res.status(200).end();
+    res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.header('Access-Control-Max-Age', '86400'); // 24 hours
+    res.status(204).end();
+    return;
   }
 
-  // Log request details
-  console.log('Request details:', {
-    method: req.method,
-    path: req.path,
-    origin: req.headers.origin,
-    headers: req.headers
-  });
-
   next();
-});
-
-// Additional CORS handling for specific routes
-app.options('*', (req, res) => {
-  console.log('Handling global OPTIONS request');
-  res.header('Access-Control-Allow-Origin', 'https://app-eta-five-56.vercel.app');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.status(200).end();
 });
 
 app.use(express.json());
@@ -96,14 +84,7 @@ app.get('/', (req, res) => {
 
 // Login endpoint
 app.post('/api/auth/login', async (req, res) => {
-  // Set CORS headers specifically for login
-  res.header('Access-Control-Allow-Origin', 'https://app-eta-five-56.vercel.app');
-  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-
-  // Log login attempt
-  console.log('Login attempt:', {
+  console.log('Processing login:', {
     body: req.body,
     origin: req.headers.origin
   });
