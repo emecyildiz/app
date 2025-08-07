@@ -24,32 +24,20 @@ const limiter = rateLimit({
   }
 });
 
-// CORS Configuration - MUST BE FIRST!
-const corsOptions = {
-  origin: true, // Allow all origins in production
-  credentials: true,
+// CORS Configuration - Super simple
+app.use(cors({
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-};
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: false
+}));
 
-// CORS middleware - MUST BE FIRST!
-app.use(cors(corsOptions));
-
-// Handle preflight requests - MUST BE SECOND!
-app.options('*', cors(corsOptions));
-
-// Add CORS headers to all responses - MUST BE THIRD!
-app.use((req, res, next) => {
+// Handle OPTIONS requests
+app.options('*', (req, res) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.status(200).send();
 });
 
 // Other middleware
