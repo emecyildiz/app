@@ -87,13 +87,14 @@ const Register = () => {
                   {...register('username', {
                     required: 'Kullanıcı adı gereklidir',
                     pattern: {
-                      value: /^[a-zA-Z0-9_]+$/,
-                      message: 'Kullanıcı adı sadece harf, rakam ve _ içerebilir',
+                      value: /^[a-z0-9_]+$/,
+                      message: 'Kullanıcı adı sadece küçük harf, rakam ve _ içerebilir',
                     },
                     minLength: {
                       value: 3,
                       message: 'Kullanıcı adı en az 3 karakter olmalıdır',
                     },
+                    setValueAs: (v) => (v ? v.toLowerCase() : v),
                   })}
                   className="input pl-10"
                   placeholder="johndoe"

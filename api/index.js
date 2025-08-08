@@ -128,6 +128,12 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Gerekli alanlar eksik' });
     }
 
+    // Normalize and validate username (lowercase, a-z0-9_)
+    const normalizedUsername = String(username).trim().toLowerCase();
+    if (!/^[a-z0-9_]+$/.test(normalizedUsername) || normalizedUsername.length < 3) {
+      return res.status(400).json({ success: false, message: 'Kullanıcı adı sadece küçük harf, rakam ve _ içerebilir ve en az 3 karakter olmalıdır' });
+    }
+
     // Check if user exists
     const { data: existing, error: existingError } = await supabase
       .from('users')
@@ -144,11 +150,25 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(409).json({ success: false, message: 'Bu e-posta zaten kayıtlı' });
     }
 
+    // Ensure username uniqueness
+    const { data: usernameExists, error: usernameErr } = await supabase
+      .from('users')
+      .select('id')
+      .eq('username', normalizedUsername)
+      .maybeSingle();
+    if (usernameErr) {
+      console.error('Register - username check error:', usernameErr);
+      return res.status(500).json({ success: false, message: 'Sunucu hatası' });
+    }
+    if (usernameExists) {
+      return res.status(409).json({ success: false, message: 'Bu kullanıcı adı zaten alınmış' });
+    }
+
     const passwordhash = await bcrypt.hash(password, 10);
 
     const { data: insertedUser, error: insertError } = await supabase
       .from('users')
-      .insert([{ name, username, email, passwordhash, role: 'USER' }])
+      .insert([{ name, username: normalizedUsername, email, passwordhash, role: 'USER' }])
       .select('*')
       .single();
 
@@ -832,13 +852,31 @@ app.get('/api/users/public/:username', async (req, res) => {
     const username = req.params.username;
     if (!username) return res.status(400).json({ message: 'Invalid request' });
 
-    const { data: user, error } = await supabase
+    // First, try exact match (case-sensitive)
+    let user = null;
+    let resp = await supabase
       .from('users')
       .select('id, name, username, avatarurl, bio, location, created_at, member_since')
       .eq('username', username)
-      .single();
+      .maybeSingle();
 
-    if (error || !user) {
+    if (resp && resp.data) {
+      user = resp.data;
+    }
+
+    // If not found, try case-insensitive match
+    if (!user) {
+      const { data: list, error: ilikeErr } = await supabase
+        .from('users')
+        .select('id, name, username, avatarurl, bio, location, created_at, member_since')
+        .ilike('username', username)
+        .limit(1);
+      if (!ilikeErr && Array.isArray(list) && list.length > 0) {
+        user = list[0];
+      }
+    }
+
+    if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
