@@ -15,6 +15,7 @@ const Movies = lazy(() => import('./pages/Movies'))
 const MovieDetail = lazy(() => import('./pages/MovieDetail'))
 const About = lazy(() => import('./pages/About'))
 const Profile = lazy(() => import('./pages/Profile'))
+const PublicProfile = lazy(() => import('./pages/PublicProfile'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
@@ -129,6 +130,15 @@ function App() {
                   <OperatorDashboard />
                 </Suspense>
               </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="u/:username"
+            element={
+              <Suspense fallback={<LoadingSpinner fullScreen />}>
+                <PublicProfile />
+              </Suspense>
             }
           />
 

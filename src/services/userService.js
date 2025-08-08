@@ -126,6 +126,28 @@ class UserService {
       return 0;
     }
   }
+
+  async searchUsers(query, limit = 10) {
+    try {
+      const response = await axios.get(`${API_URL}/api/users/search`, {
+        params: { q: query, limit }
+      });
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error('Error searching users:', error);
+      return [];
+    }
+  }
+
+  async getPublicProfile(username) {
+    try {
+      const response = await axios.get(`${API_URL}/api/users/public/${encodeURIComponent(username)}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching public profile:', error);
+      return null;
+    }
+  }
 }
 
 export const userService = new UserService();

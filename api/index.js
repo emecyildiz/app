@@ -793,6 +793,102 @@ app.post('/api/movies/:movieId/rate', authMiddleware, async (req, res) => {
     return res.status(500).json({ message: 'Failed to rate movie' });
   }
 });
+
+// ===== Public user search & profile =====
+app.get('/api/users/search', async (req, res) => {
+  try {
+    const q = (req.query.q || '').toString().trim();
+    const limit = Math.min(Number(req.query.limit) || 10, 25);
+    if (!q || q.length < 2) return res.json([]);
+
+    const ilike = `%${q}%`;
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, name, username, avatar, bio, role')
+      .or(`name.ilike.${ilike},username.ilike.${ilike}`)
+      .limit(limit);
+
+    if (error) {
+      console.error('User search error:', error);
+      return res.json([]);
+    }
+    const results = (data || []).map(u => ({
+      id: u.id,
+      name: u.name || '',
+      username: u.username || '',
+      avatar: u.avatar || null,
+      bio: u.bio || '',
+      role: u.role || 'USER',
+    }));
+    return res.json(results);
+  } catch (error) {
+    console.error('User search exception:', error);
+    return res.json([]);
+  }
+});
+
+app.get('/api/users/public/:username', async (req, res) => {
+  try {
+    const username = req.params.username;
+    if (!username) return res.status(400).json({ message: 'Invalid request' });
+
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('id, name, username, avatar, bio, location, created_at, member_since')
+      .eq('username', username)
+      .single();
+
+    if (error || !user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const userId = user.id;
+    let favorites = 0, ratings = 0, watchedMovies = 0;
+    try {
+      const fav = await supabase
+        .from('user_favorites')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId);
+      favorites = fav?.data?.length || fav?.data || 0;
+    } catch (_) {}
+    try {
+      const rat = await supabase
+        .from('user_ratings')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId);
+      ratings = rat?.data?.length || rat?.data || 0;
+    } catch (_) {}
+    try {
+      const wh = await supabase
+        .from('user_watch_history')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId);
+      watchedMovies = wh?.data?.length || wh?.data || 0;
+    } catch (_) {}
+
+    const memberSince = user.member_since || user.created_at || null;
+    let memberSinceDays = 0;
+    if (memberSince) {
+      const ms = Date.now() - new Date(memberSince).getTime();
+      memberSinceDays = Math.floor(ms / (1000 * 60 * 60 * 24));
+    }
+
+    return res.json({
+      id: user.id,
+      name: user.name || '',
+      username: user.username || '',
+      avatar: user.avatar || null,
+      bio: user.bio || '',
+      location: user.location || '',
+      memberSince,
+      memberSinceDays,
+      stats: { favorites, ratings, watchedMovies },
+    });
+  } catch (error) {
+    console.error('Public profile error:', error);
+    return res.status(500).json({ message: 'Failed to fetch profile' });
+  }
+});
 // Export the Express app for Vercel
 export default app;
 

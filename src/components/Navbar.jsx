@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Film, Home, Info, User, LogIn, UserPlus, Menu, X, LogOut, Shield, Users } from 'lucide-react'
+import { Film, Home, Info, User, LogIn, UserPlus, Menu, X, LogOut, Shield, Users, Search } from 'lucide-react'
+import { useRef } from 'react'
+import { userService } from '../services/userService'
 import { useAuthStore } from '../store/authStore'
 
 const Navbar = () => {
@@ -10,6 +12,33 @@ const Navbar = () => {
   const location = useLocation()
   const navigate = useNavigate()
   const { isAuthenticated, user, logout } = useAuthStore()
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState([])
+  const [isSearching, setIsSearching] = useState(false)
+  const searchTimeout = useRef(null)
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value
+    setQuery(value)
+    setResults([])
+    if (searchTimeout.current) clearTimeout(searchTimeout.current)
+    if (!value || value.trim().length < 2) return
+    setIsSearching(true)
+    searchTimeout.current = setTimeout(async () => {
+      try {
+        const res = await userService.searchUsers(value.trim(), 8)
+        setResults(res)
+      } finally {
+        setIsSearching(false)
+      }
+    }, 300)
+  }
+
+  const goToPublicProfile = (username) => {
+    setQuery('')
+    setResults([])
+    navigate(`/u/${encodeURIComponent(username)}`)
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -71,8 +100,44 @@ const Navbar = () => {
               })}
             </ul>
 
-            {/* Empty Space (former search bar area) */}
-            <div className="w-64"></div>
+            {/* User Search */}
+            <div className="relative w-72">
+              <div className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-2">
+                <Search className="w-4 h-4 text-gray-400" />
+                <input
+                  value={query}
+                  onChange={handleSearchChange}
+                  placeholder="Kullanıcı ara..."
+                  className="bg-transparent outline-none text-sm text-white placeholder:text-gray-400 w-full"
+                />
+              </div>
+              {query && results.length > 0 && (
+                <div className="absolute mt-2 w-full glass-dark rounded-lg border border-white/10 max-h-72 overflow-auto z-50">
+                  {results.map((u) => (
+                    <button
+                      key={u.id}
+                      onClick={() => goToPublicProfile(u.username)}
+                      className="w-full text-left px-3 py-2 hover:bg-white/10 flex items-center gap-2"
+                    >
+                      <img
+                        src={u.avatar || `https://ui-avatars.com/api/?name=${u.name || u.username}&background=ef4444&color=fff`}
+                        alt={u.name}
+                        className="w-6 h-6 rounded-full"
+                      />
+                      <div className="flex flex-col">
+                        <span className="text-white text-sm">{u.name || u.username}</span>
+                        <span className="text-gray-400 text-xs">@{u.username}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {query && !isSearching && results.length === 0 && (
+                <div className="absolute mt-2 w-full glass-dark rounded-lg border border-white/10 p-3 text-sm text-gray-400 z-50">
+                  Sonuç yok
+                </div>
+              )}
+            </div>
 
             {/* Auth Buttons */}
             <div className="flex items-center gap-3">
