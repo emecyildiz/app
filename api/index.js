@@ -2,6 +2,8 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import { createClient } from '@supabase/supabase-js';
 
 // Initialize express app
@@ -9,6 +11,24 @@ const app = express();
 
 // Middleware
 app.use(express.json());
+app.use(helmet());
+
+// Rate limiting
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/', apiLimiter);
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(['/api/auth/login', '/api/auth/register'], authLimiter);
 
 // CORS middleware
 app.use((req, res, next) => {
@@ -20,7 +40,7 @@ app.use((req, res, next) => {
   ];
   
   const origin = req.headers.origin;
-  console.log(`${req.method} ${req.path} from ${origin}`);
+  console.log(`${req.method} ${req.path} from ${origin || 'unknown origin'}`);
 
   if (allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
@@ -38,30 +58,35 @@ app.use((req, res, next) => {
   next();
 });
 
-// Supabase configuration
-const supabaseUrl = process.env.SUPABASE_URL || 'https://iqmocrrunczqgjnnukcd.supabase.co';
+// Supabase configuration (require env)
+const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// JWT configuration
-const JWT_SECRET = process.env.JWT_SECRET || 'zsDMe8f75FXWgBtWadkKmAmPx0vZio+MX6gFHGzY1YEWnehKuN2aH2WfYYNpDE/AENTMBoT6AyjGJZoGWEepdQ==';
+// JWT configuration (require env) - prefer SUPABASE_JWT_SECRET, fallback to JWT_SECRET
+const JWT_SECRET = process.env.SUPABASE_JWT_SECRET || process.env.JWT_SECRET;
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Supabase configuration missing. Please set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
+}
+if (!JWT_SECRET) {
+  console.error('JWT secret missing. Please set SUPABASE_JWT_SECRET (preferred) or JWT_SECRET');
+}
 
 // Auth middleware with error logging
 const authMiddleware = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
-    console.log('Auth Token:', token ? 'Present' : 'Missing');
-    
     if (!token) {
       return res.status(401).json({ message: 'No token provided' });
     }
 
     const decoded = jwt.verify(token, JWT_SECRET);
-    console.log('Decoded Token:', decoded);
     req.user = decoded;
     next();
   } catch (error) {
-    console.error('Auth Middleware Error:', error);
+    console.error('Auth Middleware Error:', error?.message || '');
     return res.status(401).json({ message: 'Invalid token' });
   }
 };
@@ -84,6 +109,91 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Auth: Register
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { name, username, email, password } = req.body || {};
+    if (!name || !username || !email || !password) {
+      return res.status(400).json({ success: false, message: 'Gerekli alanlar eksik' });
+    }
+
+    // Check if user exists
+    const { data: existing, error: existingError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (existingError) {
+      console.error('Register - existing check error:', existingError);
+      return res.status(500).json({ success: false, message: 'Sunucu hatası' });
+    }
+
+    if (existing) {
+      return res.status(409).json({ success: false, message: 'Bu e-posta zaten kayıtlı' });
+    }
+
+    const passwordhash = await bcrypt.hash(password, 10);
+
+    const { data: insertedUser, error: insertError } = await supabase
+      .from('users')
+      .insert([{ name, username, email, passwordhash, role: 'USER' }])
+      .select('*')
+      .single();
+
+    if (insertError) {
+      console.error('Register - insert error:', insertError);
+      return res.status(500).json({ success: false, message: 'Kayıt başarısız' });
+    }
+
+    const token = jwt.sign(
+      { userId: insertedUser.id, email: insertedUser.email, role: insertedUser.role },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    );
+
+    const { passwordhash: _ph, ...userWithoutPassword } = insertedUser;
+
+    return res.json({
+      success: true,
+      message: 'Kayıt başarılı',
+      data: { user: userWithoutPassword, token }
+    });
+  } catch (error) {
+    console.error('Register error:', error);
+    return res.status(500).json({ success: false, message: 'Sunucu hatası' });
+  }
+});
+
+// Auth: Logout (stateless)
+app.post('/api/auth/logout', (req, res) => {
+  return res.json({ success: true, message: 'Çıkış başarılı' });
+});
+
+// Auth: Me
+app.get('/api/auth/me', authMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.user || {};
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Yetkisiz' });
+    }
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    if (error) {
+      console.error('Me error:', error);
+      return res.status(500).json({ success: false, message: 'Sunucu hatası' });
+    }
+    const { passwordhash: _ph, ...userWithoutPassword } = user || {};
+    return res.json({ success: true, data: { user: userWithoutPassword } });
+  } catch (error) {
+    console.error('Me endpoint error:', error);
+    return res.status(500).json({ success: false, message: 'Sunucu hatası' });
+  }
+});
+
 // Get all users (admin only)
 app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) => {
   try {
@@ -98,8 +208,10 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
       return res.json([]);
     }
 
-    console.log('Users found:', users?.length || 0);
-    res.json(users || []);
+    // Remove sensitive fields
+    const safeUsers = (users || []).map(({ passwordhash, ...u }) => u);
+    console.log('Users found:', safeUsers?.length || 0);
+    res.json(safeUsers || []);
   } catch (error) {
     console.error('Get users error:', error);
     res.json([]);
@@ -121,8 +233,9 @@ app.get('/api/admin/operators', authMiddleware, adminMiddleware, async (req, res
       return res.json([]);
     }
 
-    console.log('Operators found:', operators?.length || 0);
-    res.json(operators || []);
+    const safeOperators = (operators || []).map(({ passwordhash, ...u }) => u);
+    console.log('Operators found:', safeOperators?.length || 0);
+    res.json(safeOperators || []);
   } catch (error) {
     console.error('Get operators error:', error);
     res.json([]);
@@ -169,7 +282,8 @@ app.put('/api/admin/users/:userId', authMiddleware, adminMiddleware, async (req,
       throw error;
     }
 
-    res.json({ success: true, data });
+    const { passwordhash, ...safe } = data || {};
+    res.json({ success: true, data: safe });
   } catch (error) {
     console.error('Update user error:', error);
     res.status(500).json({ message: 'Failed to update user' });
@@ -250,11 +364,78 @@ app.post('/api/users/activity', async (req, res) => {
   }
 });
 
+// User: Update profile
+app.put('/api/users/profile', authMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.user || {};
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Yetkisiz' });
+    }
+
+    const allowedFields = ['name', 'email', 'username', 'bio', 'location', 'socialLinks'];
+    const updatePayload = {};
+    for (const key of allowedFields) {
+      if (key in req.body) updatePayload[key] = req.body[key];
+    }
+
+    if (Object.keys(updatePayload).length === 0) {
+      return res.status(400).json({ success: false, message: 'Güncellenecek alan yok' });
+    }
+
+    const { data: updated, error } = await supabase
+      .from('users')
+      .update(updatePayload)
+      .eq('id', userId)
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error('Update profile error:', error);
+      return res.status(500).json({ success: false, message: 'Profil güncellenemedi' });
+    }
+
+    const { passwordhash: _ph, ...userWithoutPassword } = updated || {};
+    return res.json({ success: true, data: { user: userWithoutPassword } });
+  } catch (error) {
+    console.error('Update profile endpoint error:', error);
+    return res.status(500).json({ success: false, message: 'Sunucu hatası' });
+  }
+});
+
+// User: Update avatar
+app.put('/api/users/avatar', authMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.user || {};
+    const avatar = (req.body && (req.body.avatar || req.body.avatarUrl)) || null;
+    if (!userId || !avatar) {
+      return res.status(400).json({ success: false, message: 'Geçersiz istek' });
+    }
+
+    const { data: updated, error } = await supabase
+      .from('users')
+      .update({ avatar })
+      .eq('id', userId)
+      .select('*')
+      .single();
+
+    if (error) {
+      console.error('Update avatar error:', error);
+      return res.status(500).json({ success: false, message: 'Profil fotoğrafı güncellenemedi' });
+    }
+
+    const { passwordhash: _ph, ...userWithoutPassword } = updated || {};
+    return res.json({ success: true, data: { user: userWithoutPassword } });
+  } catch (error) {
+    console.error('Update avatar endpoint error:', error);
+    return res.status(500).json({ success: false, message: 'Sunucu hatası' });
+  }
+});
+
 // Login endpoint
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log('Login attempt for:', email);
+    console.log('Login attempt');
 
     if (!email || !password) {
       return res.status(400).json({
@@ -295,7 +476,7 @@ app.post('/api/auth/login', async (req, res) => {
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
       JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: JWT_EXPIRES_IN }
     );
 
     // Remove password from response
@@ -315,6 +496,65 @@ app.post('/api/auth/login', async (req, res) => {
       success: false,
       message: 'Sunucu hatası'
     });
+  }
+});
+
+// Admin: Add operator
+app.post('/api/admin/operators', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { email, password, name, username } = req.body || {};
+    if (!email || !password || !name) {
+      return res.status(400).json({ success: false, message: 'Gerekli alanlar eksik' });
+    }
+
+    const { data: existing, error: existingError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (existingError) {
+      console.error('Add operator - existing check error:', existingError);
+      return res.status(500).json({ success: false, message: 'Sunucu hatası' });
+    }
+    if (existing) {
+      return res.status(409).json({ success: false, message: 'Bu e-posta zaten kayıtlı' });
+    }
+
+    const passwordhash = await bcrypt.hash(password, 10);
+    const { error: insertError } = await supabase
+      .from('users')
+      .insert([{ name, username, email, passwordhash, role: 'OPERATOR' }]);
+
+    if (insertError) {
+      console.error('Add operator - insert error:', insertError);
+      return res.status(500).json({ success: false, message: 'Operatör eklenemedi' });
+    }
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Add operator error:', error);
+    return res.status(500).json({ success: false, message: 'Sunucu hatası' });
+  }
+});
+
+// Admin: Remove operator -> downgrade to USER
+app.delete('/api/admin/operators/:operatorId', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { operatorId } = req.params;
+    const { error } = await supabase
+      .from('users')
+      .update({ role: 'USER' })
+      .eq('id', operatorId);
+
+    if (error) {
+      console.error('Remove operator error:', error);
+      return res.status(500).json({ success: false, message: 'Operatör kaldırılamadı' });
+    }
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Remove operator endpoint error:', error);
+    return res.status(500).json({ success: false, message: 'Sunucu hatası' });
   }
 });
 

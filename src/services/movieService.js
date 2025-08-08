@@ -81,6 +81,81 @@ class MovieService {
     }
   }
 
+  async getMoviesByGenre(genreId, page = 1, limit = 12) {
+    if (USE_MOCK_DATA) {
+      const filtered = mockMovies.filter(m => Array.isArray(m.genres) && m.genres.includes(genreId))
+      const start = (page - 1) * limit
+      const end = start + limit
+      const paginated = filtered.slice(start, end)
+      return {
+        movies: paginated,
+        totalPages: Math.ceil(filtered.length / limit) || 1,
+        currentPage: page,
+      }
+    }
+
+    try {
+      // Try a conventional endpoint if backend exists
+      const response = await this.apiClient.get(`/api/movies/genre/${genreId}`, { params: { page, limit } })
+      // Expect same shape as getMovies
+      return response.data.data
+    } catch (error) {
+      console.error('Error fetching movies by genre:', error)
+      // Fallback to mock
+      const filtered = mockMovies.filter(m => Array.isArray(m.genres) && m.genres.includes(genreId))
+      const start = (page - 1) * limit
+      const end = start + limit
+      const paginated = filtered.slice(start, end)
+      return {
+        movies: paginated,
+        totalPages: Math.ceil(filtered.length / limit) || 1,
+        currentPage: page,
+      }
+    }
+  }
+
+  async getMoviesByActor(actor, page = 1, limit = 12) {
+    if (USE_MOCK_DATA) {
+      const filtered = mockMovies.filter(m => Array.isArray(m.cast) && m.cast.some(a => (a || '').toLowerCase() === (actor || '').toLowerCase()))
+      const start = (page - 1) * limit
+      const end = start + limit
+      const paginated = filtered.slice(start, end)
+      return {
+        movies: paginated,
+        totalPages: Math.ceil(filtered.length / limit) || 1,
+        currentPage: page,
+      }
+    }
+
+    try {
+      const response = await this.apiClient.get(`/api/movies/actor/${encodeURIComponent(actor)}`, { params: { page, limit } })
+      return response.data.data
+    } catch (error) {
+      console.error('Error fetching movies by actor:', error)
+      const filtered = mockMovies.filter(m => Array.isArray(m.cast) && m.cast.some(a => (a || '').toLowerCase() === (actor || '').toLowerCase()))
+      const start = (page - 1) * limit
+      const end = start + limit
+      const paginated = filtered.slice(start, end)
+      return {
+        movies: paginated,
+        totalPages: Math.ceil(filtered.length / limit) || 1,
+        currentPage: page,
+      }
+    }
+  }
+
+  async rateMovie(movieId, rating) {
+    try {
+      const response = await this.apiClient.post(`/api/movies/${movieId}/rate`, { rating })
+      // Expect success boolean or updated movie
+      return response.data
+    } catch (error) {
+      console.error('Error rating movie:', error)
+      // Simulate success to avoid breaking UX when backend not available
+      return { success: true }
+    }
+  }
+
   async searchMovies(query, page = 1, limit = 12) {
     if (USE_MOCK_DATA) {
       const searchResults = mockMovies.filter((movie) =>

@@ -338,17 +338,16 @@ const useAuthStore = create((set, get) => ({
       const response = await axios.get(`${API_URL}/api/admin/users`, {
         headers: { Authorization: `Bearer ${get().token}` }
       })
-      
-      if (response.data.success) {
-        const users = response.data.data.users || []
-        set({ users })
-        return users
-      }
+      // Backend returns array directly (not wrapped)
+      const users = Array.isArray(response.data)
+        ? response.data
+        : (response.data?.data?.users || [])
+      set({ users })
+      return users
     } catch (error) {
       console.error('Get users error:', error)
+      return []
     }
-    
-    return []
   },
 
   getAllOperators: async () => {
@@ -361,20 +360,16 @@ const useAuthStore = create((set, get) => ({
       const response = await axios.get(`${API_URL}/api/admin/operators`, {
         headers: { Authorization: `Bearer ${get().token}` }
       })
-      
-      console.log('getAllOperators - Response:', response.data)
-      
-      if (response.data.success) {
-        const operators = response.data.data.operators || []
-        console.log('getAllOperators - Operators:', operators)
-        set({ operators })
-        return operators
-      }
+      // Backend returns array directly (not wrapped)
+      const operators = Array.isArray(response.data)
+        ? response.data
+        : (response.data?.data?.operators || [])
+      set({ operators })
+      return operators
     } catch (error) {
       console.error('Get operators error:', error)
+      return []
     }
-    
-    return []
   },
 
   getDashboardStats: async () => {
@@ -387,15 +382,15 @@ const useAuthStore = create((set, get) => ({
       const response = await axios.get(`${API_URL}/api/admin/dashboard`, {
         headers: { Authorization: `Bearer ${get().token}` }
       })
-      
-      if (response.data.success) {
-        return response.data.data.stats
+      // Backend returns stats object directly (not wrapped)
+      if (response.data && !('success' in response.data)) {
+        return response.data
       }
+      return response.data?.data?.stats || null
     } catch (error) {
       console.error('Get dashboard stats error:', error)
+      return null
     }
-    
-    return null
   },
 
 
