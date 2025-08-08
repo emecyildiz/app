@@ -857,12 +857,17 @@ app.get('/api/users/public/:username', async (req, res) => {
     // Try by ID first if looks like UUID
     let user = null;
     if (isUuid) {
-      const { data: byId, error: byIdErr } = await supabase
-        .from('users')
-        .select('id, name, username, avatarurl, bio, location, created_at, member_since')
-        .eq('id', param)
-        .maybeSingle();
-      if (!byIdErr && byId) user = byId;
+      // Try common id column names in order
+      const idColumns = ['id', 'user_id', 'uuid'];
+      for (const col of idColumns) {
+        if (user) break;
+        const { data: byCol, error: byColErr } = await supabase
+          .from('users')
+          .select('id, name, username, avatarurl, bio, location, created_at, member_since')
+          .eq(col, param)
+          .maybeSingle();
+        if (!byColErr && byCol) user = byCol;
+      }
     }
 
     // Then try exact username match
