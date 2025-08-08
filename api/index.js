@@ -122,6 +122,11 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Simple debug endpoint to verify latest deploy
+app.get('/api/ping', (_req, res) => {
+  res.json({ pong: true, when: new Date().toISOString() });
+});
+
 // ===== TMDB configuration & helpers =====
 const TMDB_API_BASE_URL = process.env.TMDB_API_BASE_URL || 'https://api.themoviedb.org/3';
 const TMDB_API_KEY = process.env.TMDB_API_KEY || '';
