@@ -195,8 +195,8 @@ export default function OperatorDashboard() {
                   <div className="flex items-center gap-3">
                     <UsersIcon className="w-6 h-6" />
                     <div>
-                      <p className="font-medium">Kullanıcıları Görüntüle</p>
-                      <p className="text-sm opacity-90">Tüm kullanıcıları listele ve yönet</p>
+                      <p className="font-medium">Kullanıcıları Yönet</p>
+                      <p className="text-sm opacity-90">Tüm kullanıcıları listele ve düzenle</p>
                     </div>
                   </div>
                 </button>
@@ -277,13 +277,6 @@ export default function OperatorDashboard() {
                           </td>
                           <td className="p-4">
                             <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleViewUser(userItem)}
-                                className="text-blue-500 hover:text-blue-400 text-sm flex items-center gap-1"
-                              >
-                                <EyeIcon className="w-4 h-4" />
-                                Görüntüle
-                              </button>
                               <button
                                 onClick={() => handleViewUser(userItem)}
                                 className="text-green-500 hover:text-green-400 text-sm flex items-center gap-1"

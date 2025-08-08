@@ -537,12 +537,20 @@ export default function AdminDashboard() {
                                 {operator.created_at ? new Date(operator.created_at).toLocaleDateString('tr-TR') : 'Bilinmiyor'}
                               </td>
                               <td className="p-4">
-                                <button
-                                  onClick={() => handleRemoveOperator(operator.id)}
-                                  className="text-red-500 hover:text-red-400 text-sm"
-                                >
-                                  Kaldır
-                                </button>
+                                <div className="flex items-center gap-3">
+                                  <button
+                                    onClick={() => handleEditUser(operator)}
+                                    className="text-blue-500 hover:text-blue-400 text-sm"
+                                  >
+                                    Düzenle
+                                  </button>
+                                  <button
+                                    onClick={() => handleRemoveOperator(operator.id)}
+                                    className="text-red-500 hover:text-red-400 text-sm"
+                                  >
+                                    Kaldır
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))
