@@ -804,7 +804,7 @@ app.get('/api/users/search', async (req, res) => {
     const ilike = `%${q}%`;
     const { data, error } = await supabase
       .from('users')
-      .select('id, name, username, avatar, bio, role')
+      .select('id, name, username, avatar, avatarurl, bio, role')
       .or(`name.ilike.${ilike},username.ilike.${ilike}`)
       .limit(limit);
 
@@ -816,7 +816,7 @@ app.get('/api/users/search', async (req, res) => {
       id: u.id,
       name: u.name || '',
       username: u.username || '',
-      avatar: u.avatar || null,
+      avatar: u.avatar || u.avatarurl || null,
       bio: u.bio || '',
       role: u.role || 'USER',
     }));
@@ -834,7 +834,7 @@ app.get('/api/users/public/:username', async (req, res) => {
 
     const { data: user, error } = await supabase
       .from('users')
-      .select('id, name, username, avatar, bio, location, created_at, member_since')
+      .select('id, name, username, avatar, avatarurl, bio, location, created_at, member_since')
       .eq('username', username)
       .single();
 
@@ -877,7 +877,7 @@ app.get('/api/users/public/:username', async (req, res) => {
       id: user.id,
       name: user.name || '',
       username: user.username || '',
-      avatar: user.avatar || null,
+      avatar: user.avatar || user.avatarurl || null,
       bio: user.bio || '',
       location: user.location || '',
       memberSince,
