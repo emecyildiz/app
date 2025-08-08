@@ -856,6 +856,7 @@ app.get('/api/users/public/:username', async (req, res) => {
     if (!param) return res.status(400).json({ message: 'Invalid request' });
     const normalized = String(param).trim().toLowerCase();
     const isUuid = /^[0-9a-fA-F-]{36}$/.test(param);
+    console.log('PublicProfile request:', { raw, decoded, param, normalized, isUuid });
 
     // Try by ID first if looks like UUID
     let user = null;
@@ -869,6 +870,7 @@ app.get('/api/users/public/:username', async (req, res) => {
           .select('id, name, username, avatarurl, bio, location, created_at, member_since')
           .eq(col, param)
           .maybeSingle();
+        console.log('PublicProfile by id column', col, { error: byColErr ? byColErr.message : null, found: !!byCol });
         if (!byColErr && byCol) user = byCol;
       }
     }
@@ -881,6 +883,7 @@ app.get('/api/users/public/:username', async (req, res) => {
         .eq('username', param)
         .maybeSingle();
       if (resp && resp.data) {
+        console.log('PublicProfile exact username match (param) found');
         user = resp.data;
       }
     }
@@ -892,6 +895,7 @@ app.get('/api/users/public/:username', async (req, res) => {
         .eq('username', normalized)
         .maybeSingle();
       if (resp2 && resp2.data) {
+        console.log('PublicProfile exact username match (normalized) found');
         user = resp2.data;
       }
     }
@@ -903,6 +907,7 @@ app.get('/api/users/public/:username', async (req, res) => {
         .select('id, name, username, avatarurl, bio, location, created_at, member_since')
         .ilike('username', `%${param}%`)
         .limit(1);
+      console.log('PublicProfile ilike param result', { error: ilikeErr ? ilikeErr.message : null, count: list?.length || 0 });
       if (!ilikeErr && Array.isArray(list) && list.length > 0) {
         user = list[0];
       }
@@ -914,12 +919,14 @@ app.get('/api/users/public/:username', async (req, res) => {
         .select('id, name, username, avatarurl, bio, location, created_at, member_since')
         .ilike('username', `%${normalized}%`)
         .limit(1);
+      console.log('PublicProfile ilike normalized result', { error: ilikeErr2 ? ilikeErr2.message : null, count: list2?.length || 0 });
       if (!ilikeErr2 && Array.isArray(list2) && list2.length > 0) {
         user = list2[0];
       }
     }
 
     if (!user) {
+      console.log('PublicProfile not found for', { param, normalized });
       return res.status(404).json({ message: 'User not found' });
     }
 
