@@ -269,7 +269,12 @@ app.get('/api/movies/:id', async (req, res) => {
     const movie = mapMovieDetail(resp.data || {});
     res.json({ success: true, data: { movie } });
   } catch (error) {
-    console.error('GET /api/movies/:id error:', error?.message);
+    const status = error?.response?.status || 0;
+    const msg = error?.response?.data?.status_message || error?.message || 'unknown';
+    console.error('GET /api/movies/:id error:', status, msg);
+    if (status === 404) {
+      return res.status(404).json({ success: false, message: 'Movie not found' });
+    }
     res.status(500).json({ success: false, message: 'Failed to fetch movie detail' });
   }
 });
