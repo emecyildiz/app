@@ -266,25 +266,6 @@ app.get('/api/debug/tmdb', async (_req, res) => {
   }
 });
 
-// Movie detail
-app.get('/api/movies/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const resp = await tmdbClient.get(`/movie/${encodeURIComponent(id)}`, {
-      params: withAuthParams({ language: 'tr-TR', append_to_response: 'credits' }),
-    });
-    const movie = mapMovieDetail(resp.data || {});
-    res.json({ success: true, data: { movie } });
-  } catch (error) {
-    const status = error?.response?.status || 0;
-    const msg = error?.response?.data?.status_message || error?.message || 'unknown';
-    console.error('GET /api/movies/:id error:', status, msg);
-    if (status === 404) {
-      return res.status(404).json({ success: false, message: 'Movie not found' });
-    }
-    res.status(500).json({ success: false, message: 'Failed to fetch movie detail' });
-  }
-});
 
 // Genres
 app.get('/api/movies/genres', async (_req, res) => {
@@ -292,8 +273,10 @@ app.get('/api/movies/genres', async (_req, res) => {
     const genres = await fetchGenres();
     res.json({ success: true, data: genres });
   } catch (error) {
-    console.error('GET /api/movies/genres error:', error?.message);
-    res.status(500).json({ success: false, data: [] });
+    const status = error?.response?.status || 0;
+    const msg = error?.response?.data?.status_message || error?.message || 'unknown';
+    console.error('GET /api/movies/genres error:', status, msg);
+    res.status(500).json({ success: false, message: 'Failed to fetch genres', data: [] });
   }
 });
 

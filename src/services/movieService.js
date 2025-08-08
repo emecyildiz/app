@@ -74,10 +74,11 @@ class MovieService {
 
     try {
       const response = await this.apiClient.get('/api/movies/genres')
-      return response.data.data || mockGenres // Fallback to mock data
+      return response.data.data || []
     } catch (error) {
       console.error('Error fetching genres:', error)
-      return mockGenres // Fallback to mock data
+      // Return empty to avoid mismatched IDs vs TMDB
+      return []
     }
   }
 
