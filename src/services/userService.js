@@ -139,9 +139,9 @@ class UserService {
     }
   }
 
-  async getPublicProfile(username) {
+  async getPublicProfile(identifier) {
     try {
-      const response = await axios.get(`${API_URL}/api/users/public/${encodeURIComponent(username)}`);
+      const response = await axios.get(`${API_URL}/api/users/public/${encodeURIComponent(identifier)}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching public profile:', error);
