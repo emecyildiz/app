@@ -284,16 +284,22 @@ const useAuthStore = create((set, get) => ({
     }
 
     try {
-      const response = await axios.put(`${API_URL}/api/admin/users/${userId}`, updates, {
+      const isAdmin = currentUser.role === 'ADMIN'
+      const endpoint = isAdmin
+        ? `${API_URL}/api/admin/users/${userId}`
+        : `${API_URL}/api/operator/users/${userId}`
+
+      const response = await axios.put(endpoint, updates, {
         headers: { Authorization: `Bearer ${get().token}` }
       })
       
-      if (response.data.success) {
+      if (response.data?.success || response.status === 200) {
         toast.success('Kullanıcı profili güncellendi!')
         return { success: true }
       } else {
-        toast.error(response.data.message || 'Kullanıcı profili güncellenemedi!')
-        return { success: false, error: response.data.message }
+        const msg = response.data?.message || 'Kullanıcı profili güncellenemedi!'
+        toast.error(msg)
+        return { success: false, error: msg }
       }
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Kullanıcı profili güncellenemedi!'
@@ -304,8 +310,8 @@ const useAuthStore = create((set, get) => ({
 
   deleteUser: async (userId) => {
     const currentUser = get().user
-    if (currentUser?.role !== 'ADMIN' && currentUser?.role !== 'OPERATOR') {
-      toast.error('Bu işlem için yetkiniz yok!')
+    if (currentUser?.role !== 'ADMIN') {
+      toast.error('Bu işlem sadece admin için izinlidir!')
       return { success: false, error: 'Unauthorized' }
     }
 
@@ -335,7 +341,12 @@ const useAuthStore = create((set, get) => ({
     }
 
     try {
-      const response = await axios.get(`${API_URL}/api/admin/users`, {
+      const isAdmin = currentUser.role === 'ADMIN'
+      const endpoint = isAdmin
+        ? `${API_URL}/api/admin/users`
+        : `${API_URL}/api/operator/users`
+
+      const response = await axios.get(endpoint, {
         headers: { Authorization: `Bearer ${get().token}` }
       })
       // Backend returns array directly (not wrapped)

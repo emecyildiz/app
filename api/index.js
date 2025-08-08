@@ -102,6 +102,15 @@ const adminMiddleware = (req, res, next) => {
   next();
 };
 
+// Operator or Admin middleware
+const operatorOrAdminMiddleware = (req, res, next) => {
+  const role = req.user?.role;
+  if (role !== 'ADMIN' && role !== 'OPERATOR') {
+    return res.status(403).json({ message: 'Operator or admin access required' });
+  }
+  next();
+};
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({
@@ -242,6 +251,29 @@ app.get('/api/admin/operators', authMiddleware, adminMiddleware, async (req, res
   }
 });
 
+// Get users (operator or admin) - only USER role
+app.get('/api/operator/users', authMiddleware, operatorOrAdminMiddleware, async (req, res) => {
+  try {
+    console.log('Operator: get users requested');
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('role', 'USER');
+
+    if (error) {
+      console.error('Supabase Error:', error);
+      return res.json([]);
+    }
+
+    const safeUsers = (users || []).map(({ passwordhash, ...u }) => u);
+    console.log('Operator: users found:', safeUsers?.length || 0);
+    res.json(safeUsers || []);
+  } catch (error) {
+    console.error('Operator get users error:', error);
+    res.json([]);
+  }
+});
+
 // Delete user (admin only)
 app.delete('/api/admin/users/:userId', authMiddleware, adminMiddleware, async (req, res) => {
   try {
@@ -286,6 +318,40 @@ app.put('/api/admin/users/:userId', authMiddleware, adminMiddleware, async (req,
     res.json({ success: true, data: safe });
   } catch (error) {
     console.error('Update user error:', error);
+    res.status(500).json({ message: 'Failed to update user' });
+  }
+});
+
+// Update user (operator or admin) - limited fields
+app.put('/api/operator/users/:userId', authMiddleware, operatorOrAdminMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const allowedFields = ['name', 'username', 'bio', 'location', 'avatar', 'socialLinks'];
+    const updateData = {};
+    for (const key of allowedFields) {
+      if (key in req.body) updateData[key] = req.body[key];
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: 'No updatable fields provided' });
+    }
+
+    const { data, error } = await supabase
+      .from('users')
+      .update(updateData)
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Supabase Error:', error);
+      throw error;
+    }
+
+    const { passwordhash, ...safe } = data || {};
+    res.json({ success: true, data: safe });
+  } catch (error) {
+    console.error('Operator update user error:', error);
     res.status(500).json({ message: 'Failed to update user' });
   }
 });
