@@ -852,39 +852,41 @@ app.get('/api/users/public/:username', async (req, res) => {
     const param = req.params.username;
     if (!param) return res.status(400).json({ message: 'Invalid request' });
     const normalized = String(param).trim().toLowerCase();
+    const isUuid = /^[0-9a-fA-F-]{36}$/.test(param);
 
-    // First, try exact match (case-sensitive)
+    // Try by ID first if looks like UUID
     let user = null;
-    let resp = await supabase
-      .from('users')
-      .select('id, name, username, avatarurl, bio, location, created_at, member_since')
-      .eq('username', normalized)
-      .maybeSingle();
-
-    if (resp && resp.data) {
-      user = resp.data;
-    }
-
-    // If not found, try case-insensitive match
-    if (!user) {
-      const { data: list, error: ilikeErr } = await supabase
-        .from('users')
-        .select('id, name, username, avatarurl, bio, location, created_at, member_since')
-        .ilike('username', normalized)
-        .limit(1);
-      if (!ilikeErr && Array.isArray(list) && list.length > 0) {
-        user = list[0];
-      }
-    }
-
-    // If still not found, try by id (uuid)
-    if (!user) {
+    if (isUuid) {
       const { data: byId, error: byIdErr } = await supabase
         .from('users')
         .select('id, name, username, avatarurl, bio, location, created_at, member_since')
         .eq('id', param)
         .maybeSingle();
       if (!byIdErr && byId) user = byId;
+    }
+
+    // Then try exact username match
+    if (!user) {
+      let resp = await supabase
+        .from('users')
+        .select('id, name, username, avatarurl, bio, location, created_at, member_since')
+        .eq('username', normalized)
+        .maybeSingle();
+      if (resp && resp.data) {
+        user = resp.data;
+      }
+    }
+
+    // If not found, try case-insensitive match (partial)
+    if (!user) {
+      const { data: list, error: ilikeErr } = await supabase
+        .from('users')
+        .select('id, name, username, avatarurl, bio, location, created_at, member_since')
+        .ilike('username', `%${normalized}%`)
+        .limit(1);
+      if (!ilikeErr && Array.isArray(list) && list.length > 0) {
+        user = list[0];
+      }
     }
 
     if (!user) {
