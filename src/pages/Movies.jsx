@@ -119,11 +119,21 @@ const Movies = () => {
         {!isLoading && !error && (
           <>
             {Array.isArray(movies) && movies.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                {movies.map((movie, index) => (
-                  <MovieCard key={`${movie.id}-${index}`} movie={movie} index={index} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                  {movies.map((movie, index) => (
+                    <MovieCard key={`${movie.id}-${index}`} movie={movie} index={index} />
+                  ))}
+                </div>
+                <div className="flex justify-center mt-8">
+                  <button
+                    onClick={() => useMovieStore.getState().loadMore()}
+                    className="btn btn-secondary"
+                  >
+                    Daha Fazla Yükle
+                  </button>
+                </div>
+              </>
             ) : (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}

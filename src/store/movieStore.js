@@ -34,22 +34,22 @@ const useMovieStore = create((set, get) => ({
   },
 
   // Search movies
-  searchMovies: async (query) => {
+  searchMovies: async (query, page = 1) => {
     set({ isLoading: true, error: null, searchQuery: query })
     try {
-      const { movies, totalPages } = await movieService.searchMovies(query)
-      set({ movies, totalPages, currentPage: 1, isLoading: false })
+      const { movies, totalPages } = await movieService.searchMovies(query, page)
+      set({ movies, totalPages, currentPage: page, isLoading: false })
     } catch (error) {
       set({ error: error.message, isLoading: false })
     }
   },
 
   // Filter by genre
-  filterByGenre: async (genreId) => {
+  filterByGenre: async (genreId, page = 1) => {
     set({ isLoading: true, error: null, selectedGenre: genreId })
     try {
-      const { movies, totalPages } = await movieService.getMoviesByGenre(genreId)
-      set({ movies, totalPages, currentPage: 1, isLoading: false })
+      const { movies, totalPages } = await movieService.getMoviesByGenre(genreId, page)
+      set({ movies, totalPages, currentPage: page, isLoading: false })
     } catch (error) {
       set({ error: error.message, isLoading: false })
     }
@@ -70,6 +70,31 @@ const useMovieStore = create((set, get) => ({
   clearFilters: () => {
     set({ selectedGenre: null, selectedActor: null, searchQuery: '' })
     get().fetchMovies(1)
+  },
+
+  // Load next page and append
+  loadMore: async () => {
+    const { currentPage, selectedGenre, selectedActor, searchQuery, movies } = get()
+    const nextPage = (currentPage || 1) + 1
+    set({ isLoading: true, error: null })
+    try {
+      let result
+      if (searchQuery) {
+        result = await movieService.searchMovies(searchQuery, nextPage)
+      } else if (selectedGenre) {
+        result = await movieService.getMoviesByGenre(selectedGenre, nextPage)
+      } else if (selectedActor) {
+        result = await movieService.getMoviesByActor(selectedActor, nextPage)
+      } else {
+        result = await movieService.getMovies(nextPage)
+      }
+      const merged = Array.isArray(result.movies)
+        ? [...movies, ...result.movies.filter(m => !movies.some(x => x.id === m.id))]
+        : movies
+      set({ movies: merged, totalPages: result.totalPages || get().totalPages, currentPage: nextPage, isLoading: false })
+    } catch (error) {
+      set({ error: error.message, isLoading: false })
+    }
   },
 
   // Rate movie
