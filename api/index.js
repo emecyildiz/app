@@ -11,6 +11,8 @@ const app = express();
 
 // Middleware
 app.use(express.json());
+// In proxy environments (Vercel/Railway), trust proxy to allow rate limiter to read client IP
+app.set('trust proxy', 1);
 app.use(helmet());
 
 // Rate limiting
@@ -200,8 +202,7 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
     console.log('Get all users requested');
     const { data: users, error } = await supabase
       .from('users')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('*');
 
     if (error) {
       console.error('Supabase Error:', error);
@@ -225,8 +226,7 @@ app.get('/api/admin/operators', authMiddleware, adminMiddleware, async (req, res
     const { data: operators, error } = await supabase
       .from('users')
       .select('*')
-      .eq('role', 'OPERATOR')
-      .order('created_at', { ascending: false });
+      .eq('role', 'OPERATOR');
 
     if (error) {
       console.error('Supabase Error:', error);
