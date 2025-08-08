@@ -849,7 +849,10 @@ app.get('/api/users/search', async (req, res) => {
 
 app.get('/api/users/public/:username', async (req, res) => {
   try {
-    const param = req.params.username;
+    const raw = req.params.username;
+    const decoded = decodeURIComponent(String(raw || ''));
+    const stripped = decoded.startsWith('@') ? decoded.slice(1) : decoded;
+    const param = stripped.trim();
     if (!param) return res.status(400).json({ message: 'Invalid request' });
     const normalized = String(param).trim().toLowerCase();
     const isUuid = /^[0-9a-fA-F-]{36}$/.test(param);
@@ -870,15 +873,26 @@ app.get('/api/users/public/:username', async (req, res) => {
       }
     }
 
-    // Then try exact username match
+    // Then try exact username match (original and normalized)
     if (!user) {
       let resp = await supabase
         .from('users')
         .select('id, name, username, avatarurl, bio, location, created_at, member_since')
-        .eq('username', normalized)
+        .eq('username', param)
         .maybeSingle();
       if (resp && resp.data) {
         user = resp.data;
+      }
+    }
+
+    if (!user) {
+      let resp2 = await supabase
+        .from('users')
+        .select('id, name, username, avatarurl, bio, location, created_at, member_since')
+        .eq('username', normalized)
+        .maybeSingle();
+      if (resp2 && resp2.data) {
+        user = resp2.data;
       }
     }
 
@@ -887,10 +901,21 @@ app.get('/api/users/public/:username', async (req, res) => {
       const { data: list, error: ilikeErr } = await supabase
         .from('users')
         .select('id, name, username, avatarurl, bio, location, created_at, member_since')
-        .ilike('username', `%${normalized}%`)
+        .ilike('username', `%${param}%`)
         .limit(1);
       if (!ilikeErr && Array.isArray(list) && list.length > 0) {
         user = list[0];
+      }
+    }
+
+    if (!user) {
+      const { data: list2, error: ilikeErr2 } = await supabase
+        .from('users')
+        .select('id, name, username, avatarurl, bio, location, created_at, member_since')
+        .ilike('username', `%${normalized}%`)
+        .limit(1);
+      if (!ilikeErr2 && Array.isArray(list2) && list2.length > 0) {
+        user = list2[0];
       }
     }
 
