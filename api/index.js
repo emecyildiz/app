@@ -234,6 +234,31 @@ app.get('/api/movies', async (req, res) => {
   }
 });
 
+// ===== Debug endpoints (temporary) =====
+// Check env presence (without exposing secrets)
+app.get('/api/debug/env', (_req, res) => {
+  res.json({
+    hasApiKey: Boolean(process.env.TMDB_API_KEY),
+    hasV4Token: Boolean(process.env.TMDB_V4_TOKEN),
+    baseUrl: TMDB_API_BASE_URL,
+    nodeEnv: process.env.NODE_ENV || 'undefined',
+  });
+});
+
+// Test direct TMDB call and return status/error shape
+app.get('/api/debug/tmdb', async (_req, res) => {
+  try {
+    const resp = await tmdbClient.get('/genre/movie/list', {
+      params: withAuthParams({ language: 'tr-TR' })
+    });
+    return res.json({ ok: true, status: resp.status, genresCount: (resp.data?.genres || []).length });
+  } catch (error) {
+    const status = error?.response?.status || 0;
+    const data = error?.response?.data || null;
+    return res.status(200).json({ ok: false, status, data, message: error?.message || 'unknown' });
+  }
+});
+
 // Movie detail
 app.get('/api/movies/:id', async (req, res) => {
   try {
