@@ -849,15 +849,16 @@ app.get('/api/users/search', async (req, res) => {
 
 app.get('/api/users/public/:username', async (req, res) => {
   try {
-    const username = req.params.username;
-    if (!username) return res.status(400).json({ message: 'Invalid request' });
+    const param = req.params.username;
+    if (!param) return res.status(400).json({ message: 'Invalid request' });
+    const normalized = String(param).trim().toLowerCase();
 
     // First, try exact match (case-sensitive)
     let user = null;
     let resp = await supabase
       .from('users')
       .select('id, name, username, avatarurl, bio, location, created_at, member_since')
-      .eq('username', username)
+      .eq('username', normalized)
       .maybeSingle();
 
     if (resp && resp.data) {
@@ -869,11 +870,21 @@ app.get('/api/users/public/:username', async (req, res) => {
       const { data: list, error: ilikeErr } = await supabase
         .from('users')
         .select('id, name, username, avatarurl, bio, location, created_at, member_since')
-        .ilike('username', username)
+        .ilike('username', normalized)
         .limit(1);
       if (!ilikeErr && Array.isArray(list) && list.length > 0) {
         user = list[0];
       }
+    }
+
+    // If still not found, try by id (uuid)
+    if (!user) {
+      const { data: byId, error: byIdErr } = await supabase
+        .from('users')
+        .select('id, name, username, avatarurl, bio, location, created_at, member_since')
+        .eq('id', param)
+        .maybeSingle();
+      if (!byIdErr && byId) user = byId;
     }
 
     if (!user) {

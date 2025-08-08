@@ -35,10 +35,11 @@ const Navbar = () => {
     }
   }
 
-  const goToPublicProfile = (username) => {
+  const goToPublicProfile = (username, id) => {
     setQuery('')
     setResults([])
-    navigate(`/u/${encodeURIComponent(username)}`)
+    const target = username && username.trim().length > 0 ? username : id
+    navigate(`/u/${encodeURIComponent(target)}`)
   }
 
   useEffect(() => {
@@ -118,7 +119,7 @@ const Navbar = () => {
                   {results.map((u) => (
                     <button
                       key={u.id}
-                      onClick={() => goToPublicProfile(u.username)}
+                      onClick={() => goToPublicProfile(u.username, u.id)}
                       className="w-full text-left px-3 py-2 hover:bg-white/10 flex items-center gap-2"
                     >
                       <img
