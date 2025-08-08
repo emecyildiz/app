@@ -38,8 +38,8 @@ const Navbar = () => {
   const goToPublicProfile = (username, id) => {
     setQuery('')
     setResults([])
-    // Prefer stable id routing to avoid username mismatches
-    const target = id || username
+    // Prefer username routing; fallback to id if username yok
+    const target = (username && username.trim().length > 0) ? username : id
     navigate(`/u/${encodeURIComponent(target)}`)
   }
 
