@@ -624,6 +624,175 @@ app.delete('/api/admin/operators/:operatorId', authMiddleware, adminMiddleware, 
   }
 });
 
+// ===== User statistics & favorites =====
+// Get my stats (watched, ratings, favorites, memberSince)
+app.get('/api/users/stats', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+    // watched movies count
+    let watchedMovies = 0;
+    try {
+      const { data, error } = await supabase
+        .from('user_watch_history')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId);
+      if (!error) watchedMovies = data?.length || data || 0; // count in head mode
+    } catch (_) {}
+
+    // ratings count
+    let ratings = 0;
+    try {
+      const { data, error } = await supabase
+        .from('user_ratings')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId);
+      if (!error) ratings = data?.length || data || 0;
+    } catch (_) {}
+
+    // favorites count
+    let favorites = 0;
+    try {
+      const { data, error } = await supabase
+        .from('user_favorites')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', userId);
+      if (!error) favorites = data?.length || data || 0;
+    } catch (_) {}
+
+    // member since (days)
+    let memberSince = null;
+    let memberSinceDays = 0;
+    try {
+      const { data: userRow, error: userErr } = await supabase
+        .from('users')
+        .select('created_at, member_since')
+        .eq('id', userId)
+        .single();
+      if (!userErr && userRow) {
+        memberSince = userRow.member_since || userRow.created_at || null;
+        if (memberSince) {
+          const ms = Date.now() - new Date(memberSince).getTime();
+          memberSinceDays = Math.floor(ms / (1000 * 60 * 60 * 24));
+        }
+      }
+    } catch (_) {}
+
+    return res.json({
+      watchedMovies,
+      ratings,
+      favorites,
+      memberSince,
+      memberSinceDays,
+    });
+  } catch (error) {
+    console.error('Get my stats error:', error);
+    return res.status(500).json({ message: 'Failed to fetch stats' });
+  }
+});
+
+// Favorites: add
+app.post('/api/users/favorites', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    const { movieId } = req.body || {};
+    if (!userId || !movieId) return res.status(400).json({ message: 'Invalid request' });
+
+    const { error } = await supabase
+      .from('user_favorites')
+      .upsert({ user_id: userId, movie_id: String(movieId) }, { onConflict: 'user_id,movie_id' });
+
+    if (error) {
+      console.error('Add favorite error:', error);
+      return res.status(500).json({ message: 'Failed to add favorite' });
+    }
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Favorites add error:', error);
+    return res.status(500).json({ message: 'Failed to add favorite' });
+  }
+});
+
+// Favorites: remove
+app.delete('/api/users/favorites/:movieId', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    const { movieId } = req.params;
+    if (!userId || !movieId) return res.status(400).json({ message: 'Invalid request' });
+
+    const { error } = await supabase
+      .from('user_favorites')
+      .delete()
+      .eq('user_id', userId)
+      .eq('movie_id', String(movieId));
+
+    if (error) {
+      console.error('Remove favorite error:', error);
+      return res.status(500).json({ message: 'Failed to remove favorite' });
+    }
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Favorites remove error:', error);
+    return res.status(500).json({ message: 'Failed to remove favorite' });
+  }
+});
+
+// Favorites: count
+app.get('/api/users/favorites/count', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+    const { data, error } = await supabase
+      .from('user_favorites')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId);
+    if (error) throw error;
+    const count = data?.length || data || 0;
+    return res.json({ count });
+  } catch (error) {
+    console.error('Favorites count error:', error);
+    return res.json({ count: 0 });
+  }
+});
+
+// Watch logging
+app.post('/api/movies/:movieId/watch', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    const { movieId } = req.params;
+    if (!userId || !movieId) return res.status(400).json({ message: 'Invalid request' });
+
+    const { error } = await supabase
+      .from('user_watch_history')
+      .insert({ user_id: userId, movie_id: String(movieId) });
+    if (error) throw error;
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Watch log error:', error);
+    return res.status(500).json({ message: 'Failed to log watch' });
+  }
+});
+
+// Rate movie
+app.post('/api/movies/:movieId/rate', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    const { movieId } = req.params;
+    const { rating } = req.body || {};
+    if (!userId || !movieId || !rating) return res.status(400).json({ message: 'Invalid request' });
+
+    // Upsert rating (one rating per user/movie)
+    const { error } = await supabase
+      .from('user_ratings')
+      .upsert({ user_id: userId, movie_id: String(movieId), rating: Number(rating) }, { onConflict: 'user_id,movie_id' });
+    if (error) throw error;
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Rate movie error:', error);
+    return res.status(500).json({ message: 'Failed to rate movie' });
+  }
+});
 // Export the Express app for Vercel
 export default app;
 

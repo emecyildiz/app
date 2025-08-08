@@ -77,6 +77,55 @@ class UserService {
       throw error;
     }
   }
+
+  // Get my aggregated stats
+  async getMyStats() {
+    try {
+      const response = await axios.get(`${API_URL}/api/users/stats`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching my stats:', error);
+      return null;
+    }
+  }
+
+  async addFavorite(movieId) {
+    try {
+      const response = await axios.post(`${API_URL}/api/users/favorites`, { movieId }, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data?.success === true;
+    } catch (error) {
+      console.error('Error adding favorite:', error);
+      return false;
+    }
+  }
+
+  async removeFavorite(movieId) {
+    try {
+      const response = await axios.delete(`${API_URL}/api/users/favorites/${movieId}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data?.success === true;
+    } catch (error) {
+      console.error('Error removing favorite:', error);
+      return false;
+    }
+  }
+
+  async getFavoritesCount() {
+    try {
+      const response = await axios.get(`${API_URL}/api/users/favorites/count`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data?.count ?? 0;
+    } catch (error) {
+      console.error('Error getting favorites count:', error);
+      return 0;
+    }
+  }
 }
 
 export const userService = new UserService();

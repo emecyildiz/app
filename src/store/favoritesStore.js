@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import toast from 'react-hot-toast'
+import { userService } from '../services/userService'
 
 const useFavoritesStore = create(
   persist(
@@ -8,7 +9,7 @@ const useFavoritesStore = create(
       favorites: [],
       
       // Add movie to favorites
-      addToFavorites: (movie) => {
+      addToFavorites: async (movie) => {
         const { favorites } = get()
         const isAlreadyFavorite = favorites.some(fav => fav.id === movie.id)
         
@@ -16,17 +17,31 @@ const useFavoritesStore = create(
           toast.error('Bu film zaten favorilerinizde!')
           return
         }
-        
+        // Optimistic update
         set({ favorites: [...favorites, movie] })
-        toast.success('Film favorilere eklendi!')
+        try {
+          const ok = await userService.addFavorite(movie.id)
+          if (!ok) throw new Error('failed')
+          toast.success('Film favorilere eklendi!')
+        } catch (_) {
+          // Revert
+          set({ favorites: get().favorites.filter(m => m.id !== movie.id) })
+          toast.error('Favorilere eklenemedi!')
+        }
       },
       
       // Remove movie from favorites
-      removeFromFavorites: (movieId) => {
-        set((state) => ({
-          favorites: state.favorites.filter(movie => movie.id !== movieId)
-        }))
-        toast.success('Film favorilerden kaldırıldı!')
+      removeFromFavorites: async (movieId) => {
+        const prev = get().favorites
+        set({ favorites: prev.filter(movie => movie.id !== movieId) })
+        try {
+          const ok = await userService.removeFavorite(movieId)
+          if (!ok) throw new Error('failed')
+          toast.success('Film favorilerden kaldırıldı!')
+        } catch (_) {
+          set({ favorites: prev })
+          toast.error('Favorilerden kaldırılamadı!')
+        }
       },
       
       // Check if movie is favorite

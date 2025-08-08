@@ -7,6 +7,7 @@ import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/LoadingSpinner'
 import MovieCard from '../components/MovieCard'
 import { movieService } from '../services/movieService'
+import axios from 'axios'
 import { useAuthStore } from '../store/authStore'
 import { useMovieStore } from '../store/movieStore'
 import { useFavoritesStore } from '../store/favoritesStore'
@@ -66,16 +67,16 @@ const MovieDetail = () => {
     }
   }
 
-  const handleFavoriteClick = () => {
+  const handleFavoriteClick = async () => {
     if (!isAuthenticated) {
       toast.error('Favorilere eklemek için giriş yapmalısınız')
       return
     }
 
     if (isFavorite(movie.id)) {
-      removeFromFavorites(movie.id)
+      await removeFromFavorites(movie.id)
     } else {
-      addToFavorites(movie)
+      await addToFavorites(movie)
     }
   }
 

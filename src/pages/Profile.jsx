@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Camera, User, Mail, Calendar, Film, Star, Heart, Settings, LogOut, MapPin, Edit2, Twitter, Instagram, Link } from 'lucide-react'
 import { useForm } from 'react-hook-form'
@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 
 import { useAuthStore } from '../store/authStore'
 import { useFavoritesStore } from '../store/favoritesStore'
+import { userService } from '../services/userService'
 import MovieCard from '../components/MovieCard'
 import AvatarUpload from '../components/AvatarUpload'
 import { mockMovies } from '../utils/mockData'
@@ -52,13 +53,29 @@ const Profile = () => {
     }
   }
 
-  // Mock data for user activity
-  const userStats = {
-    watchedMovies: 42,
-    ratings: 38,
-    favorites: getFavoritesCount(),
-    memberSince: user?.memberSince || '2023-01-15',
-  }
+  const [stats, setStats] = useState({ watchedMovies: 0, ratings: 0, favorites: 0, memberSince: user?.created_at || null, memberSinceDays: 0 })
+
+  useEffect(() => {
+    let mounted = true
+    const loadStats = async () => {
+      try {
+        const data = await userService.getMyStats()
+        if (mounted && data) {
+          setStats({
+            watchedMovies: data.watchedMovies || 0,
+            ratings: data.ratings || 0,
+            favorites: data.favorites || 0,
+            memberSince: data.memberSince || user?.created_at || null,
+            memberSinceDays: data.memberSinceDays || 0,
+          })
+        }
+      } catch (e) {
+        // silent
+      }
+    }
+    if (user) loadStats()
+    return () => { mounted = false }
+  }, [user])
 
   const ratedMovies = mockMovies.slice(6, 12)
 
@@ -107,11 +124,11 @@ const Profile = () => {
                 )}
                 <div className="flex items-center gap-2 text-gray-300">
                   <Calendar className="w-4 h-4" />
-                  <span>Üyelik: {new Date(userStats.memberSince).toLocaleDateString('tr-TR')}</span>
+                  <span>Üyelik: {stats.memberSince ? new Date(stats.memberSince).toLocaleDateString('tr-TR') : 'Bilinmiyor'}</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-300">
                   <Film className="w-4 h-4" />
-                  <span>{userStats.watchedMovies} film izlendi</span>
+                  <span>{stats.watchedMovies} film izlendi</span>
                 </div>
               </div>
 
@@ -180,23 +197,23 @@ const Profile = () => {
         >
           <div className="glass rounded-xl p-6 text-center">
             <Film className="w-8 h-8 text-primary-500 mx-auto mb-2" />
-            <p className="text-3xl font-bold text-white mb-1">{userStats.watchedMovies}</p>
+            <p className="text-3xl font-bold text-white mb-1">{stats.watchedMovies}</p>
             <p className="text-gray-400">Film İzlendi</p>
           </div>
           <div className="glass rounded-xl p-6 text-center">
             <Star className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-            <p className="text-3xl font-bold text-white mb-1">{userStats.ratings}</p>
+            <p className="text-3xl font-bold text-white mb-1">{stats.ratings}</p>
             <p className="text-gray-400">Puan Verildi</p>
           </div>
           <div className="glass rounded-xl p-6 text-center">
             <Heart className="w-8 h-8 text-red-500 mx-auto mb-2" />
-            <p className="text-3xl font-bold text-white mb-1">{userStats.favorites}</p>
+            <p className="text-3xl font-bold text-white mb-1">{stats.favorites}</p>
             <p className="text-gray-400">Favori Film</p>
           </div>
           <div className="glass rounded-xl p-6 text-center">
             <Calendar className="w-8 h-8 text-blue-500 mx-auto mb-2" />
             <p className="text-3xl font-bold text-white mb-1">
-              {Math.floor((Date.now() - new Date(userStats.memberSince)) / (1000 * 60 * 60 * 24))}
+              {stats.memberSinceDays}
             </p>
             <p className="text-gray-400">Gün Üye</p>
           </div>
