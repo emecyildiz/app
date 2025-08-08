@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import axios from 'axios';
 import { createClient } from '@supabase/supabase-js';
 
 // Initialize express app
@@ -38,7 +39,8 @@ app.use((req, res, next) => {
     'https://app-eta-five-56.vercel.app',
     'https://app-production-c295.up.railway.app',
     'http://localhost:3000',
-    'http://localhost:3001'
+    'http://localhost:3001',
+    'http://localhost:5173'
   ];
   
   const origin = req.headers.origin;
@@ -118,6 +120,249 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     supabase: supabaseUrl ? 'Configured' : 'Missing'
   });
+});
+
+// ===== TMDB configuration & helpers =====
+const TMDB_API_BASE_URL = process.env.TMDB_API_BASE_URL || 'https://api.themoviedb.org/3';
+const TMDB_API_KEY = process.env.TMDB_API_KEY || '';
+const TMDB_V4_TOKEN = process.env.TMDB_V4_TOKEN || '';
+
+const tmdbClient = axios.create({
+  baseURL: TMDB_API_BASE_URL,
+  headers: TMDB_V4_TOKEN ? { Authorization: `Bearer ${TMDB_V4_TOKEN}` } : undefined,
+});
+
+const withAuthParams = (params = {}) => {
+  if (!TMDB_V4_TOKEN && TMDB_API_KEY) {
+    return { api_key: TMDB_API_KEY, ...params };
+  }
+  return params;
+};
+
+let genresCache = null;
+let genresCacheTs = 0;
+const GENRES_TTL_MS = 1000 * 60 * 60; // 1 hour
+
+async function fetchGenres() {
+  const now = Date.now();
+  if (genresCache && now - genresCacheTs < GENRES_TTL_MS) return genresCache;
+  const resp = await tmdbClient.get('/genre/movie/list', {
+    params: withAuthParams({ language: 'tr-TR' }),
+  });
+  const list = Array.isArray(resp.data?.genres) ? resp.data.genres : [];
+  genresCache = list;
+  genresCacheTs = now;
+  return list;
+}
+
+function mapMovieSummary(tmdbMovie, genreListById) {
+  const posterPath = tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null;
+  const backdropPath = tmdbMovie.backdrop_path ? `https://image.tmdb.org/t/p/original${tmdbMovie.backdrop_path}` : null;
+  const genreIds = tmdbMovie.genre_ids || [];
+  const genres = Array.isArray(genreIds)
+    ? genreIds.map((id) => genreListById.get(id)).filter(Boolean)
+    : Array.isArray(tmdbMovie.genres) ? tmdbMovie.genres : [];
+
+  return {
+    id: tmdbMovie.id,
+    title: tmdbMovie.title || tmdbMovie.name || '',
+    description: tmdbMovie.overview || '',
+    poster: posterPath,
+    backdrop: backdropPath,
+    releaseDate: tmdbMovie.release_date || tmdbMovie.first_air_date || null,
+    rating: typeof tmdbMovie.vote_average === 'number' ? tmdbMovie.vote_average : null,
+    voteCount: tmdbMovie.vote_count || 0,
+    genres,
+    runtime: tmdbMovie.runtime || null,
+  };
+}
+
+function mapMovieDetail(tmdbMovie) {
+  const posterPath = tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null;
+  const backdropPath = tmdbMovie.backdrop_path ? `https://image.tmdb.org/t/p/original${tmdbMovie.backdrop_path}` : null;
+  const genres = Array.isArray(tmdbMovie.genres) ? tmdbMovie.genres : [];
+  const cast = Array.isArray(tmdbMovie.credits?.cast)
+    ? tmdbMovie.credits.cast.slice(0, 10).map((c) => c.name).filter(Boolean)
+    : [];
+  const director = Array.isArray(tmdbMovie.credits?.crew)
+    ? (tmdbMovie.credits.crew.find((c) => c.job === 'Director')?.name || null)
+    : null;
+
+  return {
+    id: tmdbMovie.id,
+    title: tmdbMovie.title || '',
+    description: tmdbMovie.overview || '',
+    poster: posterPath,
+    backdrop: backdropPath,
+    releaseDate: tmdbMovie.release_date || null,
+    rating: typeof tmdbMovie.vote_average === 'number' ? tmdbMovie.vote_average : null,
+    voteCount: tmdbMovie.vote_count || 0,
+    genres,
+    runtime: tmdbMovie.runtime || null,
+    director,
+    cast,
+  };
+}
+
+// ===== Movies (TMDB Proxy) =====
+// List movies
+app.get('/api/movies', async (req, res) => {
+  try {
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit) || 12, 1);
+
+    const genres = await fetchGenres();
+    const genresById = new Map(genres.map((g) => [g.id, g]));
+
+    const tmdbResp = await tmdbClient.get('/discover/movie', {
+      params: withAuthParams({ language: 'tr-TR', sort_by: 'popularity.desc', page }),
+    });
+    const results = Array.isArray(tmdbResp.data?.results) ? tmdbResp.data.results : [];
+    const mapped = results.map((m) => mapMovieSummary(m, genresById));
+    const sliced = mapped.slice(0, limit);
+    const totalPages = Number(tmdbResp.data?.total_pages) || 1;
+
+    res.json({ success: true, data: { movies: sliced, totalPages, currentPage: page } });
+  } catch (error) {
+    console.error('GET /api/movies error:', error?.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch movies' });
+  }
+});
+
+// Movie detail
+app.get('/api/movies/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const resp = await tmdbClient.get(`/movie/${encodeURIComponent(id)}`, {
+      params: withAuthParams({ language: 'tr-TR', append_to_response: 'credits' }),
+    });
+    const movie = mapMovieDetail(resp.data || {});
+    res.json({ success: true, data: { movie } });
+  } catch (error) {
+    console.error('GET /api/movies/:id error:', error?.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch movie detail' });
+  }
+});
+
+// Genres
+app.get('/api/movies/genres', async (_req, res) => {
+  try {
+    const genres = await fetchGenres();
+    res.json({ success: true, data: genres });
+  } catch (error) {
+    console.error('GET /api/movies/genres error:', error?.message);
+    res.status(500).json({ success: false, data: [] });
+  }
+});
+
+// Movies by genre
+app.get('/api/movies/genre/:genreId', async (req, res) => {
+  try {
+    const { genreId } = req.params;
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit) || 12, 1);
+    const genres = await fetchGenres();
+    const genresById = new Map(genres.map((g) => [g.id, g]));
+
+    const tmdbResp = await tmdbClient.get('/discover/movie', {
+      params: withAuthParams({ language: 'tr-TR', with_genres: genreId, page }),
+    });
+    const results = Array.isArray(tmdbResp.data?.results) ? tmdbResp.data.results : [];
+    const mapped = results.map((m) => mapMovieSummary(m, genresById));
+    const sliced = mapped.slice(0, limit);
+    const totalPages = Number(tmdbResp.data?.total_pages) || 1;
+    res.json({ success: true, data: { movies: sliced, totalPages, currentPage: page } });
+  } catch (error) {
+    console.error('GET /api/movies/genre/:genreId error:', error?.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch movies by genre' });
+  }
+});
+
+// Search movies
+app.get('/api/movies/search', async (req, res) => {
+  try {
+    const q = (req.query.q || '').toString().trim();
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit) || 12, 1);
+    if (!q) return res.json({ success: true, data: { movies: [], totalPages: 0, currentPage: 1 } });
+
+    const genres = await fetchGenres();
+    const genresById = new Map(genres.map((g) => [g.id, g]));
+
+    const tmdbResp = await tmdbClient.get('/search/movie', {
+      params: withAuthParams({ language: 'tr-TR', query: q, page }),
+    });
+    const results = Array.isArray(tmdbResp.data?.results) ? tmdbResp.data.results : [];
+    const mapped = results.map((m) => mapMovieSummary(m, genresById));
+    const sliced = mapped.slice(0, limit);
+    const totalPages = Number(tmdbResp.data?.total_pages) || 1;
+    res.json({ success: true, data: { movies: sliced, totalPages, currentPage: page } });
+  } catch (error) {
+    console.error('GET /api/movies/search error:', error?.message);
+    res.status(500).json({ success: false, message: 'Failed to search movies' });
+  }
+});
+
+// Trending
+app.get('/api/movies/trending', async (_req, res) => {
+  try {
+    const genres = await fetchGenres();
+    const genresById = new Map(genres.map((g) => [g.id, g]));
+    const tmdbResp = await tmdbClient.get('/trending/movie/day', {
+      params: withAuthParams({ language: 'tr-TR' }),
+    });
+    const results = Array.isArray(tmdbResp.data?.results) ? tmdbResp.data.results : [];
+    const mapped = results.map((m) => mapMovieSummary(m, genresById));
+    res.json({ success: true, data: { movies: mapped } });
+  } catch (error) {
+    console.error('GET /api/movies/trending error:', error?.message);
+    res.status(500).json({ success: false, data: { movies: [] } });
+  }
+});
+
+// Actors list (popular)
+app.get('/api/movies/actors', async (_req, res) => {
+  try {
+    const resp = await tmdbClient.get('/person/popular', {
+      params: withAuthParams({ language: 'tr-TR', page: 1 }),
+    });
+    const names = (resp.data?.results || []).map((p) => p.name).filter(Boolean);
+    res.json({ success: true, data: names });
+  } catch (error) {
+    console.error('GET /api/movies/actors error:', error?.message);
+    res.status(500).json({ success: false, data: [] });
+  }
+});
+
+// Movies by actor name
+app.get('/api/movies/actor/:name', async (req, res) => {
+  try {
+    const raw = req.params.name || '';
+    const name = decodeURIComponent(raw);
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit) || 12, 1);
+
+    const search = await tmdbClient.get('/search/person', {
+      params: withAuthParams({ language: 'tr-TR', query: name, page: 1 }),
+    });
+    const person = (search.data?.results || [])[0];
+    if (!person) return res.json({ success: true, data: { movies: [], totalPages: 0, currentPage: 1 } });
+
+    const personId = person.id;
+    const genres = await fetchGenres();
+    const genresById = new Map(genres.map((g) => [g.id, g]));
+    const tmdbResp = await tmdbClient.get('/discover/movie', {
+      params: withAuthParams({ language: 'tr-TR', with_cast: personId, page }),
+    });
+    const results = Array.isArray(tmdbResp.data?.results) ? tmdbResp.data.results : [];
+    const mapped = results.map((m) => mapMovieSummary(m, genresById));
+    const sliced = mapped.slice(0, limit);
+    const totalPages = Number(tmdbResp.data?.total_pages) || 1;
+    res.json({ success: true, data: { movies: sliced, totalPages, currentPage: page } });
+  } catch (error) {
+    console.error('GET /api/movies/actor/:name error:', error?.message);
+    res.status(500).json({ success: false, message: 'Failed to fetch movies by actor' });
+  }
 });
 
 // Auth: Register
