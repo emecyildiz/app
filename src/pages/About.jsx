@@ -35,12 +35,8 @@ const About = () => {
     },
   ]
 
-  const stats = [
-    { value: '10K+', label: 'Film' },
-    { value: '50K+', label: 'Kullanıcı' },
-    { value: '100K+', label: 'Yorum' },
-    { value: '4.8', label: 'Puan' },
-  ]
+  // Gerçek dışı istatistikler kaldırıldı; bu bölüm şimdilik gizlendi
+  const stats = []
 
   return (
     <div className="min-h-screen pt-20">
@@ -68,34 +64,7 @@ const About = () => {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20 bg-dark-100">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-8"
-          >
-            {stats.map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <p className="text-4xl md:text-5xl font-bold text-primary-400 mb-2">
-                  {stat.value}
-                </p>
-                <p className="text-gray-400">{stat.label}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+      {/* Stats Section removed until real data is available */}
 
       {/* Features Section */}
       <section className="py-20">
