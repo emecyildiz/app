@@ -163,10 +163,15 @@ async function fetchGenres() {
 function mapMovieSummary(tmdbMovie, genreListById) {
   const posterPath = tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null;
   const backdropPath = tmdbMovie.backdrop_path ? `https://image.tmdb.org/t/p/original${tmdbMovie.backdrop_path}` : null;
-  const genreIds = tmdbMovie.genre_ids || [];
-  const genres = Array.isArray(genreIds)
-    ? genreIds.map((id) => genreListById.get(id)).filter(Boolean)
-    : Array.isArray(tmdbMovie.genres) ? tmdbMovie.genres : [];
+  const genreIds = Array.isArray(tmdbMovie.genre_ids) ? tmdbMovie.genre_ids : [];
+  let genres = [];
+  if (genreIds.length > 0) {
+    genres = genreIds
+      .map((id) => genreListById.get(id))
+      .filter(Boolean);
+  } else if (Array.isArray(tmdbMovie.genres)) {
+    genres = tmdbMovie.genres.map(g => ({ id: g.id, name: g.name }))
+  }
 
   return {
     id: tmdbMovie.id,
@@ -185,7 +190,9 @@ function mapMovieSummary(tmdbMovie, genreListById) {
 function mapMovieDetail(tmdbMovie) {
   const posterPath = tmdbMovie.poster_path ? `https://image.tmdb.org/t/p/w500${tmdbMovie.poster_path}` : null;
   const backdropPath = tmdbMovie.backdrop_path ? `https://image.tmdb.org/t/p/original${tmdbMovie.backdrop_path}` : null;
-  const genres = Array.isArray(tmdbMovie.genres) ? tmdbMovie.genres : [];
+  const genres = Array.isArray(tmdbMovie.genres)
+    ? tmdbMovie.genres.map(g => ({ id: g.id, name: g.name }))
+    : [];
   const cast = Array.isArray(tmdbMovie.credits?.cast)
     ? tmdbMovie.credits.cast.slice(0, 10).map((c) => c.name).filter(Boolean)
     : [];

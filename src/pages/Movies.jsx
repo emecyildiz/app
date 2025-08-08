@@ -22,6 +22,11 @@ const Movies = () => {
 
   const [searchParams, setSearchParams] = useSearchParams()
   const [query, setQuery] = useState('')
+  const activeGenreId = (() => {
+    const gp = searchParams.get('genre')
+    const id = gp ? parseInt(gp, 10) : null
+    return Number.isNaN(id) ? null : id
+  })()
 
   // Initial load + handle genre filter from URL
   useEffect(() => {
@@ -90,12 +95,34 @@ const Movies = () => {
         {/* Genres filter */}
         {Array.isArray(genres) && genres.length > 0 && (
           <div className="mb-6 flex flex-wrap gap-2">
-            <button onClick={() => { setSearchParams({}); fetchMovies(1) }} className="px-3 py-1 rounded-md bg-white/10 hover:bg-white/20 text-sm text-white">Tümü</button>
-            {genres.slice(0, 12).map((g) => (
+            <button
+              onClick={() => {
+                setQuery('')
+                setSearchParams({})
+                clearFilters()
+                fetchMovies(1)
+              }}
+              className={`px-4 py-1.5 rounded-full border text-sm transition-colors ${
+                !activeGenreId
+                  ? 'bg-primary-600/20 border-primary-500 text-primary-300'
+                  : 'bg-white/5 border-white/15 text-white hover:bg-white/10'
+              }`}
+            >
+              Tümü
+            </button>
+            {genres.slice(0, 18).map((g) => (
               <button
                 key={g.id}
-                onClick={() => setSearchParams({ genre: String(g.id) })}
-                className="px-3 py-1 rounded-md bg-white/10 hover:bg-white/20 text-sm text-white"
+                onClick={() => {
+                  setQuery('')
+                  setSearchParams({ genre: String(g.id) })
+                  filterByGenre(g.id, 1)
+                }}
+                className={`px-4 py-1.5 rounded-full border text-sm transition-colors ${
+                  activeGenreId === g.id
+                    ? 'bg-primary-600/20 border-primary-500 text-primary-300'
+                    : 'bg-white/5 border-white/15 text-white hover:bg-white/10'
+                }`}
               >
                 {g.name}
               </button>
@@ -125,14 +152,16 @@ const Movies = () => {
                     <MovieCard key={`${movie.id}-${index}`} movie={movie} index={index} />
                   ))}
                 </div>
-                <div className="flex justify-center mt-8">
-                  <button
-                    onClick={() => useMovieStore.getState().loadMore()}
-                    className="btn btn-secondary"
-                  >
-                    Daha Fazla Yükle
-                  </button>
-                </div>
+                {useMovieStore.getState().currentPage < (useMovieStore.getState().totalPages || 1) && (
+                  <div className="flex justify-center mt-8">
+                    <button
+                      onClick={() => useMovieStore.getState().loadMore()}
+                      className="btn btn-secondary"
+                    >
+                      Daha Fazla Yükle
+                    </button>
+                  </div>
+                )}
               </>
             ) : (
               <motion.div
