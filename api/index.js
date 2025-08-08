@@ -687,11 +687,11 @@ app.get('/api/users/stats', authMiddleware, async (req, res) => {
     try {
       const { data: userRow, error: userErr } = await supabase
         .from('users')
-        .select('created_at, member_since')
+        .select('member_since')
         .eq('id', userId)
         .single();
       if (!userErr && userRow) {
-        memberSince = userRow.member_since || userRow.created_at || null;
+        memberSince = userRow.member_since || null;
         if (memberSince) {
           const ms = Date.now() - new Date(memberSince).getTime();
           memberSinceDays = Math.floor(ms / (1000 * 60 * 60 * 24));
@@ -867,7 +867,7 @@ app.get('/api/users/public/:username', async (req, res) => {
         if (user) break;
         const { data: byCol, error: byColErr } = await supabase
           .from('users')
-          .select('id, name, username, avatarurl, bio, location, created_at, member_since')
+          .select('id, name, username, avatarurl, bio, location, member_since')
           .eq(col, param)
           .maybeSingle();
         console.log('PublicProfile by id column', col, { error: byColErr ? byColErr.message : null, found: !!byCol });
@@ -879,7 +879,7 @@ app.get('/api/users/public/:username', async (req, res) => {
     if (!user) {
       let resp = await supabase
         .from('users')
-        .select('id, name, username, avatarurl, bio, location, created_at, member_since')
+        .select('id, name, username, avatarurl, bio, location, member_since')
         .eq('username', param)
         .maybeSingle();
       if (resp && resp.data) {
@@ -891,7 +891,7 @@ app.get('/api/users/public/:username', async (req, res) => {
     if (!user) {
       let resp2 = await supabase
         .from('users')
-        .select('id, name, username, avatarurl, bio, location, created_at, member_since')
+        .select('id, name, username, avatarurl, bio, location, member_since')
         .eq('username', normalized)
         .maybeSingle();
       if (resp2 && resp2.data) {
@@ -904,7 +904,7 @@ app.get('/api/users/public/:username', async (req, res) => {
     if (!user) {
       const { data: list, error: ilikeErr } = await supabase
         .from('users')
-        .select('id, name, username, avatarurl, bio, location, created_at, member_since')
+        .select('id, name, username, avatarurl, bio, location, member_since')
         .ilike('username', `%${param}%`)
         .limit(1);
       console.log('PublicProfile ilike param result', { error: ilikeErr ? ilikeErr.message : null, count: list?.length || 0 });
@@ -916,7 +916,7 @@ app.get('/api/users/public/:username', async (req, res) => {
     if (!user) {
       const { data: list2, error: ilikeErr2 } = await supabase
         .from('users')
-        .select('id, name, username, avatarurl, bio, location, created_at, member_since')
+        .select('id, name, username, avatarurl, bio, location, member_since')
         .ilike('username', `%${normalized}%`)
         .limit(1);
       console.log('PublicProfile ilike normalized result', { error: ilikeErr2 ? ilikeErr2.message : null, count: list2?.length || 0 });
@@ -954,7 +954,7 @@ app.get('/api/users/public/:username', async (req, res) => {
       watchedMovies = wh?.data?.length || wh?.data || 0;
     } catch (_) {}
 
-    const memberSince = user.member_since || user.created_at || null;
+    const memberSince = user.member_since || null;
     let memberSinceDays = 0;
     if (memberSince) {
       const ms = Date.now() - new Date(memberSince).getTime();
