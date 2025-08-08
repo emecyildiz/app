@@ -18,20 +18,21 @@ const Navbar = () => {
   const searchTimeout = useRef(null)
 
   const handleSearchChange = (e) => {
-    const value = e.target.value
-    setQuery(value)
+    setQuery(e.target.value)
     setResults([])
-    if (searchTimeout.current) clearTimeout(searchTimeout.current)
-    if (!value || value.trim().length < 2) return
+  }
+
+  const handleSearchSubmit = async (e) => {
+    e.preventDefault()
+    const value = query.trim()
+    if (!value || value.length < 2) return
     setIsSearching(true)
-    searchTimeout.current = setTimeout(async () => {
-      try {
-        const res = await userService.searchUsers(value.trim(), 8)
-        setResults(res)
-      } finally {
-        setIsSearching(false)
-      }
-    }, 300)
+    try {
+      const res = await userService.searchUsers(value, 8)
+      setResults(res)
+    } finally {
+      setIsSearching(false)
+    }
   }
 
   const goToPublicProfile = (username) => {
@@ -102,7 +103,7 @@ const Navbar = () => {
 
             {/* User Search */}
             <div className="relative w-72">
-              <div className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-2">
+              <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-2">
                 <Search className="w-4 h-4 text-gray-400" />
                 <input
                   value={query}
@@ -110,7 +111,8 @@ const Navbar = () => {
                   placeholder="Kullanıcı ara..."
                   className="bg-transparent outline-none text-sm text-white placeholder:text-gray-400 w-full"
                 />
-              </div>
+                <button type="submit" className="text-xs px-2 py-1 bg-primary-500/20 text-primary-300 rounded">Ara</button>
+              </form>
               {query && results.length > 0 && (
                 <div className="absolute mt-2 w-full glass-dark rounded-lg border border-white/10 max-h-72 overflow-auto z-50">
                   {results.map((u) => (
