@@ -34,7 +34,7 @@ function App() {
     let activityInterval = null
     
     if (isAuthenticated) {
-      // Start activity tracking
+      // Start activity tracking (can be disabled by env)
       activityInterval = activityService.startTracking()
     }
 
