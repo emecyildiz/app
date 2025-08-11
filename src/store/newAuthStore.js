@@ -40,6 +40,20 @@ const useAuthStore = create((set, get) => ({
 
         if (profileError) {
           console.error('Error fetching profile:', profileError)
+          
+          // If user doesn't exist in profiles table, sign out
+          if (profileError.code === 'PGRST116') {
+            console.log('User not found in profiles table, signing out...')
+            await get().signOut()
+            return
+          }
+        }
+
+        // If no profile found, also sign out
+        if (!profile) {
+          console.log('No profile found, signing out...')
+          await get().signOut()
+          return
         }
 
         set({
@@ -77,6 +91,20 @@ const useAuthStore = create((set, get) => ({
 
             if (profileError) {
               console.error('Error fetching profile:', profileError)
+              
+              // If user doesn't exist in profiles table, sign out
+              if (profileError.code === 'PGRST116') {
+                console.log('User not found in profiles table, signing out...')
+                await get().signOut()
+                return
+              }
+            }
+
+            // If no profile found, also sign out
+            if (!profile) {
+              console.log('No profile found, signing out...')
+              await get().signOut()
+              return
             }
 
             set({
