@@ -14,6 +14,9 @@ const useAuthStore = create((set, get) => ({
     try {
       set({ isLoading: true })
       
+      // Debug: Check localStorage
+      console.log('LocalStorage keys:', Object.keys(localStorage).filter(key => key.includes('supabase')))
+      
       // Get initial session
       const { data: { session }, error } = await supabase.auth.getSession()
       
@@ -25,6 +28,8 @@ const useAuthStore = create((set, get) => ({
 
       if (session) {
         const { user } = session
+        console.log('Found session for user:', user.email)
+        console.log('Session expires at:', new Date(session.expires_at * 1000))
         
         // Get user profile
         const { data: profile, error: profileError } = await supabase

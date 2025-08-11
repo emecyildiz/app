@@ -1107,7 +1107,7 @@ app.delete('/api/favorites/:movieId', authMiddleware, async (req, res) => {
   try {
     const { movieId } = req.params;
     const userId = req.user.userId;
-
+    
     const { error } = await supabase
       .from('favorites')
       .delete()
@@ -1434,7 +1434,7 @@ app.delete('/api/friends/:otherUserId', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.userId;
     const { otherUserId } = req.params;
-    
+
     const { error } = await supabase
       .from('friendships')
       .delete()

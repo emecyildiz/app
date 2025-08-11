@@ -171,6 +171,21 @@ const Navbar = () => {
                     <LogOut className="w-4 h-4" />
                     <span>Çıkış</span>
                   </button>
+                  <button
+                    onClick={() => {
+                      // Force clear all Supabase data
+                      Object.keys(localStorage).forEach(key => {
+                        if (key.includes('supabase')) {
+                          localStorage.removeItem(key)
+                        }
+                      })
+                      window.location.reload()
+                    }}
+                    className="btn btn-ghost text-red-400 hover:text-red-300 text-xs"
+                    title="Tüm oturum verilerini temizle"
+                  >
+                    🗑️
+                  </button>
                 </>
               ) : (
                 <>
