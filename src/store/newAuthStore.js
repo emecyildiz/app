@@ -249,15 +249,20 @@ const useAuthStore = create((set, get) => ({
   // Sign out
   signOut: async () => {
     try {
-      const { error } = await supabase.auth.signOut()
-      
-      if (error) {
-        console.error('Sign out error:', error)
-        toast.error('Çıkış sırasında bir hata oluştu')
-        return
-      }
+      // Best-effort local signout (doesn't require network)
+      try { await supabase.auth.signOut({ scope: 'local' }) } catch {}
+      // Try global revoke (optional)
+      try { await supabase.auth.signOut() } catch {}
 
+      // Clear tokens from storages
       try { sessionStorage.removeItem('auth-token') } catch {}
+      try {
+        Object.keys(localStorage).forEach((key) => {
+          if (key.includes('supabase') || key.startsWith('sb-')) {
+            localStorage.removeItem(key)
+          }
+        })
+      } catch {}
 
       set({
         user: null,
@@ -268,6 +273,9 @@ const useAuthStore = create((set, get) => ({
       })
 
       toast.success('Çıkış yapıldı!')
+
+      // Redirect to login to ensure clean state
+      try { window.location.assign('/login') } catch {}
     } catch (error) {
       console.error('Sign out error:', error)
       toast.error('Çıkış sırasında bir hata oluştu')
