@@ -50,25 +50,21 @@ const Login = () => {
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                E-posta
+                Kullanıcı Adı veya E-posta
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                 <input
-                  type="email"
-                  {...register('email', {
-                    required: 'E-posta gereklidir',
-                    pattern: {
-                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Geçerli bir e-posta adresi girin',
-                    },
+                  type="text"
+                  {...register('username', {
+                    required: 'Kullanıcı adı veya e-posta gereklidir',
                   })}
                   className="input pl-10"
-                  placeholder="ornek@email.com"
+                  placeholder="Kullanıcı adı veya e-posta"
                 />
               </div>
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-400">{errors.email.message}</p>
+              {errors.username && (
+                <p className="mt-1 text-sm text-red-400">{errors.username.message}</p>
               )}
             </div>
 
