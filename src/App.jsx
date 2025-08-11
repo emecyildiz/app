@@ -44,8 +44,8 @@ function App() {
     }
   }, [isAuthenticated])
 
-  // Show loading spinner while initializing auth
-  if (isLoading) {
+  // Show loading spinner only when not yet authenticated
+  if (isLoading && !isAuthenticated) {
     return <LoadingSpinner fullScreen />
   }
 

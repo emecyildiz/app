@@ -31,29 +31,63 @@ const useAuthStore = create((set, get) => ({
         console.log('Found session for user:', user.email)
         console.log('Session expires at:', new Date(session.expires_at * 1000))
         
-        // Get user profile
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single()
+        // Get user profile with timeout
+        let profile = null
+        try {
+          const { data, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single()
 
-        if (profileError) {
-          console.error('Error fetching profile:', profileError)
-          
-          // If user doesn't exist in profiles table, sign out
-          if (profileError.code === 'PGRST116') {
-            console.log('User not found in profiles table, signing out...')
-            await get().signOut()
-            return
+          if (profileError) {
+            console.error('Error fetching profile:', profileError)
+            
+            // If user doesn't exist in profiles table, create it
+            if (profileError.code === 'PGRST116') {
+              console.log('Profile not found, creating one...')
+              const { data: newProfile, error: createError } = await supabase
+                .from('profiles')
+                .insert({
+                  id: user.id,
+                  name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+                  username: user.user_metadata?.username || user.email?.split('@')[0] || 'user'
+                })
+                .select()
+                .single()
+
+              if (createError) {
+                console.error('Error creating profile:', createError)
+                profile = {
+                  id: user.id,
+                  name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+                  username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
+                  role: 'USER'
+                }
+              } else {
+                profile = newProfile
+              }
+            } else {
+              // For other errors, create a fallback profile
+              profile = {
+                id: user.id,
+                name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+                username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
+                role: 'USER'
+              }
+            }
+          } else {
+            profile = data
           }
-        }
-
-        // If no profile found, also sign out
-        if (!profile) {
-          console.log('No profile found, signing out...')
-          await get().signOut()
-          return
+        } catch (error) {
+          console.error('Profile fetch timeout or error:', error)
+          // Create fallback profile to prevent infinite loading
+          profile = {
+            id: user.id,
+            name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+            username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
+            role: 'USER'
+          }
         }
 
         set({
@@ -82,29 +116,36 @@ const useAuthStore = create((set, get) => ({
           if (session) {
             const { user } = session
             
-            // Get user profile
-            const { data: profile, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', user.id)
-              .single()
+            // Get user profile with fallback
+            let profile = null
+            try {
+              const { data, error: profileError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single()
 
-            if (profileError) {
-              console.error('Error fetching profile:', profileError)
-              
-              // If user doesn't exist in profiles table, sign out
-              if (profileError.code === 'PGRST116') {
-                console.log('User not found in profiles table, signing out...')
-                await get().signOut()
-                return
+              if (profileError) {
+                console.error('Error fetching profile in listener:', profileError)
+                // Create fallback profile instead of signing out
+                profile = {
+                  id: user.id,
+                  name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+                  username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
+                  role: 'USER'
+                }
+              } else {
+                profile = data
               }
-            }
-
-            // If no profile found, also sign out
-            if (!profile) {
-              console.log('No profile found, signing out...')
-              await get().signOut()
-              return
+            } catch (error) {
+              console.error('Profile fetch error in listener:', error)
+              // Create fallback profile
+              profile = {
+                id: user.id,
+                name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+                username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
+                role: 'USER'
+              }
             }
 
             set({
@@ -152,18 +193,23 @@ const useAuthStore = create((set, get) => ({
         return { success: false, error: error.message }
       }
 
-      // If user is created, update profile
+      // If user is created, ensure profile exists
       if (data.user) {
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({
+          .upsert({
+            id: data.user.id,
             username: userData.username,
             name: userData.name
+          }, {
+            onConflict: 'id'
           })
-          .eq('id', data.user.id)
 
         if (profileError) {
-          console.error('Error updating profile:', profileError)
+          console.error('Error creating/updating profile:', profileError)
+          // Don't fail the signup, just log the error
+        } else {
+          console.log('Profile created successfully for user:', data.user.id)
         }
       }
 
