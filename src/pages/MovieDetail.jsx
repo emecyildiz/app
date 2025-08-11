@@ -10,12 +10,13 @@ import { movieService } from '../services/movieService'
 import axios from 'axios'
 import { useAuthStore } from '../store/authStore'
 import { useMovieStore } from '../store/movieStore'
+import { Users } from 'lucide-react'
 import { useFavoritesStore } from '../store/favoritesStore'
 
 const MovieDetail = () => {
   const { id } = useParams()
   const { isAuthenticated } = useAuthStore()
-  const { rateMovie } = useMovieStore()
+  const { rateMovie, removeRating } = useMovieStore()
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavoritesStore()
   const [movie, setMovie] = useState(null)
   const [relatedMovies, setRelatedMovies] = useState([])
@@ -57,13 +58,44 @@ const MovieDetail = () => {
       return
     }
 
-    const result = await rateMovie(movie.id, rating)
-    if (result.success) {
-      setUserRating(rating)
-      toast.success('Puanınız kaydedildi!')
-      setIsRatingModalOpen(false)
-    } else {
-      toast.error('Puan verilirken bir hata oluştu')
+    try {
+      const result = await rateMovie(movie.id, rating)
+      if (result.success) {
+        setUserRating(rating)
+        setMovie(prev => ({
+          ...prev,
+          userRating: rating,
+          averageRating: result.data.averageRating,
+          ratingsCount: result.data.ratingsCount,
+          friendsAverage: result.data.friendsAverage,
+          friendsCount: result.data.friendsCount,
+        }))
+        toast.success('Puanınız kaydedildi!')
+        setIsRatingModalOpen(false)
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Puan verilirken bir hata oluştu')
+    }
+  }
+
+  const handleRemoveRating = async () => {
+    try {
+      const result = await removeRating(movie.id)
+      if (result.success) {
+        setUserRating(0)
+        setMovie(prev => ({
+          ...prev,
+          userRating: null,
+          averageRating: result.data.averageRating,
+          ratingsCount: result.data.ratingsCount,
+          friendsAverage: result.data.friendsAverage,
+          friendsCount: result.data.friendsCount,
+        }))
+        toast.success('Puanınız kaldırıldı')
+        setIsRatingModalOpen(false)
+      }
+    } catch (error) {
+      toast.error('Puan kaldırılırken bir hata oluştu')
     }
   }
 
@@ -151,15 +183,33 @@ const MovieDetail = () => {
               </h1>
 
               <div className="flex flex-wrap items-center gap-4 mb-6">
+                {/* Global Rating */}
                 <div className="flex items-center gap-2">
                   <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
-                  <span className="text-2xl font-semibold text-white">{movie.rating ? movie.rating.toFixed(1) : 'N/A'}</span>
-                                      <span className="text-gray-400">({movie.voteCount || 0} oy)</span>
+                  <span className="text-2xl font-semibold text-white">
+                    {movie.averageRating ? movie.averageRating.toFixed(1) : 'N/A'}
+                  </span>
+                  <span className="text-gray-400">({movie.ratingsCount || 0} oy)</span>
                 </div>
+
+                {/* Friends Rating */}
+                {movie.friendsAverage && (
+                  <div className="flex items-center gap-2">
+                    <Users className="w-6 h-6 text-blue-500" />
+                    <span className="text-2xl font-semibold text-white">
+                      {movie.friendsAverage.toFixed(1)}
+                    </span>
+                    <span className="text-gray-400">({movie.friendsCount} arkadaş)</span>
+                  </div>
+                )}
+
+                {/* Release Date */}
                 <div className="flex items-center gap-2 text-gray-300">
                   <Calendar className="w-5 h-5" />
                   <span>{new Date(movie.releaseDate).getFullYear()}</span>
                 </div>
+
+                {/* Runtime */}
                 <div className="flex items-center gap-2 text-gray-300">
                   <Clock className="w-5 h-5" />
                   <span>{movie.runtime} dakika</span>
@@ -267,16 +317,26 @@ const MovieDetail = () => {
                     <dd className="text-white">{movie.runtime} dakika</dd>
                   </div>
                   <div>
-                    <dt className="text-gray-400 text-sm">Puan</dt>
+                    <dt className="text-gray-400 text-sm">Ortalama Puan</dt>
                     <dd className="text-white flex items-center gap-2">
                       <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                      {movie.rating ? movie.rating.toFixed(1) : 'N/A'} / 10
+                      {movie.averageRating ? movie.averageRating.toFixed(1) : 'N/A'} / 10
                     </dd>
                   </div>
                   <div>
                     <dt className="text-gray-400 text-sm">Oy Sayısı</dt>
-                    <dd className="text-white">{movie.voteCount.toLocaleString('tr-TR')}</dd>
+                    <dd className="text-white">{movie.ratingsCount.toLocaleString('tr-TR')}</dd>
                   </div>
+                  {movie.friendsAverage && (
+                    <div>
+                      <dt className="text-gray-400 text-sm">Arkadaşların Puanı</dt>
+                      <dd className="text-white flex items-center gap-2">
+                        <Users className="w-4 h-4 text-blue-500" />
+                        {movie.friendsAverage.toFixed(1)} / 10
+                        <span className="text-gray-400 text-sm">({movie.friendsCount} kişi)</span>
+                      </dd>
+                    </div>
+                  )}
                 </dl>
               </motion.div>
             </div>
@@ -353,12 +413,20 @@ const MovieDetail = () => {
                 İptal
               </button>
               {userRating > 0 && (
-                <button
-                  onClick={() => handleRating(userRating)}
-                  className="flex-1 btn btn-primary"
-                >
-                  Puanla ({userRating})
-                </button>
+                <>
+                  <button
+                    onClick={handleRemoveRating}
+                    className="flex-1 btn btn-error"
+                  >
+                    Puanı Kaldır
+                  </button>
+                  <button
+                    onClick={() => handleRating(userRating)}
+                    className="flex-1 btn btn-primary"
+                  >
+                    Puanla ({userRating})
+                  </button>
+                </>
               )}
             </div>
           </motion.div>

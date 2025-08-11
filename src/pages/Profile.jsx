@@ -77,7 +77,31 @@ const Profile = () => {
     return () => { mounted = false }
   }, [user])
 
-  const ratedMovies = mockMovies.slice(6, 12)
+  const [ratedMovies, setRatedMovies] = useState([])
+  const [ratingsPage, setRatingsPage] = useState(1)
+  const [ratingsTotalPages, setRatingsTotalPages] = useState(1)
+  const [ratingsLoading, setRatingsLoading] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    const loadRatings = async () => {
+      if (activeTab !== 'ratings') return
+      try {
+        setRatingsLoading(true)
+        const data = await movieService.getMyRatings(ratingsPage)
+        if (mounted) {
+          setRatedMovies(prev => ratingsPage === 1 ? data.ratings : [...prev, ...data.ratings])
+          setRatingsTotalPages(data.totalPages)
+        }
+      } catch (error) {
+        toast.error('Puanladığınız filmler yüklenirken bir hata oluştu')
+      } finally {
+        if (mounted) setRatingsLoading(false)
+      }
+    }
+    loadRatings()
+    return () => { mounted = false }
+  }, [activeTab, ratingsPage])
 
   const tabs = [
     { id: 'overview', label: 'Genel Bakış', icon: User },
@@ -437,12 +461,50 @@ const Profile = () => {
 
             {activeTab === 'ratings' && (
               <div>
-                <h2 className="text-2xl font-bold text-white mb-6">Puanladığım Filmler</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-                  {ratedMovies.map((movie, index) => (
-                    <MovieCard key={movie.id} movie={movie} index={index} />
-                  ))}
-                </div>
+                <h2 className="text-2xl font-bold text-white mb-6">
+                  Puanladığım Filmler ({stats.ratings})
+                </h2>
+
+                {ratedMovies.length > 0 ? (
+                  <>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+                      {ratedMovies.map((movie, index) => (
+                        <div key={movie.id} className="relative group">
+                          <MovieCard movie={movie} index={index} />
+                          <div className="absolute top-3 left-3 glass px-2 py-1 rounded-lg flex items-center gap-1">
+                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                            <span className="text-white font-semibold text-sm">
+                              {movie.userRating}
+                            </span>
+                          </div>
+                          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="text-sm text-gray-300">
+                              {new Date(movie.ratedAt).toLocaleDateString('tr-TR')}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {ratingsPage < ratingsTotalPages && (
+                      <div className="flex justify-center mt-8">
+                        <button
+                          onClick={() => setRatingsPage(p => p + 1)}
+                          disabled={ratingsLoading}
+                          className="btn btn-primary"
+                        >
+                          {ratingsLoading ? 'Yükleniyor...' : 'Daha Fazla Göster'}
+                        </button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="glass rounded-xl p-12 text-center">
+                    <Star className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                    <p className="text-gray-400 text-lg">Henüz film puanlamadınız</p>
+                    <p className="text-gray-500 text-sm mt-2">Film detay sayfalarından puan verebilirsiniz</p>
+                  </div>
+                )}
               </div>
             )}
 

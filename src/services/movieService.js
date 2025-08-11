@@ -18,6 +18,11 @@ class MovieService {
     })
   }
 
+  getAuthHeaders() {
+    const token = typeof window !== 'undefined' ? sessionStorage.getItem('auth-token') : null
+    return token ? { Authorization: `Bearer ${token}` } : {}
+  }
+
   async getMovies(page = 1, limit = 12) {
     if (USE_MOCK_DATA) {
       const start = (page - 1) * limit
@@ -147,13 +152,38 @@ class MovieService {
 
   async rateMovie(movieId, rating) {
     try {
-      const response = await this.apiClient.post(`/api/movies/${movieId}/rate`, { rating })
-      // Expect success boolean or updated movie
-      return response.data
+      const response = await this.apiClient.post(`/api/movies/${movieId}/rate`, { rating }, {
+        headers: this.getAuthHeaders(),
+      })
+      return response.data.data
     } catch (error) {
       console.error('Error rating movie:', error)
-      // Simulate success to avoid breaking UX when backend not available
-      return { success: true }
+      throw error
+    }
+  }
+
+  async removeRating(movieId) {
+    try {
+      const response = await this.apiClient.delete(`/api/movies/${movieId}/rate`, {
+        headers: this.getAuthHeaders(),
+      })
+      return response.data.data
+    } catch (error) {
+      console.error('Error removing rating:', error)
+      throw error
+    }
+  }
+
+  async getMyRatings(page = 1, limit = 12) {
+    try {
+      const response = await this.apiClient.get('/api/users/ratings', {
+        params: { page, limit },
+        headers: this.getAuthHeaders(),
+      })
+      return response.data.data
+    } catch (error) {
+      console.error('Error fetching my ratings:', error)
+      throw error
     }
   }
 

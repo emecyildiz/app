@@ -100,16 +100,51 @@ const useMovieStore = create((set, get) => ({
   // Rate movie
   rateMovie: async (movieId, rating) => {
     try {
-      await movieService.rateMovie(movieId, rating)
+      const result = await movieService.rateMovie(movieId, rating)
       // Update the movie in the list
       set((state) => ({
         movies: state.movies.map((movie) =>
           movie.id === movieId
-            ? { ...movie, userRating: rating }
+            ? { 
+                ...movie, 
+                userRating: rating,
+                averageRating: result.averageRating,
+                ratingsCount: result.ratingsCount,
+                friendsAverage: result.friendsAverage,
+                friendsCount: result.friendsCount,
+              }
             : movie
         ),
       }))
-      return { success: true }
+      return { success: true, data: result }
+    } catch (error) {
+      if (error.response?.status === 429) {
+        return { success: false, error: 'Günlük puan verme limitine ulaştınız (10 farklı film)' }
+      }
+      return { success: false, error: error.message }
+    }
+  },
+
+  // Remove rating
+  removeRating: async (movieId) => {
+    try {
+      const result = await movieService.removeRating(movieId)
+      // Update the movie in the list
+      set((state) => ({
+        movies: state.movies.map((movie) =>
+          movie.id === movieId
+            ? { 
+                ...movie, 
+                userRating: null,
+                averageRating: result.averageRating,
+                ratingsCount: result.ratingsCount,
+                friendsAverage: result.friendsAverage,
+                friendsCount: result.friendsCount,
+              }
+            : movie
+        ),
+      }))
+      return { success: true, data: result }
     } catch (error) {
       return { success: false, error: error.message }
     }
