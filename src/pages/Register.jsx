@@ -70,7 +70,7 @@ const Register = () => {
                     },
                   })}
                   className="input pl-10"
-                  placeholder="Ahmet Yılmaz"
+                  placeholder="Ad Soyad"
                   autoComplete="off"
                 />
               </div>
@@ -101,7 +101,7 @@ const Register = () => {
                     setValueAs: (v) => (v ? v.toLowerCase() : v),
                   })}
                   className="input pl-10"
-                  placeholder="ahmetyilmaz"
+                  placeholder="Kullanıcı adı"
                   autoComplete="off"
                 />
               </div>
@@ -127,7 +127,7 @@ const Register = () => {
                     },
                   })}
                   className="input pl-10"
-                  placeholder="ahmet@example.com"
+                  placeholder="E-posta adresiniz"
                   autoComplete="off"
                 />
               </div>
@@ -157,7 +157,7 @@ const Register = () => {
                     },
                   })}
                   className="input pl-10 pr-10"
-                  placeholder="••••••••"
+                  placeholder="Şifrenizi girin"
                   autoComplete="new-password"
                 />
                 <button
@@ -197,7 +197,7 @@ const Register = () => {
                       value === password || 'Şifreler eşleşmiyor',
                   })}
                   className="input pl-10"
-                  placeholder="••••••••"
+                  placeholder="Şifrenizi tekrar girin"
                   autoComplete="new-password"
                 />
               </div>
