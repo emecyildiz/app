@@ -93,7 +93,7 @@ class UserService {
 
   async addFavorite(movieId) {
     try {
-      const response = await axios.post(`${API_URL}/api/users/favorites`, { movieId }, {
+      const response = await axios.post(`${API_URL}/api/favorites`, { movieId }, {
         headers: this.getAuthHeaders()
       });
       return response.data?.success === true;
@@ -105,7 +105,7 @@ class UserService {
 
   async removeFavorite(movieId) {
     try {
-      const response = await axios.delete(`${API_URL}/api/users/favorites/${movieId}`, {
+      const response = await axios.delete(`${API_URL}/api/favorites/${movieId}`, {
         headers: this.getAuthHeaders()
       });
       return response.data?.success === true;
@@ -202,7 +202,7 @@ class UserService {
     try {
       const url = userId ? `${API_URL}/api/friends/list/${userId}` : `${API_URL}/api/friends/list`;
       const response = await axios.get(url, { headers: this.getAuthHeaders() });
-      return response.data?.friends || [];
+      return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
       console.error('Error listing friends:', error);
       return [];
@@ -212,7 +212,7 @@ class UserService {
   async listIncomingRequests() {
     try {
       const response = await axios.get(`${API_URL}/api/friends/requests`, { headers: this.getAuthHeaders() });
-      return response.data?.requests || [];
+      return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
       console.error('Error listing friend requests:', error);
       return [];

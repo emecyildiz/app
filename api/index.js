@@ -398,9 +398,12 @@ app.post('/api/auth/register', async (req, res) => {
     // Return user data (without password)
     const { password: _, ...userWithoutPassword } = newUser;
     res.status(201).json({
+      success: true,
       message: 'Kayıt başarılı',
-      user: userWithoutPassword,
-      token,
+      data: {
+        user: userWithoutPassword,
+        token,
+      }
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -449,9 +452,12 @@ app.post('/api/auth/login', async (req, res) => {
     // Return user data (without password)
     const { password: _, ...userWithoutPassword } = user;
     res.json({
+      success: true,
       message: 'Giriş başarılı',
-      user: userWithoutPassword,
-      token,
+      data: {
+        user: userWithoutPassword,
+        token,
+      }
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -513,8 +519,11 @@ app.put('/api/auth/profile', authMiddleware, async (req, res) => {
     // Return updated user data (without password)
     const { password: _, ...userWithoutPassword } = updatedUser;
     res.json({
+      success: true,
       message: 'Profil güncellendi',
-      user: userWithoutPassword,
+      data: {
+        user: userWithoutPassword,
+      }
     });
   } catch (error) {
     console.error('Profile update error:', error);
@@ -547,11 +556,50 @@ app.post('/api/auth/avatar', authMiddleware, async (req, res) => {
     // Return updated user data (without password)
     const { password: _, ...userWithoutPassword } = updatedUser;
     res.json({
+      success: true,
       message: 'Avatar güncellendi',
-      user: userWithoutPassword,
+      data: {
+        user: userWithoutPassword,
+      }
     });
   } catch (error) {
     console.error('Avatar update error:', error);
+    res.status(500).json({ message: 'Sunucu hatası' });
+  }
+});
+
+// Logout endpoint (optional - just for completeness)
+app.post('/api/auth/logout', authMiddleware, async (req, res) => {
+  res.json({
+    success: true,
+    message: 'Çıkış başarılı'
+  });
+});
+
+// Get current user endpoint
+app.get('/api/auth/me', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('id, name, username, email, role, avatar, bio, location, social_links, created_at')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      console.error('Get current user error:', error);
+      return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        user
+      }
+    });
+  } catch (error) {
+    console.error('Get current user error:', error);
     res.status(500).json({ message: 'Sunucu hatası' });
   }
 });
@@ -1047,7 +1095,7 @@ app.post('/api/favorites', authMiddleware, async (req, res) => {
       return res.status(500).json({ message: 'Favorilere eklenemedi' });
     }
 
-    res.json({ message: 'Film favorilere eklendi' });
+    res.json({ success: true, message: 'Film favorilere eklendi' });
   } catch (error) {
     console.error('Add favorite error:', error);
     res.status(500).json({ message: 'Sunucu hatası' });
@@ -1071,7 +1119,7 @@ app.delete('/api/favorites/:movieId', authMiddleware, async (req, res) => {
       return res.status(500).json({ message: 'Favorilerden kaldırılamadı' });
     }
 
-    res.json({ message: 'Film favorilerden kaldırıldı' });
+    res.json({ success: true, message: 'Film favorilerden kaldırıldı' });
   } catch (error) {
     console.error('Remove favorite error:', error);
     res.status(500).json({ message: 'Sunucu hatası' });

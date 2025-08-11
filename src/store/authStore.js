@@ -166,7 +166,7 @@ const useAuthStore = create((set, get) => ({
   updateProfile: async (updates) => {
     set({ isLoading: true })
     try {
-      const response = await axios.put(`${API_URL}/api/users/profile`, updates, {
+      const response = await axios.put(`${API_URL}/api/auth/profile`, updates, {
         headers: { Authorization: `Bearer ${get().token}` }
       })
       
@@ -196,7 +196,7 @@ const useAuthStore = create((set, get) => ({
   updateAvatar: async (avatarUrl) => {
     set({ isLoading: true })
     try {
-      const response = await axios.put(`${API_URL}/api/users/avatar`, { avatarUrl }, {
+      const response = await axios.put(`${API_URL}/api/auth/avatar`, { avatar: avatarUrl }, {
         headers: { Authorization: `Bearer ${get().token}` }
       })
       
