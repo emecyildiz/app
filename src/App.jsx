@@ -14,7 +14,7 @@ const Home = lazy(() => import('./pages/Home'))
 const Movies = lazy(() => import('./pages/Movies'))
 const MovieDetail = lazy(() => import('./pages/MovieDetail'))
 const About = lazy(() => import('./pages/About'))
-const Profile = lazy(() => import('./pages/Profile'))
+import Profile from './pages/Profile'
 const PublicProfile = lazy(() => import('./pages/PublicProfile'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
@@ -89,9 +89,7 @@ function App() {
             path="profile"
             element={
               <ProtectedRoute>
-                <Suspense fallback={<LoadingSpinner fullScreen />}>
-                  <Profile />
-                </Suspense>
+                <Profile />
               </ProtectedRoute>
             }
           />

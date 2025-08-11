@@ -11,27 +11,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true,
-    // Session will expire and require re-login
-    storageKey: 'supabase.auth.token',
-    storage: {
-      getItem: (key) => {
-        if (typeof window !== 'undefined') {
-          return localStorage.getItem(key)
-        }
-        return null
-      },
-      setItem: (key, value) => {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(key, value)
-        }
-      },
-      removeItem: (key) => {
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem(key)
-        }
-      }
-    }
+    detectSessionInUrl: true
   }
 });
 
