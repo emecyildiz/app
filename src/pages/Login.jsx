@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
 import { Film, Mail, Lock, LogIn } from 'lucide-react'
@@ -7,14 +7,25 @@ import { useAuthStore } from '../store/newAuthStore'
 
 const Login = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const { signIn, isLoading } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
+  const [successMessage, setSuccessMessage] = useState('')
   
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm()
+
+  // Check for success message from email confirmation
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message)
+      // Clear the message after 5 seconds
+      setTimeout(() => setSuccessMessage(''), 5000)
+    }
+  }, [location.state])
 
   const onSubmit = async (data) => {
     const result = await signIn(data.username, data.password)
@@ -45,6 +56,15 @@ const Login = () => {
           <p className="text-gray-400 text-center mb-8">
             Hesabınıza giriş yapın
           </p>
+
+          {/* Success Message */}
+          {successMessage && (
+            <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4 mb-6">
+              <p className="text-green-400 text-center text-sm">
+                {successMessage}
+              </p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Email */}

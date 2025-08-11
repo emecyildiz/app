@@ -18,6 +18,7 @@ const Profile = lazy(() => import('./pages/Profile'))
 const PublicProfile = lazy(() => import('./pages/PublicProfile'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
+const EmailConfirmed = lazy(() => import('./pages/EmailConfirmed'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const AdminUserEdit = lazy(() => import('./pages/AdminUserEdit'))
 const OperatorDashboard = lazy(() => import('./pages/OperatorDashboard'))
@@ -146,6 +147,11 @@ function App() {
           isAuthenticated ? <Navigate to="/" /> : 
           <Suspense fallback={<LoadingSpinner fullScreen />}>
             <Register />
+          </Suspense>
+        } />
+        <Route path="/email-confirmed" element={
+          <Suspense fallback={<LoadingSpinner fullScreen />}>
+            <EmailConfirmed />
           </Suspense>
         } />
       </Routes>
