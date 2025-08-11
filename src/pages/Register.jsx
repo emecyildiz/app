@@ -52,7 +52,7 @@ const Register = () => {
             Film dünyasına katılın
           </p>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" autoComplete="off">
             {/* Name */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -70,7 +70,8 @@ const Register = () => {
                     },
                   })}
                   className="input pl-10"
-                  placeholder="John Doe"
+                  placeholder="Ahmet Yılmaz"
+                  autoComplete="off"
                 />
               </div>
               {errors.name && (
@@ -100,7 +101,8 @@ const Register = () => {
                     setValueAs: (v) => (v ? v.toLowerCase() : v),
                   })}
                   className="input pl-10"
-                  placeholder="johndoe"
+                  placeholder="ahmetyilmaz"
+                  autoComplete="off"
                 />
               </div>
               {errors.username && (
@@ -125,7 +127,8 @@ const Register = () => {
                     },
                   })}
                   className="input pl-10"
-                  placeholder="ornek@email.com"
+                  placeholder="ahmet@example.com"
+                  autoComplete="off"
                 />
               </div>
               {errors.email && (
@@ -155,6 +158,7 @@ const Register = () => {
                   })}
                   className="input pl-10 pr-10"
                   placeholder="••••••••"
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
@@ -194,6 +198,7 @@ const Register = () => {
                   })}
                   className="input pl-10"
                   placeholder="••••••••"
+                  autoComplete="new-password"
                 />
               </div>
               {errors.confirmPassword && (
