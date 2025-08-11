@@ -15,7 +15,7 @@ const useAuthStore = create((set, get) => ({
       set({ isLoading: true })
       
       // Debug: Check localStorage
-      console.log('LocalStorage keys:', Object.keys(localStorage).filter(key => key.includes('supabase')))
+      console.log('LocalStorage keys:', Object.keys(localStorage).filter(key => key.includes('supabase') || key.startsWith('sb-')))
       
       // Get initial session
       const { data: { session }, error } = await supabase.auth.getSession()
@@ -33,6 +33,10 @@ const useAuthStore = create((set, get) => ({
 
         // Immediately mark authenticated so UI can render
         set({ user, session, isAuthenticated: true, isLoading: false })
+        // Persist API token for backend endpoints expecting Bearer
+        try {
+          sessionStorage.setItem('auth-token', session.access_token)
+        } catch {}
 
         // Fetch profile in background and update when ready
         ;(async () => {
@@ -90,6 +94,9 @@ const useAuthStore = create((set, get) => ({
 
             // Immediately set authenticated so UI shows
             set({ user, session, isAuthenticated: true, isLoading: false })
+            try {
+              sessionStorage.setItem('auth-token', session.access_token)
+            } catch {}
 
             // Update profile in background
             try {
@@ -126,6 +133,7 @@ const useAuthStore = create((set, get) => ({
             }
           }
         } else if (event === 'SIGNED_OUT') {
+          try { sessionStorage.removeItem('auth-token') } catch {}
           set({
             user: null,
             profile: null,
@@ -248,6 +256,8 @@ const useAuthStore = create((set, get) => ({
         toast.error('Çıkış sırasında bir hata oluştu')
         return
       }
+
+      try { sessionStorage.removeItem('auth-token') } catch {}
 
       set({
         user: null,

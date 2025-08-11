@@ -7,6 +7,8 @@ import { activityService } from './services/activityService'
 // Layout components
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
+import AdminRoute from './components/AdminRoute'
+import OperatorRoute from './components/OperatorRoute'
 import LoadingSpinner from './components/LoadingSpinner'
 
 // Lazy load pages
@@ -96,31 +98,31 @@ function App() {
           <Route
             path="admin"
             element={
-              <ProtectedRoute>
+              <AdminRoute>
                 <Suspense fallback={<LoadingSpinner fullScreen />}>
                   <AdminDashboard />
                 </Suspense>
-              </ProtectedRoute>
+              </AdminRoute>
             }
           />
           <Route
             path="admin/user/:userId"
             element={
-              <ProtectedRoute>
+              <AdminRoute>
                 <Suspense fallback={<LoadingSpinner fullScreen />}>
                   <AdminUserEdit />
                 </Suspense>
-              </ProtectedRoute>
+              </AdminRoute>
             }
           />
           <Route
             path="operator"
             element={
-              <ProtectedRoute>
+              <OperatorRoute>
                 <Suspense fallback={<LoadingSpinner fullScreen />}>
                   <OperatorDashboard />
                 </Suspense>
-              </ProtectedRoute>
+              </OperatorRoute>
             }
           />
 
