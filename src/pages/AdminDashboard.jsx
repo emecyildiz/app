@@ -14,7 +14,7 @@ import {
 import toast from 'react-hot-toast'
 
 export default function AdminDashboard() {
-  const { user, getAllUsers, getAllOperators, addOperator, removeOperator, deleteUser, updateUserProfile, getDashboardStats, get } = useAuthStore()
+  const { user, profile, getAllUsers, getAllOperators, addOperator, removeOperator, deleteUser, updateUserProfile, getDashboardStats, get } = useAuthStore()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('overview')
   const [showAddOperator, setShowAddOperator] = useState(false)
@@ -45,9 +45,9 @@ export default function AdminDashboard() {
     realTimeActiveUsers: 0
   })
 
-  // Redirect if not admin
-  if (!user || user.role !== 'ADMIN') {
-    return <Navigate to="/" />
+  // Redirect if not admin (use profile.role from Supabase)
+  if (!profile || profile.role !== 'ADMIN') {
+    return <Navigate to="/" replace />
   }
 
   // Load data on component mount

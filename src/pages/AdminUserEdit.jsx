@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 export default function AdminUserEdit() {
   const { userId } = useParams()
   const navigate = useNavigate()
-  const { user: currentUser, getAllUsers, updateUserProfile } = useAuthStore()
+  const { profile: currentUser, getAllUsers, updateUserProfile } = useAuthStore()
   const [loading, setLoading] = useState(false)
   const [userData, setUserData] = useState(null)
   const [formData, setFormData] = useState({
@@ -23,9 +23,9 @@ export default function AdminUserEdit() {
     }
   })
 
-  // Check if admin or operator
-  if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'operator')) {
-    return <Navigate to="/" />
+  // Check if admin or operator (use uppercase roles)
+  if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.role !== 'OPERATOR')) {
+    return <Navigate to="/" replace />
   }
 
   useEffect(() => {
@@ -125,14 +125,14 @@ export default function AdminUserEdit() {
                 />
                 <h2 className="text-xl font-semibold text-white mb-1">{userData.name}</h2>
                 <p className="text-gray-400 mb-2">@{userData.username}</p>
-                <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                  userData.role === 'admin' 
+                 <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                  userData.role === 'ADMIN' 
                     ? 'bg-red-900/50 text-red-400'
-                    : userData.role === 'operator'
+                    : userData.role === 'OPERATOR'
                     ? 'bg-blue-900/50 text-blue-400'
                     : 'bg-gray-800 text-gray-400'
                 }`}>
-                  {userData.role === 'admin' ? 'Admin' : userData.role === 'operator' ? 'Operatör' : 'Kullanıcı'}
+                  {userData.role === 'ADMIN' ? 'Admin' : userData.role === 'OPERATOR' ? 'Operatör' : 'Kullanıcı'}
                 </span>
               </div>
               <div className="mt-6 space-y-3">
