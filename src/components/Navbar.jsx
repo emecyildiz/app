@@ -57,8 +57,8 @@ const Navbar = () => {
     { path: '/movies', label: 'Filmler', icon: Film },
     { path: '/about', label: 'Hakkında', icon: Info },
     ...(isAuthenticated ? [{ path: '/profile', label: 'Profil', icon: User }] : []),
-    ...(user?.role === 'ADMIN' ? [{ path: '/admin', label: 'Admin Panel', icon: Shield }] : []),
-    ...(user?.role === 'OPERATOR' ? [{ path: '/operator', label: 'Operatör Paneli', icon: Shield }] : []),
+    ...(profile?.role === 'ADMIN' ? [{ path: '/admin', label: 'Admin Panel', icon: Shield }] : []),
+    ...(profile?.role === 'OPERATOR' ? [{ path: '/operator', label: 'Operatör Paneli', icon: Shield }] : []),
   ]
 
   return (
@@ -152,15 +152,15 @@ const Navbar = () => {
                     className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
                   >
                     <img
-                      src={user?.avatar || `https://ui-avatars.com/api/?name=${user?.name}&background=ef4444&color=fff`}
-                      alt={user?.name}
+                      src={profile?.avatar || `https://ui-avatars.com/api/?name=${profile?.name}&background=ef4444&color=fff`}
+                      alt={profile?.name}
                       className="w-8 h-8 rounded-full"
                     />
-                    <span className="font-medium">{user?.name}</span>
-                    {user?.role === 'ADMIN' && (
+                    <span className="font-medium">{profile?.name}</span>
+                    {profile?.role === 'ADMIN' && (
                       <span className="px-2 py-0.5 text-xs bg-red-600 text-white rounded-full">Admin</span>
                     )}
-                    {user?.role === 'OPERATOR' && (
+                    {profile?.role === 'OPERATOR' && (
                       <span className="px-2 py-0.5 text-xs bg-blue-600 text-white rounded-full">Operatör</span>
                     )}
                   </Link>

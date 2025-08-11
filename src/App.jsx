@@ -30,7 +30,7 @@ function App() {
   useEffect(() => {
     let activityInterval = null
     
-    if (isAuthenticated && token) {
+    if (isAuthenticated) {
       // Start activity tracking
       activityInterval = activityService.startTracking()
     }
@@ -41,7 +41,12 @@ function App() {
         activityService.stopTracking(activityInterval)
       }
     }
-  }, [isAuthenticated, token])
+  }, [isAuthenticated])
+
+  // Show loading spinner while initializing auth
+  if (isLoading) {
+    return <LoadingSpinner fullScreen />
+  }
 
   return (
     <Router>

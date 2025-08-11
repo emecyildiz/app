@@ -191,7 +191,7 @@ const Profile = () => {
           <div className="flex flex-col md:flex-row items-center gap-8">
             {/* Avatar */}
             <AvatarUpload
-              currentAvatar={user?.avatar || `https://ui-avatars.com/api/?name=${user?.name}&background=ef4444&color=fff&size=200`}
+              currentAvatar={profile?.avatar || `https://ui-avatars.com/api/?name=${profile?.name}&background=ef4444&color=fff&size=200`}
               onUpload={updateAvatar}
               size="large"
             />
@@ -199,19 +199,19 @@ const Profile = () => {
             {/* User Info */}
             <div className="flex-1 text-center md:text-left">
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">
-                {user?.name}
+                {profile?.name}
               </h1>
-              <p className="text-xl text-gray-400 mb-3">@{user?.username}</p>
+              <p className="text-xl text-gray-400 mb-3">@{profile?.username}</p>
               
-              {user?.bio && (
-                <p className="text-gray-300 mb-4 max-w-2xl">{user?.bio}</p>
+              {profile?.bio && (
+                <p className="text-gray-300 mb-4 max-w-2xl">{profile?.bio}</p>
               )}
               
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm">
-                {user?.location && (
+                {profile?.location && (
                   <div className="flex items-center gap-2 text-gray-300">
                     <MapPin className="w-4 h-4" />
-                    <span>{user.location}</span>
+                    <span>{profile.location}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-2 text-gray-300">
@@ -225,11 +225,11 @@ const Profile = () => {
               </div>
 
               {/* Social Links */}
-              {(user?.socialLinks?.twitter || user?.socialLinks?.instagram || user?.socialLinks?.letterboxd) && (
+              {(profile?.social_links?.twitter || profile?.social_links?.instagram || profile?.social_links?.letterboxd) && (
                 <div className="flex items-center justify-center md:justify-start gap-4 mt-4">
-                  {user.socialLinks.twitter && (
+                  {profile.social_links.twitter && (
                     <a
-                      href={`https://twitter.com/${user.socialLinks.twitter}`}
+                      href={`https://twitter.com/${profile.social_links.twitter}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-400 hover:text-white transition-colors"
@@ -237,9 +237,9 @@ const Profile = () => {
                       <Twitter className="w-5 h-5" />
                     </a>
                   )}
-                  {user.socialLinks.instagram && (
+                  {profile.social_links.instagram && (
                     <a
-                      href={`https://instagram.com/${user.socialLinks.instagram}`}
+                      href={`https://instagram.com/${profile.social_links.instagram}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-400 hover:text-white transition-colors"
@@ -247,9 +247,9 @@ const Profile = () => {
                       <Instagram className="w-5 h-5" />
                     </a>
                   )}
-                  {user.socialLinks.letterboxd && (
+                  {profile.social_links.letterboxd && (
                     <a
-                      href={`https://letterboxd.com/${user.socialLinks.letterboxd}`}
+                      href={`https://letterboxd.com/${profile.social_links.letterboxd}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-400 hover:text-white transition-colors"
