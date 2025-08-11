@@ -258,7 +258,7 @@ const useAuthStore = create((set, get) => ({
       try { sessionStorage.removeItem('auth-token') } catch {}
       try {
         Object.keys(localStorage).forEach((key) => {
-          if (key.includes('supabase') || key.startsWith('sb-')) {
+          if (key.includes('supabase') || key.startsWith('sb-') || key.includes('auth-token')) {
             localStorage.removeItem(key)
           }
         })
@@ -275,11 +275,27 @@ const useAuthStore = create((set, get) => ({
       toast.success('Çıkış yapıldı!')
 
       // Redirect to login to ensure clean state
-      try { window.location.assign('/login') } catch {}
+      try { window.location.replace('/login') } catch {}
     } catch (error) {
       console.error('Sign out error:', error)
       toast.error('Çıkış sırasında bir hata oluştu')
     }
+  },
+
+  // Force sign out without calling Supabase (last resort)
+  forceSignOut: () => {
+    try { sessionStorage.removeItem('auth-token') } catch {}
+    try {
+      Object.keys(localStorage).forEach((key) => {
+        if (key.includes('supabase') || key.startsWith('sb-') || key.includes('auth-token')) {
+          localStorage.removeItem(key)
+        }
+      })
+    } catch {}
+
+    // Reset state
+    set({ user: null, profile: null, session: null, isAuthenticated: false, isLoading: false })
+    try { window.location.replace('/login') } catch {}
   },
 
   // Update profile

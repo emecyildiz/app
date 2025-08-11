@@ -12,7 +12,7 @@ import AvatarUpload from '../components/AvatarUpload'
 import { mockMovies } from '../utils/mockData'
 
 const Profile = () => {
-  const { user, profile, updateProfile, updateAvatar, signOut } = useAuthStore()
+  const { user, profile, updateProfile, updateAvatar, signOut, forceSignOut } = useAuthStore()
   const { favorites, removeFromFavorites, getFavoritesCount } = useFavoritesStore()
   const [activeTab, setActiveTab] = useState('overview')
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -273,6 +273,13 @@ const Profile = () => {
               <button
                 onClick={signOut}
                 className="btn btn-secondary"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+              <button
+                onClick={forceSignOut}
+                className="btn btn-secondary"
+                title="Zorla çıkış"
               >
                 <LogOut className="w-4 h-4" />
               </button>
