@@ -1250,9 +1250,9 @@ app.get('/api/users/stats', authMiddleware, async (req, res) => {
       console.error('Get ratings count error:', ratError);
     }
 
-    // Get user creation date
+    // Get user creation date from profiles (aligned with Supabase Auth trigger)
     const { data: userData, error: userError } = await supabase
-      .from('users')
+      .from('profiles')
       .select('created_at')
       .eq('id', userId)
       .single();
