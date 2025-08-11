@@ -30,73 +30,45 @@ const useAuthStore = create((set, get) => ({
         const { user } = session
         console.log('Found session for user:', user.email)
         console.log('Session expires at:', new Date(session.expires_at * 1000))
-        
-        // Get user profile with timeout
-        let profile = null
-        try {
-          const { data, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single()
 
-          if (profileError) {
-            console.error('Error fetching profile:', profileError)
-            
-            // If user doesn't exist in profiles table, create it
-            if (profileError.code === 'PGRST116') {
-              console.log('Profile not found, creating one...')
-              const { data: newProfile, error: createError } = await supabase
-                .from('profiles')
-                .insert({
-                  id: user.id,
-                  name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
-                  username: user.user_metadata?.username || user.email?.split('@')[0] || 'user'
-                })
-                .select()
-                .single()
+        // Immediately mark authenticated so UI can render
+        set({ user, session, isAuthenticated: true, isLoading: false })
 
-              if (createError) {
-                console.error('Error creating profile:', createError)
-                profile = {
-                  id: user.id,
-                  name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
-                  username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
-                  role: 'USER'
-                }
-              } else {
-                profile = newProfile
-              }
-            } else {
-              // For other errors, create a fallback profile
-              profile = {
+        // Fetch profile in background and update when ready
+        ;(async () => {
+          try {
+            const { data, error: profileError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', user.id)
+              .single()
+
+            if (profileError && profileError.code === 'PGRST116') {
+              await supabase.from('profiles').insert({
                 id: user.id,
                 name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
-                username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
-                role: 'USER'
-              }
+                username: user.user_metadata?.username || user.email?.split('@')[0] || 'user'
+              })
             }
-          } else {
-            profile = data
-          }
-        } catch (error) {
-          console.error('Profile fetch timeout or error:', error)
-          // Create fallback profile to prevent infinite loading
-          profile = {
-            id: user.id,
-            name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
-            username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
-            role: 'USER'
-          }
-        }
 
-        set({
-          user,
-          profile,
-          session,
-          isAuthenticated: true,
-          isLoading: false
-        })
+            const finalProfile = data || {
+              id: user.id,
+              name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+              username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
+              role: 'USER'
+            }
+            set({ profile: finalProfile })
+          } catch (error) {
+            console.error('Background profile fetch error:', error)
+            const fallback = {
+              id: user.id,
+              name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+              username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
+              role: 'USER'
+            }
+            set({ profile: fallback })
+          }
+        })()
       } else {
         set({ isLoading: false })
       }
@@ -115,9 +87,11 @@ const useAuthStore = create((set, get) => ({
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           if (session) {
             const { user } = session
-            
-            // Get user profile with fallback
-            let profile = null
+
+            // Immediately set authenticated so UI shows
+            set({ user, session, isAuthenticated: true, isLoading: false })
+
+            // Update profile in background
             try {
               const { data, error: profileError } = await supabase
                 .from('profiles')
@@ -125,36 +99,31 @@ const useAuthStore = create((set, get) => ({
                 .eq('id', user.id)
                 .single()
 
-              if (profileError) {
-                console.error('Error fetching profile in listener:', profileError)
-                // Create fallback profile instead of signing out
-                profile = {
+              if (profileError && profileError.code === 'PGRST116') {
+                await supabase.from('profiles').insert({
                   id: user.id,
                   name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
-                  username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
-                  role: 'USER'
-                }
-              } else {
-                profile = data
+                  username: user.user_metadata?.username || user.email?.split('@')[0] || 'user'
+                })
               }
-            } catch (error) {
-              console.error('Profile fetch error in listener:', error)
-              // Create fallback profile
-              profile = {
+
+              const finalProfile = data || {
                 id: user.id,
                 name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
                 username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
                 role: 'USER'
               }
+              set({ profile: finalProfile })
+            } catch (error) {
+              console.error('Listener background profile fetch error:', error)
+              const fallback = {
+                id: user.id,
+                name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+                username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
+                role: 'USER'
+              }
+              set({ profile: fallback })
             }
-
-            set({
-              user,
-              profile,
-              session,
-              isAuthenticated: true,
-              isLoading: false
-            })
           }
         } else if (event === 'SIGNED_OUT') {
           set({
