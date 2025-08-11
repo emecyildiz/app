@@ -1263,6 +1263,266 @@ app.get('/api/users/public/:username', async (req, res) => {
     return res.status(500).json({ message: 'Failed to fetch profile' });
   }
 });
+
+// ===== Friendships =====
+// Helpers
+async function getFriendshipBetween(supabaseClient, userA, userB) {
+  try {
+    const { data, error } = await supabaseClient
+      .from('friendships')
+      .select('*')
+      .or(`and(requester_id.eq.${userA},addressee_id.eq.${userB}),and(requester_id.eq.${userB},addressee_id.eq.${userA}))`)
+      .limit(1)
+      .maybeSingle();
+    if (error) return null;
+    return data || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function mapFriendStatus(me, friendship) {
+  if (!friendship) return 'none';
+  if (friendship.status === 'accepted') return 'friends';
+  if (friendship.status === 'pending') {
+    return friendship.requester_id === me ? 'pending_outgoing' : 'pending_incoming';
+  }
+  return friendship.status || 'none';
+}
+
+// Send friend request
+app.post('/api/friends/request', authMiddleware, async (req, res) => {
+  try {
+    const me = req.user?.userId;
+    const toUserId = req.body?.toUserId;
+    if (!me || !toUserId) return res.status(400).json({ message: 'Invalid request' });
+    if (me === toUserId) return res.status(400).json({ message: 'Kendinize istek gönderemezsiniz' });
+
+    // Check existing relationship
+    const existing = await getFriendshipBetween(supabase, me, toUserId);
+    if (existing) {
+      const status = mapFriendStatus(me, existing);
+      return res.json({ success: true, status });
+    }
+
+    // Create request
+    const { data, error } = await supabase
+      .from('friendships')
+      .insert({ requester_id: me, addressee_id: toUserId, status: 'pending' })
+      .select('*')
+      .single();
+    if (error) {
+      console.error('Friend request insert error:', error);
+      return res.status(500).json({ message: 'İstek gönderilemedi' });
+    }
+
+    // Notification (best-effort)
+    try {
+      await supabase
+        .from('notifications')
+        .insert({ user_id: toUserId, type: 'friend_request', payload: { fromUserId: me, friendshipId: data.id }, is_read: false });
+    } catch (_) {}
+
+    return res.json({ success: true, status: 'pending_outgoing' });
+  } catch (error) {
+    console.error('POST /api/friends/request error:', error);
+    return res.status(500).json({ message: 'İstek gönderilemedi' });
+  }
+});
+
+// Respond to friend request (accept/reject)
+app.post('/api/friends/respond', authMiddleware, async (req, res) => {
+  try {
+    const me = req.user?.userId;
+    const { fromUserId, action, requestId } = req.body || {};
+    if (!me || !action || (!fromUserId && !requestId)) {
+      return res.status(400).json({ message: 'Invalid request' });
+    }
+
+    // Find the pending request
+    let friendship = null;
+    if (requestId) {
+      const resp = await supabase
+        .from('friendships')
+        .select('*')
+        .eq('id', requestId)
+        .maybeSingle();
+      if (!resp.error) friendship = resp.data;
+    } else {
+      friendship = await getFriendshipBetween(supabase, me, fromUserId);
+    }
+
+    if (!friendship || friendship.status !== 'pending' || friendship.addressee_id !== me) {
+      return res.status(404).json({ message: 'Bekleyen istek bulunamadı' });
+    }
+
+    if (action === 'accept') {
+      const { data, error } = await supabase
+        .from('friendships')
+        .update({ status: 'accepted' })
+        .eq('id', friendship.id)
+        .select('*')
+        .single();
+      if (error) {
+        console.error('Accept friend error:', error);
+        return res.status(500).json({ message: 'İstek onaylanamadı' });
+      }
+      // Notify requester
+      try {
+        await supabase
+          .from('notifications')
+          .insert({ user_id: data.requester_id, type: 'friend_accept', payload: { byUserId: me, friendshipId: data.id }, is_read: false });
+      } catch (_) {}
+      return res.json({ success: true, status: 'friends' });
+    }
+
+    if (action === 'reject') {
+      const { error } = await supabase
+        .from('friendships')
+        .update({ status: 'rejected' })
+        .eq('id', friendship.id);
+      if (error) {
+        console.error('Reject friend error:', error);
+        return res.status(500).json({ message: 'İstek reddedilemedi' });
+      }
+      return res.json({ success: true, status: 'none' });
+    }
+
+    return res.status(400).json({ message: 'Geçersiz işlem' });
+  } catch (error) {
+    console.error('POST /api/friends/respond error:', error);
+    return res.status(500).json({ message: 'İşlem gerçekleştirilemedi' });
+  }
+});
+
+// Unfriend
+app.delete('/api/friends/:otherUserId', authMiddleware, async (req, res) => {
+  try {
+    const me = req.user?.userId;
+    const otherUserId = req.params.otherUserId;
+    if (!me || !otherUserId) return res.status(400).json({ message: 'Invalid request' });
+
+    const friendship = await getFriendshipBetween(supabase, me, otherUserId);
+    if (!friendship || friendship.status !== 'accepted') {
+      return res.status(404).json({ message: 'Arkadaşlık bulunamadı' });
+    }
+
+    const { error } = await supabase
+      .from('friendships')
+      .delete()
+      .eq('id', friendship.id);
+    if (error) {
+      console.error('Unfriend error:', error);
+      return res.status(500).json({ message: 'Arkadaşlık kaldırılamadı' });
+    }
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('DELETE /api/friends/:otherUserId error:', error);
+    return res.status(500).json({ message: 'İşlem başarısız' });
+  }
+});
+
+// Status between me and another user
+app.get('/api/friends/status/:otherUserId', authMiddleware, async (req, res) => {
+  try {
+    const me = req.user?.userId;
+    const otherUserId = req.params.otherUserId;
+    if (!me || !otherUserId) return res.status(400).json({ message: 'Invalid request' });
+    if (me === otherUserId) return res.json({ status: 'self' });
+
+    const friendship = await getFriendshipBetween(supabase, me, otherUserId);
+    const status = mapFriendStatus(me, friendship);
+    return res.json({ status });
+  } catch (error) {
+    console.error('GET /api/friends/status error:', error);
+    return res.json({ status: 'none' });
+  }
+});
+
+// List friends for a user (by id); if :userId omitted, use me
+app.get('/api/friends/list/:userId?', authMiddleware, async (req, res) => {
+  try {
+    const me = req.user?.userId;
+    const userId = req.params.userId || me;
+    if (!userId) return res.status(400).json({ message: 'Invalid request' });
+
+    const { data: rows, error } = await supabase
+      .from('friendships')
+      .select('id, requester_id, addressee_id')
+      .or(`requester_id.eq.${userId},addressee_id.eq.${userId}`)
+      .eq('status', 'accepted');
+    if (error) {
+      console.error('List friends error:', error);
+      return res.json({ friends: [] });
+    }
+
+    const otherIds = Array.from(new Set((rows || []).map(r => (r.requester_id === userId ? r.addressee_id : r.requester_id))));
+    if (otherIds.length === 0) return res.json({ friends: [] });
+
+    const { data: users, error: usersErr } = await supabase
+      .from('users')
+      .select('id, name, username, avatarurl, bio')
+      .in('id', otherIds);
+    if (usersErr) {
+      console.error('List friends users error:', usersErr);
+      return res.json({ friends: [] });
+    }
+    const friends = (users || []).map(u => ({
+      id: u.id,
+      name: u.name || '',
+      username: u.username || '',
+      avatar: u.avatarurl || null,
+      bio: u.bio || '',
+    }));
+    return res.json({ friends });
+  } catch (error) {
+    console.error('GET /api/friends/list error:', error);
+    return res.json({ friends: [] });
+  }
+});
+
+// List incoming pending requests for me
+app.get('/api/friends/requests', authMiddleware, async (req, res) => {
+  try {
+    const me = req.user?.userId;
+    if (!me) return res.status(401).json({ message: 'Unauthorized' });
+
+    const { data: rows, error } = await supabase
+      .from('friendships')
+      .select('id, requester_id, created_at')
+      .eq('addressee_id', me)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+    if (error) {
+      console.error('List requests error:', error);
+      return res.json({ requests: [] });
+    }
+    const fromIds = (rows || []).map(r => r.requester_id);
+    let users = [];
+    if (fromIds.length > 0) {
+      const resp = await supabase
+        .from('users')
+        .select('id, name, username, avatarurl')
+        .in('id', fromIds);
+      if (!resp.error) users = resp.data || [];
+    }
+    const byId = new Map(users.map(u => [u.id, u]));
+    const requests = (rows || []).map(r => ({
+      id: r.id,
+      fromUser: {
+        id: r.requester_id,
+        name: byId.get(r.requester_id)?.name || '',
+        username: byId.get(r.requester_id)?.username || '',
+        avatar: byId.get(r.requester_id)?.avatarurl || null,
+      },
+      createdAt: r.created_at,
+    }));
+    return res.json({ requests });
+  } catch (error) {
+    console.error('GET /api/friends/requests error:', error);
+    return res.json({ requests: [] });
+  }
+});
 // Export the Express app for Vercel
 export default app;
 

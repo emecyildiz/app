@@ -148,6 +148,76 @@ class UserService {
       return null;
     }
   }
+
+  // ===== Friendships =====
+  async getFriendStatus(otherUserId) {
+    try {
+      const response = await axios.get(`${API_URL}/api/friends/status/${otherUserId}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data?.status || 'none';
+    } catch (error) {
+      console.error('Error getting friend status:', error);
+      return 'none';
+    }
+  }
+
+  async sendFriendRequest(toUserId) {
+    try {
+      const response = await axios.post(`${API_URL}/api/friends/request`, { toUserId }, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+      return { success: false };
+    }
+  }
+
+  async respondFriendRequest(payload) {
+    try {
+      const response = await axios.post(`${API_URL}/api/friends/respond`, payload, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error responding friend request:', error);
+      return { success: false };
+    }
+  }
+
+  async unfriend(otherUserId) {
+    try {
+      const response = await axios.delete(`${API_URL}/api/friends/${otherUserId}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data?.success === true;
+    } catch (error) {
+      console.error('Error unfriending:', error);
+      return false;
+    }
+  }
+
+  async listFriends(userId) {
+    try {
+      const url = userId ? `${API_URL}/api/friends/list/${userId}` : `${API_URL}/api/friends/list`;
+      const response = await axios.get(url, { headers: this.getAuthHeaders() });
+      return response.data?.friends || [];
+    } catch (error) {
+      console.error('Error listing friends:', error);
+      return [];
+    }
+  }
+
+  async listIncomingRequests() {
+    try {
+      const response = await axios.get(`${API_URL}/api/friends/requests`, { headers: this.getAuthHeaders() });
+      return response.data?.requests || [];
+    } catch (error) {
+      console.error('Error listing friend requests:', error);
+      return [];
+    }
+  }
 }
 
 export const userService = new UserService();

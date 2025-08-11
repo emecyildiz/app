@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Calendar, Film, Heart, Star, MapPin, ArrowLeft } from 'lucide-react'
+import { Calendar, Film, Heart, Star, MapPin, ArrowLeft, UserPlus, UserMinus, Check, X } from 'lucide-react'
 import { userService } from '../services/userService'
+import { useAuthStore } from '../store/authStore'
 
 export default function PublicProfile() {
   const { username } = useParams()
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [friendStatus, setFriendStatus] = useState('none')
+  const [busy, setBusy] = useState(false)
+  const { isAuthenticated, user } = useAuthStore()
 
   useEffect(() => {
     let mounted = true
@@ -23,6 +27,54 @@ export default function PublicProfile() {
     load()
     return () => { mounted = false }
   }, [username])
+
+  useEffect(() => {
+    let mounted = true
+    const ensureStatus = async () => {
+      if (!profile || !isAuthenticated) return
+      if (user?.id && profile?.id && user.id === profile.id) {
+        setFriendStatus('self')
+        return
+      }
+      const status = await userService.getFriendStatus(profile.id)
+      if (mounted) setFriendStatus(status)
+    }
+    ensureStatus()
+    return () => { mounted = false }
+  }, [profile, isAuthenticated, user])
+
+  const handleSendRequest = async () => {
+    if (!profile) return
+    setBusy(true)
+    try {
+      const resp = await userService.sendFriendRequest(profile.id)
+      if (resp?.status) setFriendStatus(resp.status)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const handleRespond = async (action) => {
+    if (!profile) return
+    setBusy(true)
+    try {
+      const resp = await userService.respondFriendRequest({ fromUserId: profile.id, action })
+      if (resp?.status) setFriendStatus(resp.status)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const handleUnfriend = async () => {
+    if (!profile) return
+    setBusy(true)
+    try {
+      const ok = await userService.unfriend(profile.id)
+      if (ok) setFriendStatus('none')
+    } finally {
+      setBusy(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -82,6 +134,44 @@ export default function PublicProfile() {
                   </div>
                 )}
               </div>
+            </div>
+            <div className="w-full md:w-auto flex justify-center md:justify-end">
+              {isAuthenticated && friendStatus !== 'self' && (
+                <div className="flex gap-2">
+                  {friendStatus === 'none' && (
+                    <button onClick={handleSendRequest} disabled={busy} className="btn btn-primary">
+                      <UserPlus className="w-4 h-4" />
+                      Arkadaş Ekle
+                    </button>
+                  )}
+                  {friendStatus === 'pending_outgoing' && (
+                    <button disabled className="btn btn-secondary opacity-70 cursor-not-allowed">
+                      İstek Gönderildi
+                    </button>
+                  )}
+                  {friendStatus === 'pending_incoming' && (
+                    <div className="flex gap-2">
+                      <button onClick={() => handleRespond('accept')} disabled={busy} className="btn btn-primary">
+                        <Check className="w-4 h-4" />
+                        Kabul Et
+                      </button>
+                      <button onClick={() => handleRespond('reject')} disabled={busy} className="btn btn-secondary">
+                        <X className="w-4 h-4" />
+                        Reddet
+                      </button>
+                    </div>
+                  )}
+                  {friendStatus === 'friends' && (
+                    <button onClick={handleUnfriend} disabled={busy} className="btn btn-secondary">
+                      <UserMinus className="w-4 h-4" />
+                      Arkadaşlıktan Çıkar
+                    </button>
+                  )}
+                </div>
+              )}
+              {!isAuthenticated && (
+                <Link to="/login" className="btn btn-primary">Giriş yap</Link>
+              )}
             </div>
           </div>
         </motion.div>

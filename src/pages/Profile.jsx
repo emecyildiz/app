@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Camera, User, Mail, Calendar, Film, Star, Heart, Settings, LogOut, MapPin, Edit2, Twitter, Instagram, Link } from 'lucide-react'
+import { Camera, User, Mail, Calendar, Film, Star, Heart, Settings, LogOut, MapPin, Edit2, Twitter, Instagram, Link, Users, UserMinus, Check, X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 
@@ -81,10 +81,78 @@ const Profile = () => {
 
   const tabs = [
     { id: 'overview', label: 'Genel Bakış', icon: User },
+    { id: 'friends', label: 'Arkadaşlar', icon: Users },
     { id: 'favorites', label: 'Favorilerim', icon: Heart },
     { id: 'ratings', label: 'Puanladıklarım', icon: Star },
     { id: 'settings', label: 'Ayarlar', icon: Settings },
   ]
+
+  // Friends state
+  const [friends, setFriends] = useState([])
+  const [requests, setRequests] = useState([])
+  const [friendsBusy, setFriendsBusy] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    const loadFriendsData = async () => {
+      if (activeTab !== 'friends') return
+      try {
+        const [list, reqs] = await Promise.all([
+          userService.listFriends(),
+          userService.listIncomingRequests(),
+        ])
+        if (mounted) {
+          setFriends(list || [])
+          setRequests(reqs || [])
+        }
+      } catch (_) {}
+    }
+    loadFriendsData()
+    return () => { mounted = false }
+  }, [activeTab])
+
+  const acceptRequest = async (requestId, fromUserId) => {
+    setFriendsBusy(true)
+    try {
+      const resp = await userService.respondFriendRequest({ requestId, fromUserId, action: 'accept' })
+      if (resp?.success || resp?.status === 'friends') {
+        // Refresh lists
+        const [list, reqs] = await Promise.all([
+          userService.listFriends(),
+          userService.listIncomingRequests(),
+        ])
+        setFriends(list || [])
+        setRequests(reqs || [])
+      }
+    } finally {
+      setFriendsBusy(false)
+    }
+  }
+
+  const rejectRequest = async (requestId, fromUserId) => {
+    setFriendsBusy(true)
+    try {
+      const resp = await userService.respondFriendRequest({ requestId, fromUserId, action: 'reject' })
+      if (resp?.success || resp?.status === 'none') {
+        const reqs = await userService.listIncomingRequests()
+        setRequests(reqs || [])
+      }
+    } finally {
+      setFriendsBusy(false)
+    }
+  }
+
+  const unfriend = async (otherUserId) => {
+    setFriendsBusy(true)
+    try {
+      const ok = await userService.unfriend(otherUserId)
+      if (ok) {
+        setFriends(prev => prev.filter(f => f.id !== otherUserId))
+      }
+    } finally {
+      setFriendsBusy(false)
+    }
+  }
 
   return (
     <div className="min-h-screen pt-20">
@@ -300,6 +368,70 @@ const Profile = () => {
                     <p className="text-gray-500 text-sm mt-2">Film detay sayfalarından favorilere ekleyebilirsiniz</p>
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab === 'friends' && (
+              <div className="space-y-8">
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-4">Gelen İstekler</h2>
+                  <div className="glass rounded-xl p-4">
+                    {requests.length === 0 ? (
+                      <p className="text-gray-400 text-center py-6">Bekleyen istek yok</p>
+                    ) : (
+                      <ul className="divide-y divide-white/10">
+                        {requests.map((r) => (
+                          <li key={r.id} className="flex items-center justify-between py-3">
+                            <div className="flex items-center gap-3">
+                              <img src={r.fromUser.avatar || `https://ui-avatars.com/api/?name=${r.fromUser.name || r.fromUser.username}&background=ef4444&color=fff`} alt={r.fromUser.name} className="w-8 h-8 rounded-full"/>
+                              <div>
+                                <p className="text-white text-sm font-medium">{r.fromUser.name || r.fromUser.username}</p>
+                                <p className="text-gray-400 text-xs">@{r.fromUser.username}</p>
+                              </div>
+                            </div>
+                            <div className="flex gap-2">
+                              <button disabled={friendsBusy} onClick={() => acceptRequest(r.id, r.fromUser.id)} className="btn btn-primary btn-sm">
+                                <Check className="w-4 h-4" />
+                                Kabul Et
+                              </button>
+                              <button disabled={friendsBusy} onClick={() => rejectRequest(r.id, r.fromUser.id)} className="btn btn-secondary btn-sm">
+                                <X className="w-4 h-4" />
+                                Reddet
+                              </button>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-4">Arkadaşlarım ({friends.length})</h2>
+                  <div className="glass rounded-xl p-4">
+                    {friends.length === 0 ? (
+                      <p className="text-gray-400 text-center py-6">Henüz arkadaş yok</p>
+                    ) : (
+                      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {friends.map((f) => (
+                          <li key={f.id} className="flex items-center justify-between bg-white/5 rounded-lg p-3">
+                            <div className="flex items-center gap-3">
+                              <img src={f.avatar || `https://ui-avatars.com/api/?name=${f.name || f.username}&background=ef4444&color=fff`} alt={f.name} className="w-8 h-8 rounded-full"/>
+                              <div>
+                                <p className="text-white text-sm font-medium">{f.name || f.username}</p>
+                                <p className="text-gray-400 text-xs">@{f.username}</p>
+                              </div>
+                            </div>
+                            <button disabled={friendsBusy} onClick={() => unfriend(f.id)} className="btn btn-secondary btn-sm">
+                              <UserMinus className="w-4 h-4" />
+                              Kaldır
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
