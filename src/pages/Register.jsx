@@ -3,11 +3,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
 import { Film, Mail, Lock, User, UserPlus } from 'lucide-react'
-import { useAuthStore } from '../store/authStore'
+import { useAuthStore } from '../store/newAuthStore'
 
 const Register = () => {
   const navigate = useNavigate()
-  const { register: registerUser, isLoading } = useAuthStore()
+  const { signUp, isLoading } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
   
   const {
@@ -20,9 +20,12 @@ const Register = () => {
   const password = watch('password')
 
   const onSubmit = async (data) => {
-    const result = await registerUser(data)
+    const result = await signUp(data.email, data.password, {
+      name: data.name,
+      username: data.username
+    })
     if (result.success) {
-      navigate('/')
+      navigate('/login')
     }
   }
 

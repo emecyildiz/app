@@ -3,11 +3,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
 import { Film, Mail, Lock, LogIn } from 'lucide-react'
-import { useAuthStore } from '../store/authStore'
+import { useAuthStore } from '../store/newAuthStore'
 
 const Login = () => {
   const navigate = useNavigate()
-  const { login, isLoading } = useAuthStore()
+  const { signIn, isLoading } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
   
   const {
@@ -17,7 +17,7 @@ const Login = () => {
   } = useForm()
 
   const onSubmit = async (data) => {
-    const result = await login(data)
+    const result = await signIn(data.username, data.password)
     if (result.success) {
       navigate('/')
     }
@@ -50,17 +50,21 @@ const Login = () => {
             {/* Email */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
-                Kullanıcı Adı veya E-posta
+                E-posta
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                 <input
-                  type="text"
+                  type="email"
                   {...register('username', {
-                    required: 'Kullanıcı adı veya e-posta gereklidir',
+                    required: 'E-posta gereklidir',
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      message: 'Geçerli bir e-posta adresi girin',
+                    },
                   })}
                   className="input pl-10"
-                  placeholder="Kullanıcı adı veya e-posta"
+                  placeholder="ornek@email.com"
                 />
               </div>
               {errors.username && (

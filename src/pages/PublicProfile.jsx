@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Calendar, Film, Heart, Star, MapPin, ArrowLeft, UserPlus, UserMinus, Check, X } from 'lucide-react'
 import { userService } from '../services/userService'
-import { useAuthStore } from '../store/authStore'
+import { useAuthStore } from '../store/newAuthStore'
 
 export default function PublicProfile() {
   const { username } = useParams()

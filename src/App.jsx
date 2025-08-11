@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
-import { useAuthStore } from './store/authStore'
+import { useAuthStore } from './store/newAuthStore'
 import { activityService } from './services/activityService'
 
 // Layout components
@@ -24,20 +24,7 @@ const OperatorDashboard = lazy(() => import('./pages/OperatorDashboard'))
 
 
 function App() {
-  const { isAuthenticated, token, getCurrentUser, initializeAuth } = useAuthStore()
-
-  // Initialize auth state on app load
-  useEffect(() => {
-    // Initialize auth from sessionStorage
-    initializeAuth()
-  }, [initializeAuth])
-
-  // Check token on app load
-  useEffect(() => {
-    if (token && !isAuthenticated) {
-      getCurrentUser()
-    }
-  }, [token, isAuthenticated, getCurrentUser])
+  const { isAuthenticated, isLoading } = useAuthStore()
 
   // Start activity tracking when user is authenticated
   useEffect(() => {

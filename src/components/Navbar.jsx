@@ -4,14 +4,14 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Film, Home, Info, User, LogIn, UserPlus, Menu, X, LogOut, Shield, Users, Search } from 'lucide-react'
 import { useRef } from 'react'
 import { userService } from '../services/userService'
-import { useAuthStore } from '../store/authStore'
+import { useAuthStore } from '../store/newAuthStore'
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-  const { isAuthenticated, user, logout } = useAuthStore()
+  const { isAuthenticated, user, profile, signOut } = useAuthStore()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [isSearching, setIsSearching] = useState(false)
@@ -165,7 +165,7 @@ const Navbar = () => {
                     )}
                   </Link>
                   <button
-                    onClick={logout}
+                    onClick={signOut}
                     className="btn btn-ghost"
                   >
                     <LogOut className="w-4 h-4" />
@@ -249,7 +249,7 @@ const Navbar = () => {
                     </Link>
                     <button
                       onClick={() => {
-                        logout()
+                        signOut()
                         setIsMobileMenuOpen(false)
                       }}
                       className="w-full btn btn-ghost justify-start"

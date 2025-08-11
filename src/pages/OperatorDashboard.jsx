@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useAuthStore } from '../store/authStore'
+import { useAuthStore } from '../store/newAuthStore'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { 
   UserGroupIcon, 

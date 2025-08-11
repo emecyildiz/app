@@ -4,7 +4,7 @@ import { Camera, User, Mail, Calendar, Film, Star, Heart, Settings, LogOut, MapP
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 
-import { useAuthStore } from '../store/authStore'
+import { useAuthStore } from '../store/newAuthStore'
 import { useFavoritesStore } from '../store/favoritesStore'
 import { userService } from '../services/userService'
 import MovieCard from '../components/MovieCard'
@@ -12,7 +12,7 @@ import AvatarUpload from '../components/AvatarUpload'
 import { mockMovies } from '../utils/mockData'
 
 const Profile = () => {
-  const { user, updateProfile, updateAvatar, logout } = useAuthStore()
+  const { user, profile, updateProfile, updateAvatar, signOut } = useAuthStore()
   const { favorites, removeFromFavorites, getFavoritesCount } = useFavoritesStore()
   const [activeTab, setActiveTab] = useState('overview')
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -23,14 +23,14 @@ const Profile = () => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      name: user?.name || '',
-      username: user?.username || '',
+      name: profile?.name || '',
+      username: profile?.username || '',
       email: user?.email || '',
-      bio: user?.bio || '',
-      location: user?.location || '',
-      twitter: user?.socialLinks?.twitter || '',
-      instagram: user?.socialLinks?.instagram || '',
-      letterboxd: user?.socialLinks?.letterboxd || '',
+      bio: profile?.bio || '',
+      location: profile?.location || '',
+      twitter: profile?.social_links?.twitter || '',
+      instagram: profile?.social_links?.instagram || '',
+      letterboxd: profile?.social_links?.letterboxd || '',
     },
   })
 
@@ -271,7 +271,7 @@ const Profile = () => {
                 Profili Düzenle
               </button>
               <button
-                onClick={logout}
+                onClick={signOut}
                 className="btn btn-secondary"
               >
                 <LogOut className="w-4 h-4" />
