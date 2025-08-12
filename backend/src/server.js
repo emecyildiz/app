@@ -95,6 +95,60 @@ app.post('/auth/check-email', async (req, res) => {
   }
 })
 
+// Public search users
+app.get('/api/users/search', async (req, res) => {
+  try {
+    const q = (req.query.q || '').toString().trim()
+    const limit = Math.min(parseInt(req.query.limit || '10', 10), 50)
+    if (!q) return res.json([])
+    const pattern = `%${q}%`
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, name, username, avatar_url, role')
+      .or(`name.ilike.${pattern},username.ilike.${pattern}`)
+      .limit(limit)
+    if (error) throw error
+    res.json(data || [])
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// Public profile fetch
+app.get('/api/users/public/:identifier', async (req, res) => {
+  try {
+    const idf = decodeURIComponent(req.params.identifier)
+    let query = supabase.from('profiles').select('*').limit(1)
+    if (/^[0-9a-fA-F-]{36}$/.test(idf)) query = query.eq('id', idf)
+    else query = query.eq('username', idf)
+    const { data: arr, error } = await query
+    if (error) throw error
+    const profile = (arr && arr[0]) || null
+    if (!profile) return res.status(404).json({ error: 'not_found' })
+    const [{ count: ratingsCount }, { count: commentsCount }] = await Promise.all([
+      supabase.from('ratings').select('user_id', { count: 'exact', head: true }).eq('user_id', profile.id),
+      supabase.from('comments').select('user_id', { count: 'exact', head: true }).eq('user_id', profile.id),
+    ])
+    res.json({ profile, stats: { ratingsCount: ratingsCount || 0, commentsCount: commentsCount || 0 } })
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// User stats (requires user)
+app.get('/api/users/stats', requireAdmin, async (req, res) => {
+  try {
+    const uid = req.user.id
+    const [{ count: favoritesCount }, { count: ratingsCount }] = await Promise.all([
+      supabase.from('favorites').select('user_id', { count: 'exact', head: true }).eq('user_id', uid),
+      supabase.from('ratings').select('user_id', { count: 'exact', head: true }).eq('user_id', uid),
+    ])
+    res.json({ favoritesCount: favoritesCount || 0, ratingsCount: ratingsCount || 0, memberSince: null, memberSinceDays: 0 })
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
 // Test endpoint
 app.get('/test', (req, res) => {
   res.json({ message: 'Backend is working!' });
