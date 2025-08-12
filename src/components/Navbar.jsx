@@ -12,11 +12,14 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-  const { isAuthenticated, user, profile, signOut, forceSignOut } = useAuthStore()
+  const { isAuthenticated, user, profile, signOut } = useAuthStore()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [isSearching, setIsSearching] = useState(false)
   const searchTimeout = useRef(null)
+
+  // Guard: if auth store hasn't hydrated yet, avoid rendering actions that rely on it
+  const safeIsAuthenticated = Boolean(isAuthenticated && profile)
 
   const handleSearchChange = (e) => {
     setQuery(e.target.value)
@@ -57,9 +60,9 @@ const Navbar = () => {
     { path: '/', label: 'Ana Sayfa', icon: Home },
     { path: '/movies', label: 'Filmler', icon: Film },
     { path: '/about', label: 'Hakkında', icon: Info },
-    ...(isAuthenticated ? [{ path: '/profile', label: 'Profil', icon: User }] : []),
-    ...(profile?.role === 'ADMIN' ? [{ path: '/admin', label: 'Admin Panel', icon: Shield }] : []),
-    ...(profile?.role === 'OPERATOR' ? [{ path: '/operator', label: 'Operatör Paneli', icon: Shield }] : []),
+    ...(safeIsAuthenticated ? [{ path: '/profile', label: 'Profil', icon: User }] : []),
+    ...(safeIsAuthenticated && profile?.role === 'ADMIN' ? [{ path: '/admin', label: 'Admin Panel', icon: Shield }] : []),
+    ...(safeIsAuthenticated && profile?.role === 'OPERATOR' ? [{ path: '/operator', label: 'Operatör Paneli', icon: Shield }] : []),
   ]
 
   return (
@@ -146,7 +149,7 @@ const Navbar = () => {
 
             {/* Auth Buttons */}
             <div className="flex items-center gap-3">
-              {isAuthenticated ? (
+              {safeIsAuthenticated ? (
                 <>
                   <Link
                     to="/profile"
@@ -172,15 +175,7 @@ const Navbar = () => {
                     <LogOut className="w-4 h-4" />
                     <span>Çıkış</span>
                   </button>
-                  <button
-                    onClick={() => {
-                      forceSignOut()
-                    }}
-                    className="btn btn-ghost text-red-400 hover:text-red-300 text-xs"
-                    title="Tüm oturum verilerini temizle"
-                  >
-                    🗑️
-                  </button>
+                  {/* Force sign-out butonu kaldırıldı */}
                 </>
               ) : (
                 <>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Camera, User, Mail, Calendar, Film, Star, Heart, Settings, LogOut, MapPin, Edit2, Twitter, Instagram, Link, Users, UserMinus, Check, X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
@@ -9,10 +10,10 @@ import { useFavoritesStore } from '../store/favoritesStore'
 import { userService } from '../services/userService'
 import MovieCard from '../components/MovieCard'
 import AvatarUpload from '../components/AvatarUpload'
-import { mockMovies } from '../utils/mockData'
+import { movieService } from '../services/movieService'
 
 const Profile = () => {
-  const { user, profile, updateProfile, updateAvatar, signOut, forceSignOut } = useAuthStore()
+  const { user, profile, updateProfile, updateAvatar, signOut, isLoading } = useAuthStore()
   const { favorites, removeFromFavorites, getFavoritesCount } = useFavoritesStore()
   const [activeTab, setActiveTab] = useState('overview')
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -178,6 +179,8 @@ const Profile = () => {
     }
   }
 
+  if (isLoading) return null
+  if (!user) return <Navigate to="/login" replace />
   return (
     <div className="min-h-screen pt-20">
       <div className="container mx-auto px-4 py-8">
@@ -270,17 +273,7 @@ const Profile = () => {
                 <Edit2 className="w-4 h-4" />
                 Profili Düzenle
               </button>
-              <button
-                onClick={signOut}
-                className="btn btn-secondary"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-              <button
-                onClick={forceSignOut}
-                className="btn btn-secondary"
-                title="Zorla çıkış"
-              >
+              <button onClick={signOut} className="btn btn-secondary">
                 <LogOut className="w-4 h-4" />
               </button>
             </div>

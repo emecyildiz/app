@@ -8,7 +8,7 @@ import { useAuthStore } from '../store/newAuthStore'
 const Login = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { signIn, isLoading } = useAuthStore()
+  const { signIn, isLoading, initializeAuth } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   
@@ -30,6 +30,7 @@ const Login = () => {
   const onSubmit = async (data) => {
     const result = await signIn(data.username, data.password)
     if (result.success) {
+      await initializeAuth()
       navigate('/')
     }
   }

@@ -21,14 +21,19 @@ const PublicProfile = lazy(() => import('./pages/PublicProfile'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const EmailConfirmed = lazy(() => import('./pages/EmailConfirmed'))
+const ConfirmSignup = lazy(() => import('./pages/ConfirmSignup'))
+const InviteUserAccepted = lazy(() => import('./pages/InviteUserAccepted'))
+const MagicLink = lazy(() => import('./pages/MagicLink'))
+const ChangeEmailConfirmed = lazy(() => import('./pages/ChangeEmailConfirmed'))
+const ResetPassword = lazy(() => import('./pages/ResetPassword'))
+const Reauthenticate = lazy(() => import('./pages/Reauthenticate'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
-const VerifyEmail = lazy(() => import('./pages/VerifyEmail'))
 const AdminUserEdit = lazy(() => import('./pages/AdminUserEdit'))
 const OperatorDashboard = lazy(() => import('./pages/OperatorDashboard'))
 
 
 function App() {
-  const { isAuthenticated, isLoading } = useAuthStore()
+  const { isAuthenticated, user, isLoading } = useAuthStore()
 
   // Start activity tracking when user is authenticated
   useEffect(() => {
@@ -139,13 +144,13 @@ function App() {
         </Route>
         
         <Route path="/login" element={
-          isAuthenticated ? <Navigate to="/" /> : 
+          (isAuthenticated && user) ? <Navigate to="/" /> : 
           <Suspense fallback={<LoadingSpinner fullScreen />}>
             <Login />
           </Suspense>
         } />
         <Route path="/register" element={
-          isAuthenticated ? <Navigate to="/" /> : 
+          (isAuthenticated && user) ? <Navigate to="/" /> : 
           <Suspense fallback={<LoadingSpinner fullScreen />}>
             <Register />
           </Suspense>
@@ -155,11 +160,12 @@ function App() {
             <EmailConfirmed />
           </Suspense>
         } />
-        <Route path="/verify-email" element={
-          <Suspense fallback={<LoadingSpinner fullScreen />}>
-            <VerifyEmail />
-          </Suspense>
-        } />
+        <Route path="/confirm-signup" element={<Suspense fallback={<LoadingSpinner fullScreen />}><ConfirmSignup /></Suspense>} />
+        <Route path="/invite-accepted" element={<Suspense fallback={<LoadingSpinner fullScreen />}><InviteUserAccepted /></Suspense>} />
+        <Route path="/magic-link" element={<Suspense fallback={<LoadingSpinner fullScreen />}><MagicLink /></Suspense>} />
+        <Route path="/change-email" element={<Suspense fallback={<LoadingSpinner fullScreen />}><ChangeEmailConfirmed /></Suspense>} />
+        <Route path="/reset-password" element={<Suspense fallback={<LoadingSpinner fullScreen />}><ResetPassword /></Suspense>} />
+        <Route path="/reauthenticate" element={<Suspense fallback={<LoadingSpinner fullScreen />}><Reauthenticate /></Suspense>} />
       </Routes>
     </Router>
   )

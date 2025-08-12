@@ -26,7 +26,7 @@ const useAuthStore = create((set, get) => ({
         return
       }
 
-      if (session) {
+      if (session?.user?.id) {
         const { user } = session
         console.log('Found session for user:', user.email)
         console.log('Session expires at:', new Date(session.expires_at * 1000))
@@ -51,7 +51,9 @@ const useAuthStore = create((set, get) => ({
               await supabase.from('profiles').insert({
                 id: user.id,
                 name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
-                username: user.user_metadata?.username || user.email?.split('@')[0] || 'user'
+                username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
+                role: 'USER',
+                social_links: {}
               })
             }
 
@@ -59,7 +61,8 @@ const useAuthStore = create((set, get) => ({
               id: user.id,
               name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
               username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
-              role: 'USER'
+              role: 'USER',
+              social_links: {}
             }
             set({ profile: finalProfile })
           } catch (error) {
@@ -73,9 +76,20 @@ const useAuthStore = create((set, get) => ({
             set({ profile: fallback })
           }
         })()
-      } else {
-        set({ isLoading: false })
       }
+      if (!session?.user?.id) {
+        // No valid session: purge any stale supabase tokens to avoid ghost state
+        try {
+          Object.keys(localStorage).forEach((key) => {
+            if (key.includes('supabase') || key.startsWith('sb-')) {
+              localStorage.removeItem(key)
+            }
+          })
+          sessionStorage.removeItem('auth-token')
+        } catch {}
+        set({ user: null, profile: null, session: null, isAuthenticated: false })
+      }
+      set({ isLoading: false })
     } catch (error) {
       console.error('Auth initialization error:', error)
       set({ isLoading: false })
@@ -110,7 +124,9 @@ const useAuthStore = create((set, get) => ({
                 await supabase.from('profiles').insert({
                   id: user.id,
                   name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
-                  username: user.user_metadata?.username || user.email?.split('@')[0] || 'user'
+                  username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
+                  role: 'USER',
+                  social_links: {}
                 })
               }
 
@@ -118,7 +134,8 @@ const useAuthStore = create((set, get) => ({
                 id: user.id,
                 name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
                 username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
-                role: 'USER'
+                role: 'USER',
+                social_links: {}
               }
               set({ profile: finalProfile })
             } catch (error) {
@@ -132,7 +149,7 @@ const useAuthStore = create((set, get) => ({
               set({ profile: fallback })
             }
           }
-        } else if (event === 'SIGNED_OUT') {
+        } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
           try { sessionStorage.removeItem('auth-token') } catch {}
           set({
             user: null,
@@ -157,6 +174,7 @@ const useAuthStore = create((set, get) => ({
         email,
         password,
         options: {
+          emailRedirectTo: window.location.origin + '/confirm-signup',
           data: {
             name: userData.name,
             username: userData.username
@@ -201,43 +219,16 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
-  // Sign up using email OTP flow (custom verification screen)
-  signUpWithOtp: async (email, password, userData = {}) => {
-    set({ isLoading: true })
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: true,
-        }
-      })
-
-      if (error) {
-        toast.error(error.message)
-        set({ isLoading: false })
-        return { success: false, error: error.message }
-      }
-
-      set({ isLoading: false })
-      toast.success('Doğrulama kodu e-postanıza gönderildi.')
-      // Pass password and userData via navigation state from the caller
-      return { success: true }
-    } catch (error) {
-      console.error('Sign up with OTP error:', error)
-      toast.error('Kod gönderilirken bir hata oluştu')
-      set({ isLoading: false })
-      return { success: false, error: error.message }
-    }
-  },
+  // Removed OTP signup flow from frontend; we use link confirmation for signup now
 
   // Verify the email OTP, then set the password and profile
   verifyEmailOtp: async (email, token, password, userData = {}) => {
     set({ isLoading: true })
     try {
       const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
-        email,
+        email: email.trim(),
         token,
-        type: 'email',
+        type: 'email', // for email OTP
       })
 
       if (verifyError) {
@@ -246,7 +237,7 @@ const useAuthStore = create((set, get) => ({
         return { success: false, error: verifyError.message }
       }
 
-      // Set password and user metadata now that the user/session exists
+      // If password already set via email/password later, skip; otherwise set it now
       const { data: updateData, error: updateError } = await supabase.auth.updateUser({
         password,
         data: {
@@ -279,7 +270,12 @@ const useAuthStore = create((set, get) => ({
         console.error('Profile upsert after OTP error:', profileErr)
       }
 
-      const session = verifyData?.session || (await supabase.auth.getSession()).data.session
+      // Some flows return no session immediately; fetch after a short delay
+      let session = verifyData?.session
+      if (!session) {
+        try { await new Promise((r) => setTimeout(r, 150)) } catch {}
+        session = (await supabase.auth.getSession()).data.session
+      }
       const user = updateData?.user || verifyData?.user || session?.user
 
       set({
@@ -304,20 +300,23 @@ const useAuthStore = create((set, get) => ({
   // Resend the email OTP
   resendEmailOtp: async (email) => {
     try {
-      // Prefer resend if available, otherwise trigger signInWithOtp again
-      if (supabase.auth.resend) {
-        const { error } = await supabase.auth.resend({ type: 'email', email })
-        if (error) throw error
-      } else {
-        const { error } = await supabase.auth.signInWithOtp({ email })
-        if (error) throw error
-      }
+      // Some Supabase versions require specific types for resend.
+      // Safest cross-version approach is to trigger a fresh OTP via signInWithOtp.
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: false },
+      })
+      if (error) throw error
       toast.success('Kod yeniden gönderildi')
       return { success: true }
     } catch (error) {
       console.error('Resend OTP error:', error)
-      toast.error('Kod gönderilemedi')
-      return { success: false, error: error.message }
+      const message =
+        error?.message?.includes('Missing one of these types')
+          ? 'Kod yeniden gönderilemedi. Lütfen tekrar deneyin.'
+          : (error?.message || 'Kod gönderilemedi')
+      toast.error(message)
+      return { success: false, error: message }
     }
   },
 
@@ -332,9 +331,12 @@ const useAuthStore = create((set, get) => ({
       })
 
       if (error) {
-        toast.error(error.message)
+        const message = error.message || 'Giriş başarısız!'
+        toast.error(message)
         set({ isLoading: false })
-        return { success: false, error: error.message }
+        const normalized = message.toLowerCase()
+        const errorCode = normalized.includes('confirm') ? 'email_not_confirmed' : 'invalid_credentials'
+        return { success: false, error: message, errorCode }
       }
 
       // Get user profile
@@ -366,12 +368,33 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
+  resendSignupConfirmation: async (email) => {
+    try {
+      if (typeof supabase.auth.resend === 'function') {
+        const { error } = await supabase.auth.resend({
+          type: 'signup',
+          email,
+          options: { emailRedirectTo: window.location.origin + '/confirm-signup' }
+        })
+        if (error) throw error
+        toast.success('Onay e‑postası yeniden gönderildi')
+        return { success: true }
+      }
+      toast.error('Yeniden gönderme desteklenmiyor')
+      return { success: false }
+    } catch (e) {
+      console.error('resendSignupConfirmation error:', e)
+      toast.error('Onay e‑postası gönderilemedi')
+      return { success: false }
+    }
+  },
+
   // Sign out
   signOut: async () => {
     try {
       // Best-effort local signout (doesn't require network)
       try { await supabase.auth.signOut({ scope: 'local' }) } catch {}
-      // Try global revoke (optional)
+      // Try global revoke
       try { await supabase.auth.signOut() } catch {}
 
       // Clear tokens from storages
@@ -428,12 +451,19 @@ const useAuthStore = create((set, get) => ({
         throw new Error('User not authenticated')
       }
 
+      // Map front-end keys to DB columns
+      const payload = {
+        name: updates.name,
+        username: updates.username,
+        bio: updates.bio,
+        location: updates.location,
+        social_links: updates.socialLinks,
+        updated_at: new Date().toISOString()
+      }
+
       const { data, error } = await supabase
         .from('profiles')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString()
-        })
+        .update(payload)
         .eq('id', user.id)
         .select()
         .single()

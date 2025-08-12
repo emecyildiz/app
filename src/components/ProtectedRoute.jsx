@@ -1,15 +1,19 @@
+import { useEffect } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuthStore } from '../store/newAuthStore'
+import LoadingSpinner from './LoadingSpinner'
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuthStore()
+  const { isAuthenticated, isLoading, session, initializeAuth } = useAuthStore()
+  // Ensure auth ready on protected mounts
+  useEffect(() => { try { initializeAuth() } catch {} }, [initializeAuth])
 
-  // While auth state is resolving, don't redirect or render target yet
+  // Wait until auth hydrated
   if (isLoading) {
-    return null
+    return <LoadingSpinner fullScreen />
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || !session) {
     return <Navigate to="/login" replace />
   }
 

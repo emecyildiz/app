@@ -7,7 +7,7 @@ import { useAuthStore } from '../store/newAuthStore'
 
 const Register = () => {
   const navigate = useNavigate()
-  const { signUpWithOtp, isLoading } = useAuthStore()
+  const { signUp, isLoading } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
   
   const {
@@ -20,12 +20,12 @@ const Register = () => {
   const password = watch('password')
 
   const onSubmit = async (data) => {
-    const result = await signUpWithOtp(data.email, data.password, {
+    const result = await signUp(data.email, data.password, {
       name: data.name,
       username: data.username
     })
     if (result.success) {
-      navigate('/verify-email', { state: { email: data.email, password: data.password, name: data.name, username: data.username } })
+      navigate('/login', { replace: true, state: { message: 'E‑posta doğrulama bağlantısı gönderildi. Lütfen e‑postanızı kontrol edin.' } })
     }
   }
 

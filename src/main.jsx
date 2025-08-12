@@ -4,7 +4,7 @@ import App from './App.jsx'
 import './styles/index.css'
 import { useAuthStore } from './store/newAuthStore'
 
-// Initialize auth and setup listener
+// Single-source auth bootstrap: do it once here, not in App
 const authStore = useAuthStore.getState()
 authStore.initializeAuth()
 authStore.setupAuthListener()

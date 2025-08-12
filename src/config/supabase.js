@@ -7,12 +7,19 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Supabase configuration missing. Please check your environment variables.');
 }
 
+// Use memory-based storage to avoid sticky/stale localStorage tokens.
+// We still mirror the access token we need into sessionStorage manually in the store.
 const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  }
+    persistSession: false, // prevent supabase from writing sb-* into localStorage
+    detectSessionInUrl: true,
+    storage: {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    },
+  },
 });
 
 export { supabase }; 
