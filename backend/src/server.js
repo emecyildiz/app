@@ -174,7 +174,14 @@ app.get('/api/users/search', async (req, res) => {
       .or(`name.ilike.${pattern},username.ilike.${pattern}`)
       .limit(limit);
     if (error) throw error;
-    res.json(data || []);
+    const mapped = (data || []).map(p => ({
+      id: p.id,
+      name: p.name,
+      username: p.username,
+      avatar: p.avatar_url || null,
+      role: p.role,
+    }));
+    res.json(mapped);
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -189,14 +196,30 @@ app.get('/api/users/public/:identifier', async (req, res) => {
     else query = query.eq('username', idf);
     const { data: arr, error } = await query;
     if (error) throw error;
-    const profile = (arr && arr[0]) || null;
-    if (!profile) return res.status(404).json({ error: 'not_found' });
+    const p = (arr && arr[0]) || null;
+    if (!p) return res.status(404).json({ error: 'not_found' });
 
     const [{ count: ratingsCount }, { count: commentsCount }] = await Promise.all([
-      supabase.from('ratings').select('user_id', { count: 'exact', head: true }).eq('user_id', profile.id),
-      supabase.from('comments').select('user_id', { count: 'exact', head: true }).eq('user_id', profile.id),
+      supabase.from('ratings').select('user_id', { count: 'exact', head: true }).eq('user_id', p.id),
+      supabase.from('comments').select('user_id', { count: 'exact', head: true }).eq('user_id', p.id),
     ]);
-    res.json({ profile, stats: { ratingsCount: ratingsCount || 0, commentsCount: commentsCount || 0 } });
+
+    // Normalized response for frontend
+    res.json({
+      id: p.id,
+      name: p.name,
+      username: p.username,
+      avatar: p.avatar_url || null,
+      bio: p.bio || null,
+      location: p.location || null,
+      memberSince: p.created_at || null,
+      stats: {
+        ratings: ratingsCount || 0,
+        comments: commentsCount || 0,
+        favorites: 0,
+        watchedMovies: 0,
+      },
+    });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
