@@ -1,4 +1,4 @@
-# 🚀 CinemaHub Cloud Deployment Rehberi
+# 🚀 ratemet Cloud Deployment Rehberi
 
 ## ✅ **Mevcut Durum:**
 - GitHub hesabınız var ✅

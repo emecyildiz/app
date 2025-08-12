@@ -1,4 +1,4 @@
-# 🚀 CinemaHub Backend Geliştirme Yol Haritası
+# 🚀 ratemet Backend Geliştirme Yol Haritası
 
 ## 📋 Proje Analizi
 

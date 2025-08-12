@@ -1,6 +1,6 @@
 # Supabase Kurulum Rehberi
 
-Bu rehber, CinemaHub projenizi Supabase ile entegre etmek için adım adım talimatları içerir.
+Bu rehber, ratemet projenizi Supabase ile entegre etmek için adım adım talimatları içerir.
 
 ## 1. Supabase Projesi Oluşturma
 
@@ -84,7 +84,7 @@ Proje root dizininde `.env` dosyası oluşturun:
 ```env
 # Frontend Environment Variables
 VITE_API_URL=https://your-backend.railway.app
-VITE_APP_NAME=CinemaHub
+VITE_APP_NAME=ratemet
 VITE_APP_VERSION=1.0.0
 
 # Supabase Configuration
@@ -101,7 +101,7 @@ VITE_DEV_API_URL=http://localhost:5000
 1. [Railway.app](https://railway.app) adresine gidin
 2. GitHub ile giriş yapın
 3. "New Project" > "Deploy from GitHub repo"
-4. CinemaHub backend repository'nizi seçin
+4. ratemet backend repository'nizi seçin
 
 ### 4.2 Environment Variables
 Railway Dashboard'da environment variables ekleyin:
@@ -118,7 +118,7 @@ Railway Dashboard'da environment variables ekleyin:
 ### 5.1 Vercel Projesi
 1. [Vercel.com](https://vercel.com) adresine gidin
 2. GitHub ile giriş yapın
-3. "New Project" > CinemaHub repository'nizi seçin
+3. "New Project" > ratemet repository'nizi seçin
 
 ### 5.2 Environment Variables
 Vercel Dashboard'da environment variables ekleyin:
@@ -250,4 +250,4 @@ npm run dev
 
 ---
 
-**Not:** Bu rehberi takip ederek CinemaHub projenizi tamamen Supabase ile entegre edebilirsiniz. Herhangi bir sorunla karşılaşırsanız, log'ları kontrol edin ve gerekirse Supabase, Railway veya Vercel support'larına başvurun. 
+**Not:** Bu rehberi takip ederek ratemet projenizi tamamen Supabase ile entegre edebilirsiniz. Herhangi bir sorunla karşılaşırsanız, log'ları kontrol edin ve gerekirse Supabase, Railway veya Vercel support'larına başvurun. 

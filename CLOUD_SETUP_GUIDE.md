@@ -1,4 +1,4 @@
-# ☁️ Cloud-Based CinemaHub Kurulum Rehberi
+# ☁️ Cloud-Based ratemet Kurulum Rehberi
 
 ## 🎯 **Hedef: 7/24 Erişilebilir Uygulama**
 
@@ -161,7 +161,7 @@ vercel --prod
 ### **1. GitHub'a Kod Yükleyin**
 ```bash
 git add .
-git commit -m "CinemaHub v1.0"
+git commit -m "ratemet v1.0"
 git push origin main
 ```
 

@@ -201,6 +201,126 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
+  // Sign up using email OTP flow (custom verification screen)
+  signUpWithOtp: async (email, password, userData = {}) => {
+    set({ isLoading: true })
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true,
+        }
+      })
+
+      if (error) {
+        toast.error(error.message)
+        set({ isLoading: false })
+        return { success: false, error: error.message }
+      }
+
+      set({ isLoading: false })
+      toast.success('Doğrulama kodu e-postanıza gönderildi.')
+      // Pass password and userData via navigation state from the caller
+      return { success: true }
+    } catch (error) {
+      console.error('Sign up with OTP error:', error)
+      toast.error('Kod gönderilirken bir hata oluştu')
+      set({ isLoading: false })
+      return { success: false, error: error.message }
+    }
+  },
+
+  // Verify the email OTP, then set the password and profile
+  verifyEmailOtp: async (email, token, password, userData = {}) => {
+    set({ isLoading: true })
+    try {
+      const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email',
+      })
+
+      if (verifyError) {
+        toast.error(verifyError.message)
+        set({ isLoading: false })
+        return { success: false, error: verifyError.message }
+      }
+
+      // Set password and user metadata now that the user/session exists
+      const { data: updateData, error: updateError } = await supabase.auth.updateUser({
+        password,
+        data: {
+          name: userData.name,
+          username: userData.username,
+        },
+      })
+
+      if (updateError) {
+        console.error('Update user after OTP error:', updateError)
+        toast.error('Şifre belirlenemedi')
+        set({ isLoading: false })
+        return { success: false, error: updateError.message }
+      }
+
+      // Ensure profile row exists/updated
+      try {
+        await supabase
+          .from('profiles')
+          .upsert(
+            {
+              id: updateData?.user?.id || verifyData?.user?.id,
+              username: userData.username,
+              name: userData.name,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'id' }
+          )
+      } catch (profileErr) {
+        console.error('Profile upsert after OTP error:', profileErr)
+      }
+
+      const session = verifyData?.session || (await supabase.auth.getSession()).data.session
+      const user = updateData?.user || verifyData?.user || session?.user
+
+      set({
+        user,
+        session,
+        isAuthenticated: true,
+        isLoading: false,
+      })
+
+      try { sessionStorage.setItem('auth-token', session?.access_token || '') } catch {}
+
+      toast.success('E-posta doğrulandı ve şifre ayarlandı!')
+      return { success: true }
+    } catch (error) {
+      console.error('Verify email OTP error:', error)
+      toast.error('Doğrulama başarısız oldu')
+      set({ isLoading: false })
+      return { success: false, error: error.message }
+    }
+  },
+
+  // Resend the email OTP
+  resendEmailOtp: async (email) => {
+    try {
+      // Prefer resend if available, otherwise trigger signInWithOtp again
+      if (supabase.auth.resend) {
+        const { error } = await supabase.auth.resend({ type: 'email', email })
+        if (error) throw error
+      } else {
+        const { error } = await supabase.auth.signInWithOtp({ email })
+        if (error) throw error
+      }
+      toast.success('Kod yeniden gönderildi')
+      return { success: true }
+    } catch (error) {
+      console.error('Resend OTP error:', error)
+      toast.error('Kod gönderilemedi')
+      return { success: false, error: error.message }
+    }
+  },
+
   // Sign in with email and password
   signIn: async (email, password) => {
     set({ isLoading: true })

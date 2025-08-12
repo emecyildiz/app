@@ -1,4 +1,4 @@
-# CinemaHub Proje Optimizasyon Raporu
+# ratemet Proje Optimizasyon Raporu
 
 ## Yapılan İyileştirmeler
 

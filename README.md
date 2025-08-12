@@ -1,4 +1,4 @@
-# CinemaHub Backend
+# ratemet Backend
 
 ## 🚀 Deployment Sorun Giderme Kılavuzu
 

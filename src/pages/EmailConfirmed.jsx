@@ -51,8 +51,8 @@ const EmailConfirmed = () => {
       >
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <Film className="w-10 h-10 text-primary-500" />
-          <span className="text-2xl font-bold text-white">CinemaHub</span>
+          <img src={import.meta.env.VITE_APP_LOGO_URL || '/favicon.ico'} alt="ratemet" className="w-10 h-10 rounded" />
+          <span className="text-2xl font-bold text-white">{import.meta.env.VITE_APP_NAME || 'ratemet'}</span>
         </div>
 
         {/* Content Card */}

@@ -7,7 +7,7 @@ import { useAuthStore } from '../store/newAuthStore'
 
 const Register = () => {
   const navigate = useNavigate()
-  const { signUp, isLoading } = useAuthStore()
+  const { signUpWithOtp, isLoading } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
   
   const {
@@ -20,12 +20,12 @@ const Register = () => {
   const password = watch('password')
 
   const onSubmit = async (data) => {
-    const result = await signUp(data.email, data.password, {
+    const result = await signUpWithOtp(data.email, data.password, {
       name: data.name,
       username: data.username
     })
     if (result.success) {
-      navigate('/login')
+      navigate('/verify-email', { state: { email: data.email, password: data.password, name: data.name, username: data.username } })
     }
   }
 
@@ -39,8 +39,8 @@ const Register = () => {
       >
         {/* Logo */}
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
-          <Film className="w-10 h-10 text-primary-500" />
-          <span className="text-2xl font-bold text-white">CinemaHub</span>
+          <img src={import.meta.env.VITE_APP_LOGO_URL || '/favicon.ico'} alt="ratemet" className="w-10 h-10 rounded" />
+          <span className="text-2xl font-bold text-white">{import.meta.env.VITE_APP_NAME || 'ratemet'}</span>
         </Link>
 
         {/* Form Card */}

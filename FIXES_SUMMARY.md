@@ -1,4 +1,4 @@
-# CinemaHub Proje Düzeltmeleri
+# ratemet Proje Düzeltmeleri
 
 ## Tespit Edilen Sorunlar ve Çözümleri
 

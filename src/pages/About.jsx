@@ -50,7 +50,7 @@ const About = () => {
             className="text-center max-w-3xl mx-auto"
           >
             <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-              CinemaHub Hakkında
+              {(import.meta.env.VITE_APP_NAME || 'ratemet')} Hakkında
             </h1>
             <p className="text-xl text-gray-300 mb-8">
               Film tutkunları için tasarlanmış, modern ve kullanıcı dostu bir platform. 
@@ -58,7 +58,7 @@ const About = () => {
             </p>
             <div className="flex items-center justify-center gap-2 text-primary-400">
               <Film className="w-8 h-8" />
-              <span className="text-2xl font-bold">CinemaHub</span>
+              <span className="text-2xl font-bold">{import.meta.env.VITE_APP_NAME || 'ratemet'}</span>
             </div>
           </motion.div>
         </div>
@@ -78,7 +78,7 @@ const About = () => {
           >
             <h2 className="text-4xl font-bold text-white mb-4">Özelliklerimiz</h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              CinemaHub, film deneyiminizi zenginleştirmek için tasarlanmış özelliklerle dolu.
+              {(import.meta.env.VITE_APP_NAME || 'ratemet')}, film deneyiminizi zenginleştirmek için tasarlanmış özelliklerle dolu.
             </p>
           </motion.div>
 
@@ -120,7 +120,7 @@ const About = () => {
             >
               <h2 className="text-4xl font-bold text-white mb-6">Misyonumuz</h2>
               <p className="text-gray-300 text-lg mb-6">
-                CinemaHub olarak amacımız, film severleri bir araya getiren, 
+                {(import.meta.env.VITE_APP_NAME || 'ratemet')} olarak amacımız, film severleri bir araya getiren, 
                 keşif yapmayı kolaylaştıran ve film deneyimini zenginleştiren 
                 bir platform oluşturmak.
               </p>
@@ -192,7 +192,7 @@ const About = () => {
               Hemen Başlayın
             </h2>
             <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-              CinemaHub'a katılın ve film dünyasının kapılarını aralayın. 
+              {(import.meta.env.VITE_APP_NAME || 'ratemet')}'e katılın ve film dünyasının kapılarını aralayın. 
               Ücretsiz hesap oluşturun ve keşfe başlayın!
             </p>
             <button className="btn btn-primary text-lg px-8 py-3">

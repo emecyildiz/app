@@ -22,6 +22,7 @@ const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const EmailConfirmed = lazy(() => import('./pages/EmailConfirmed'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'))
 const AdminUserEdit = lazy(() => import('./pages/AdminUserEdit'))
 const OperatorDashboard = lazy(() => import('./pages/OperatorDashboard'))
 
@@ -152,6 +153,11 @@ function App() {
         <Route path="/email-confirmed" element={
           <Suspense fallback={<LoadingSpinner fullScreen />}>
             <EmailConfirmed />
+          </Suspense>
+        } />
+        <Route path="/verify-email" element={
+          <Suspense fallback={<LoadingSpinner fullScreen />}>
+            <VerifyEmail />
           </Suspense>
         } />
       </Routes>

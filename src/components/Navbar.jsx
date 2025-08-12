@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Film, Home, Info, User, LogIn, UserPlus, Menu, X, LogOut, Shield, Users, Search } from 'lucide-react'
 import { useRef } from 'react'
 import { userService } from '../services/userService'
+import { APP_NAME, APP_LOGO_URL } from '../config/appConfig'
 import { useAuthStore } from '../store/newAuthStore'
 
 const Navbar = () => {
@@ -74,8 +75,8 @@ const Navbar = () => {
             to="/"
             className="flex items-center gap-2 text-xl font-bold text-white hover:text-primary-400 transition-colors"
           >
-            <Film className="w-8 h-8" />
-            <span>CinemaHub</span>
+            <img src={APP_LOGO_URL} alt={APP_NAME} className="w-8 h-8 rounded" />
+            <span>{APP_NAME}</span>
           </Link>
 
           {/* Desktop Navigation */}

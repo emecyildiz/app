@@ -1,4 +1,5 @@
 import { Film, Heart, Github, Twitter, Mail } from 'lucide-react'
+import { APP_NAME, APP_LOGO_URL } from '../config/appConfig'
 import { Link } from 'react-router-dom'
 
 const Footer = () => {
@@ -11,8 +12,8 @@ const Footer = () => {
           {/* Brand */}
           <div className="space-y-4">
             <Link to="/" className="flex items-center gap-2 text-xl font-bold text-white">
-              <Film className="w-8 h-8 text-primary-500" />
-              <span>CinemaHub</span>
+              <img src={APP_LOGO_URL} alt={APP_NAME} className="w-8 h-8 rounded" />
+              <span>{APP_NAME}</span>
             </Link>
             <p className="text-gray-400 text-sm">
               Film tutkunları için modern bir değerlendirme platformu. 
@@ -107,10 +108,10 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-dark-500 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-gray-400 text-sm">
-            © {currentYear} CinemaHub. Tüm hakları saklıdır.
+            © {currentYear} {APP_NAME}. Tüm hakları saklıdır.
           </p>
           <p className="text-gray-400 text-sm flex items-center gap-1">
-            Made with <Heart className="w-4 h-4 text-primary-500" /> by CinemaHub Team
+            Made with <Heart className="w-4 h-4 text-primary-500" /> by {APP_NAME} Team
           </p>
         </div>
       </div>
