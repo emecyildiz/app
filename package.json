@@ -4,14 +4,14 @@
   "description": "ratemet - Full Stack Application",
   "type": "module",
   "engines": {
-    "node": ">=18.0.0"
+  "node": ">=18.0.0"
   },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "vercel-build": "vite build",
-    "start": "node api/index.js",
+    "start": "node backend/src/server.js",
     "postinstall": "echo 'Dependencies installed successfully'"
   },
   "dependencies": {
