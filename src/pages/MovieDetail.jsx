@@ -9,7 +9,8 @@ import {
   Play, 
   ArrowLeft,
   Users,
-  Award
+  Award,
+  Heart
 } from 'lucide-react'
 import { useMovieStore } from '../store/movieStore'
 import { useFavoritesStore } from '../store/favoritesStore'
