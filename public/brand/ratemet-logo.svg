@@ -1,0 +1,26 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="128" cy="128" r="120" fill="url(#gradient)" stroke="url(#gradient2)" stroke-width="4"/>
+  
+  <!-- Star icon -->
+  <path d="M128 40L142.5 95.5L200 95.5L155.75 130.5L170.25 186L128 151L85.75 186L100.25 130.5L56 95.5L113.5 95.5L128 40Z" fill="white"/>
+  
+  <!-- Film strip elements -->
+  <rect x="80" y="160" width="16" height="16" rx="2" fill="white" opacity="0.8"/>
+  <rect x="104" y="160" width="16" height="16" rx="2" fill="white" opacity="0.8"/>
+  <rect x="128" y="160" width="16" height="16" rx="2" fill="white" opacity="0.8"/>
+  <rect x="152" y="160" width="16" height="16" rx="2" fill="white" opacity="0.8"/>
+  <rect x="176" y="160" width="16" height="16" rx="2" fill="white" opacity="0.8"/>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f093fb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f5576c;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>

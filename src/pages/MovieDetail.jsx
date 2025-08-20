@@ -35,6 +35,8 @@ const MovieDetail = () => {
     if (id) {
       loadMovieDetails(id)
       loadSimilarMovies(id)
+      // Sayfanın en üstüne scroll et
+      window.scrollTo(0, 0)
     }
 
     return () => {
