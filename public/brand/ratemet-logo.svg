@@ -1,26 +1,28 @@
-<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background circle -->
-  <circle cx="128" cy="128" r="120" fill="url(#gradient)" stroke="url(#gradient2)" stroke-width="4"/>
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- ratemet text -->
+  <text x="10" y="38" font-family="Arial, sans-serif" font-size="32" font-weight="bold" font-style="italic" fill="#D2691E">
+    ratemet
+  </text>
   
-  <!-- Star icon -->
-  <path d="M128 40L142.5 95.5L200 95.5L155.75 130.5L170.25 186L128 151L85.75 186L100.25 130.5L56 95.5L113.5 95.5L128 40Z" fill="white"/>
-  
-  <!-- Film strip elements -->
-  <rect x="80" y="160" width="16" height="16" rx="2" fill="white" opacity="0.8"/>
-  <rect x="104" y="160" width="16" height="16" rx="2" fill="white" opacity="0.8"/>
-  <rect x="128" y="160" width="16" height="16" rx="2" fill="white" opacity="0.8"/>
-  <rect x="152" y="160" width="16" height="16" rx="2" fill="white" opacity="0.8"/>
-  <rect x="176" y="160" width="16" height="16" rx="2" fill="white" opacity="0.8"/>
-  
-  <!-- Gradients -->
-  <defs>
-    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
-    </linearGradient>
-    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#f093fb;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#f5576c;stop-opacity:1" />
-    </linearGradient>
-  </defs>
+  <!-- Whale icon - compact design -->
+  <g transform="translate(140, 15)">
+    <!-- Whale body -->
+    <ellipse cx="20" cy="20" rx="18" ry="12" fill="#2F4F4F"/>
+    
+    <!-- Whale head -->
+    <ellipse cx="35" cy="20" rx="10" ry="8" fill="#2F4F4F"/>
+    
+    <!-- Whale tail -->
+    <path d="M3 20 Q-5 15 -5 20 Q-5 25 3 20" fill="#2F4F4F"/>
+    
+    <!-- Whale eye -->
+    <circle cx="38" cy="17" r="2.5" fill="white"/>
+    <circle cx="38" cy="17" r="1.2" fill="black"/>
+    
+    <!-- Whale mouth -->
+    <path d="M42 20 Q45 20 45 23 Q45 26 42 26" stroke="#2F4F4F" stroke-width="2" fill="none"/>
+    
+    <!-- Whale fin -->
+    <ellipse cx="25" cy="30" rx="6" ry="3" fill="#2F4F4F"/>
+  </g>
 </svg>

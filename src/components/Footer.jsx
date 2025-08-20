@@ -12,8 +12,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="space-y-4">
             <Link to="/" className="flex items-center gap-2 text-xl font-bold text-white">
-                             <img src={APP_LOGO_URL} alt={APP_NAME} className="w-12 h-12 rounded" />
-              <span>{APP_NAME}</span>
+                                            <img src={APP_LOGO_URL} alt={APP_NAME} className="h-10 w-auto" />
             </Link>
             <p className="text-gray-400 text-sm">
               Film tutkunları için modern bir değerlendirme platformu. 
