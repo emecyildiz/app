@@ -18,5 +18,6 @@ export default defineConfig({
         entryFileNames: 'assets/[name].js'
       }
     }
-  }
+  },
+  publicDir: 'public'
 })
