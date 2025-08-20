@@ -78,16 +78,19 @@ function App() {
               <Home />
             </Suspense>
           } />
+          
           <Route path="movies" element={
             <Suspense fallback={<LoadingSpinner fullScreen />}>
               <Movies />
             </Suspense>
           } />
+          
           <Route path="movies/:id" element={
             <Suspense fallback={<LoadingSpinner fullScreen />}>
               <MovieDetail />
             </Suspense>
           } />
+
           <Route path="about" element={
             <Suspense fallback={<LoadingSpinner fullScreen />}>
               <About />

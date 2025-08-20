@@ -91,7 +91,7 @@ const Home = () => {
               <Film className="w-12 h-12 text-primary-400 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">Topluluk</h3>
               <p className="text-gray-300">
-                Diğer film tutkunlarıyla etkileşime geçin
+                Diğer film tutkunlarıyla paylaşın
               </p>
             </motion.div>
           </div>

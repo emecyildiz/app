@@ -1,154 +1,137 @@
 import { create } from 'zustand'
-import { movieService } from '../services/movieService'
+import { tmdbService } from '../services/tmdbService'
 
-const useMovieStore = create((set, get) => ({
+export const useMovieStore = create((set, get) => ({
+  // State
   movies: [],
+  currentMovie: null,
   genres: [],
-  selectedGenre: null,
-  selectedActor: null,
-  searchQuery: '',
-  isLoading: false,
+  loading: false,
   error: null,
   currentPage: 1,
-  totalPages: 1,
+  totalPages: 0,
+  searchQuery: '',
+  selectedGenre: null,
+  sortBy: 'popularity.desc',
 
-  // Fetch movies
-  fetchMovies: async (page = 1) => {
-    set({ isLoading: true, error: null })
+  // Actions
+  setLoading: (loading) => set({ loading }),
+  setError: (error) => set({ error }),
+  clearError: () => set({ error: null }),
+
+  // Film listesi yükle
+  loadMovies: async (type = 'popular', page = 1) => {
+    set({ loading: true, error: null })
     try {
-      const { movies, totalPages } = await movieService.getMovies(page)
-      set({ movies, totalPages, currentPage: page, isLoading: false })
+      let response
+      switch (type) {
+        case 'popular':
+          response = await tmdbService.getPopularMovies(page)
+          break
+        case 'latest':
+          response = await tmdbService.getLatestMovies(page)
+          break
+        case 'topRated':
+          response = await tmdbService.getTopRatedMovies(page)
+          break
+        default:
+          response = await tmdbService.getPopularMovies(page)
+      }
+
+      set({
+        movies: response.results,
+        currentPage: response.page,
+        totalPages: response.total_pages,
+        loading: false
+      })
     } catch (error) {
-      set({ error: error.message, isLoading: false })
+      set({ error: error.message, loading: false })
     }
   },
 
-  // Fetch genres
-  fetchGenres: async () => {
+  // Film detayı yükle
+  loadMovieDetails: async (movieId) => {
+    set({ loading: true, error: null })
     try {
-      const genres = await movieService.getGenres()
-      set({ genres })
+      const movie = await tmdbService.getMovieDetails(movieId)
+      set({ currentMovie: movie, loading: false })
     } catch (error) {
-      console.error('Failed to fetch genres:', error)
+      set({ error: error.message, loading: false })
     }
   },
 
-  // Search movies
+  // Film arama
   searchMovies: async (query, page = 1) => {
-    set({ isLoading: true, error: null, searchQuery: query })
+    if (!query.trim()) {
+      get().loadMovies('popular', page)
+      return
+    }
+
+    set({ loading: true, error: null, searchQuery: query })
     try {
-      const { movies, totalPages } = await movieService.searchMovies(query, page)
-      set({ movies, totalPages, currentPage: page, isLoading: false })
+      const response = await tmdbService.searchMovies(query, page)
+      set({
+        movies: response.results,
+        currentPage: response.page,
+        totalPages: response.total_pages,
+        loading: false
+      })
     } catch (error) {
-      set({ error: error.message, isLoading: false })
+      set({ error: error.message, loading: false })
     }
   },
 
-  // Filter by genre
-  filterByGenre: async (genreId, page = 1) => {
-    set({ isLoading: true, error: null, selectedGenre: genreId })
+  // Kategorileri yükle
+  loadGenres: async () => {
     try {
-      const { movies, totalPages } = await movieService.getMoviesByGenre(genreId, page)
-      set({ movies, totalPages, currentPage: page, isLoading: false })
+      const response = await tmdbService.getGenres()
+      set({ genres: response.genres || [] })
     } catch (error) {
-      set({ error: error.message, isLoading: false })
+      console.error('Kategoriler yüklenemedi:', error)
+      set({ genres: [] })
     }
   },
 
-  // Filter by actor
-  filterByActor: async (actor, page = 1) => {
-    set({ isLoading: true, error: null, selectedActor: actor })
+  // Kategoriye göre filmler
+  loadMoviesByGenre: async (genreId, page = 1) => {
+    set({ loading: true, error: null, selectedGenre: genreId })
     try {
-      const { movies, totalPages } = await movieService.getMoviesByActor(actor, page)
-      set({ movies, totalPages, currentPage: page, isLoading: false })
+      const response = await tmdbService.getMoviesByGenre(genreId, page)
+      set({
+        movies: response.results,
+        currentPage: response.page,
+        totalPages: response.total_pages,
+        loading: false
+      })
     } catch (error) {
-      set({ error: error.message, isLoading: false })
+      set({ error: error.message, loading: false })
     }
   },
 
-  // Clear filters
-  clearFilters: () => {
-    set({ selectedGenre: null, selectedActor: null, searchQuery: '' })
-    get().fetchMovies(1)
-  },
-
-  // Load next page and append
-  loadMore: async () => {
-    const { currentPage, selectedGenre, selectedActor, searchQuery, movies } = get()
-    const nextPage = (currentPage || 1) + 1
-    set({ isLoading: true, error: null })
-    try {
-      let result
-      if (searchQuery) {
-        result = await movieService.searchMovies(searchQuery, nextPage)
-      } else if (selectedGenre) {
-        result = await movieService.getMoviesByGenre(selectedGenre, nextPage)
-      } else if (selectedActor) {
-        result = await movieService.getMoviesByActor(selectedActor, nextPage)
-      } else {
-        result = await movieService.getMovies(nextPage)
-      }
-      const merged = Array.isArray(result.movies)
-        ? [...movies, ...result.movies.filter(m => !movies.some(x => x.id === m.id))]
-        : movies
-      set({ movies: merged, totalPages: result.totalPages || get().totalPages, currentPage: nextPage, isLoading: false })
-    } catch (error) {
-      set({ error: error.message, isLoading: false })
+  // Sayfa değiştir
+  changePage: (page) => {
+    const { searchQuery, selectedGenre } = get()
+    if (searchQuery) {
+      get().searchMovies(searchQuery, page)
+    } else if (selectedGenre) {
+      get().loadMoviesByGenre(selectedGenre, page)
+    } else {
+      get().loadMovies('popular', page)
     }
   },
 
-  // Rate movie
-  rateMovie: async (movieId, rating) => {
-    try {
-      const result = await movieService.rateMovie(movieId, rating)
-      // Update the movie in the list
-      set((state) => ({
-        movies: state.movies.map((movie) =>
-          movie.id === movieId
-            ? { 
-                ...movie, 
-                userRating: rating,
-                averageRating: result.averageRating,
-                ratingsCount: result.ratingsCount,
-                friendsAverage: result.friendsAverage,
-                friendsCount: result.friendsCount,
-              }
-            : movie
-        ),
-      }))
-      return { success: true, data: result }
-    } catch (error) {
-      if (error.response?.status === 429) {
-        return { success: false, error: 'Günlük puan verme limitine ulaştınız (10 farklı film)' }
-      }
-      return { success: false, error: error.message }
-    }
+  // Arama temizle
+  clearSearch: () => {
+    set({ searchQuery: '', selectedGenre: null })
+    get().loadMovies('popular', 1)
   },
 
-  // Remove rating
-  removeRating: async (movieId) => {
-    try {
-      const result = await movieService.removeRating(movieId)
-      // Update the movie in the list
-      set((state) => ({
-        movies: state.movies.map((movie) =>
-          movie.id === movieId
-            ? { 
-                ...movie, 
-                userRating: null,
-                averageRating: result.averageRating,
-                ratingsCount: result.ratingsCount,
-                friendsAverage: result.friendsAverage,
-                friendsCount: result.friendsCount,
-              }
-            : movie
-        ),
-      }))
-      return { success: true, data: result }
-    } catch (error) {
-      return { success: false, error: error.message }
-    }
+  // Kategori seçimini temizle
+  clearGenreFilter: () => {
+    set({ selectedGenre: null })
+    get().loadMovies('popular', 1)
   },
+
+  // Film detayını temizle
+  clearCurrentMovie: () => set({ currentMovie: null })
 }))
-
-export { useMovieStore }

@@ -1,178 +1,275 @@
-import { useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Film, Search } from 'lucide-react'
-
+import { Search, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useMovieStore } from '../store/movieStore'
 import MovieCard from '../components/MovieCard'
 import LoadingSpinner from '../components/LoadingSpinner'
-import { useMovieStore } from '../store/movieStore'
 
 const Movies = () => {
   const {
     movies,
     genres,
-    isLoading,
+    loading,
     error,
-    fetchMovies,
-    fetchGenres,
+    currentPage,
+    totalPages,
+    searchQuery,
+    selectedGenre,
+    loadMovies,
     searchMovies,
-    filterByGenre,
-    clearFilters,
+    loadGenres,
+    loadMoviesByGenre,
+    changePage,
+    clearSearch,
+    clearGenreFilter
   } = useMovieStore()
 
-  const [searchParams, setSearchParams] = useSearchParams()
-  const [query, setQuery] = useState('')
-  const activeGenreId = (() => {
-    const gp = searchParams.get('genre')
-    const id = gp ? parseInt(gp, 10) : null
-    return Number.isNaN(id) ? null : id
-  })()
-
-  // Initial load + handle genre filter from URL
-  useEffect(() => {
-    fetchGenres()
-  }, [fetchGenres])
+  const [searchInput, setSearchInput] = useState('')
+  const [showFilters, setShowFilters] = useState(false)
+  const [activeTab, setActiveTab] = useState('popular')
 
   useEffect(() => {
-    const genreParam = searchParams.get('genre')
-    if (genreParam) {
-      const genreId = parseInt(genreParam, 10)
-      if (!Number.isNaN(genreId)) {
-        filterByGenre(genreId)
-        return
-      }
-    }
-    // default: fetch first page
-    fetchMovies(1)
-  }, [searchParams, fetchMovies, filterByGenre])
+    loadMovies('popular')
+    loadGenres()
+  }, [])
 
-  const onSubmitSearch = (e) => {
+  useEffect(() => {
+    setSearchInput(searchQuery)
+  }, [searchQuery])
+
+  const handleSearch = (e) => {
     e.preventDefault()
-    if (!query.trim()) return
-    // Clear genre param when searching
-    setSearchParams((prev) => {
-      prev.delete('genre')
-      return prev
-    })
-    searchMovies(query.trim())
+    if (searchInput.trim()) {
+      searchMovies(searchInput.trim())
+    }
   }
 
-  const onClear = () => {
-    setQuery('')
-    setSearchParams((prev) => {
-      prev.delete('genre')
-      return prev
-    })
-    clearFilters()
+  const handleTabChange = (tab) => {
+    setActiveTab(tab)
+    clearSearch()
+    clearGenreFilter()
+    loadMovies(tab)
+  }
+
+  const handleGenreSelect = (genreId) => {
+    if (selectedGenre === genreId) {
+      clearGenreFilter()
+    } else {
+      loadMoviesByGenre(genreId)
+    }
+  }
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">Hata Oluştu</h2>
+          <p className="text-gray-400 mb-4">{error}</p>
+          <button
+            onClick={() => loadMovies('popular')}
+            className="btn btn-primary"
+          >
+            Tekrar Dene
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-12">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Filmler</h1>
-            <p className="text-gray-400">Keşfet, ara ve detayları incele</p>
-          </div>
-
-          <form onSubmit={onSubmitSearch} className="w-full md:w-auto">
-            <div className="flex items-center gap-2">
-              <div className="flex-1 md:flex-none md:w-80 relative">
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Film ara..."
-                  className="w-full bg-dark-200 text-white rounded-lg py-2.5 pl-10 pr-3 outline-none border border-dark-300 focus:border-primary-500"
-                />
-                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              </div>
-              <button type="submit" className="btn btn-primary">Ara</button>
-              <button type="button" onClick={onClear} className="btn btn-ghost glass">Temizle</button>
+    <div className="min-h-screen pt-20">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-white mb-4">Filmler</h1>
+          
+          {/* Search Bar */}
+          <form onSubmit={handleSearch} className="flex gap-4 mb-6">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Film ara..."
+                className="w-full pl-10 pr-4 py-3 bg-dark-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-primary-500"
+              />
             </div>
+            <button
+              type="submit"
+              className="btn btn-primary px-6"
+            >
+              Ara
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowFilters(!showFilters)}
+              className="btn btn-secondary px-4"
+            >
+              <Filter className="w-5 h-5" />
+            </button>
           </form>
+
+          {/* Active Filters */}
+          {(searchQuery || selectedGenre) && (
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-gray-400">Filtreler:</span>
+              {searchQuery && (
+                <span className="bg-primary-500/20 text-primary-300 px-3 py-1 rounded-full text-sm">
+                  "{searchQuery}"
+                  <button
+                    onClick={clearSearch}
+                    className="ml-2 hover:text-white"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {selectedGenre && (
+                <span className="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-sm">
+                  {genres.find(g => g.id === selectedGenre)?.name}
+                  <button
+                    onClick={clearGenreFilter}
+                    className="ml-2 hover:text-white"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Filters Panel */}
+          {showFilters && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="bg-dark-800 rounded-lg p-6 mb-6"
+            >
+              {/* Tabs */}
+              <div className="flex gap-2 mb-6">
+                {[
+                  { key: 'popular', label: 'Popüler' },
+                  { key: 'latest', label: 'En Yeni' },
+                  { key: 'topRated', label: 'En Çok Oy Alan' }
+                ].map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => handleTabChange(tab.key)}
+                    className={`px-4 py-2 rounded-lg transition-colors ${
+                      activeTab === tab.key && !searchQuery && !selectedGenre
+                        ? 'bg-primary-500 text-white'
+                        : 'bg-dark-700 text-gray-300 hover:bg-dark-600'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Genres */}
+              <div>
+                <h3 className="text-white font-semibold mb-3">Kategoriler</h3>
+                <div className="flex flex-wrap gap-2">
+                  {genres && genres.length > 0 ? (
+                    genres.map(genre => (
+                      <button
+                        key={genre.id}
+                        onClick={() => handleGenreSelect(genre.id)}
+                        className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                          selectedGenre === genre.id
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-dark-700 text-gray-300 hover:bg-dark-600'
+                        }`}
+                      >
+                        {genre.name}
+                      </button>
+                    ))
+                  ) : (
+                    <p className="text-gray-400 text-sm">Kategoriler yükleniyor...</p>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
         </div>
 
-        {/* Genres filter */}
-        {Array.isArray(genres) && genres.length > 0 && (
-          <div className="mb-6 flex flex-wrap gap-2">
-            <button
-              onClick={() => {
-                setQuery('')
-                setSearchParams({})
-                clearFilters()
-                fetchMovies(1)
-              }}
-              className={`px-4 py-1.5 rounded-full border text-sm transition-colors ${
-                !activeGenreId
-                  ? 'bg-primary-600/20 border-primary-500 text-primary-300'
-                  : 'bg-white/5 border-white/15 text-white hover:bg-white/10'
-              }`}
-            >
-              Tümü
-            </button>
-            {genres.slice(0, 18).map((g) => (
-              <button
-                key={g.id}
-                onClick={() => {
-                  setQuery('')
-                  setSearchParams({ genre: String(g.id) })
-                  filterByGenre(g.id, 1)
-                }}
-                className={`px-4 py-1.5 rounded-full border text-sm transition-colors ${
-                  activeGenreId === g.id
-                    ? 'bg-primary-600/20 border-primary-500 text-primary-300'
-                    : 'bg-white/5 border-white/15 text-white hover:bg-white/10'
-                }`}
-              >
-                {g.name}
-              </button>
-            ))}
+        {/* Movies Grid */}
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <LoadingSpinner />
           </div>
-        )}
-
-        {/* Loading */}
-        {isLoading && (
-          <div className="py-16">
-            <LoadingSpinner fullScreen={false} />
-          </div>
-        )}
-
-        {/* Error */}
-        {!isLoading && error && (
-          <div className="glass p-6 rounded-lg text-center text-red-400 mb-8">{error}</div>
-        )}
-
-        {/* Movies grid */}
-        {!isLoading && !error && (
+        ) : (
           <>
-            {Array.isArray(movies) && movies.length > 0 ? (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                  {movies.map((movie, index) => (
-                    <MovieCard key={`${movie.id}-${index}`} movie={movie} index={index} />
-                  ))}
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+            >
+              {movies && movies.length > 0 ? (
+                movies.map(movie => (
+                  <MovieCard key={movie.id} movie={movie} />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-20">
+                  <p className="text-gray-400">Film bulunamadı</p>
                 </div>
-                {useMovieStore.getState().currentPage < (useMovieStore.getState().totalPages || 1) && (
-                  <div className="flex justify-center mt-8">
-                    <button
-                      onClick={() => useMovieStore.getState().loadMore()}
-                      className="btn btn-secondary"
-                    >
-                      Daha Fazla Yükle
-                    </button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="glass p-10 rounded-xl text-center"
-              >
-                <Film className="w-10 h-10 text-primary-400 mx-auto mb-3" />
-                <p className="text-gray-300">Gösterilecek film bulunamadı.</p>
-              </motion.div>
+              )}
+            </motion.div>
+
+            {/* Pagination */}
+            {totalPages && totalPages > 1 && (
+              <div className="flex justify-center items-center gap-4 mt-12">
+                <button
+                  onClick={() => changePage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="btn btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Önceki
+                </button>
+                
+                <span className="text-white">
+                  Sayfa {currentPage} / {totalPages}
+                </span>
+                
+                <button
+                  onClick={() => changePage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="btn btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Sonraki
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* No Results */}
+            {movies && movies.length === 0 && !loading && (
+              <div className="text-center py-20">
+                <h3 className="text-2xl font-bold text-white mb-4">Sonuç Bulunamadı</h3>
+                <p className="text-gray-400 mb-6">
+                  Arama kriterlerinize uygun film bulunamadı.
+                </p>
+                <button
+                  onClick={clearSearch}
+                  className="btn btn-primary"
+                >
+                  Filtreleri Temizle
+                </button>
+              </div>
             )}
           </>
         )}

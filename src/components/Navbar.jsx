@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Film, Home, Info, User, LogIn, UserPlus, Menu, X, LogOut, Shield, Users, Search } from 'lucide-react'
+import { Home, Film, Info, User, LogIn, UserPlus, Menu, X, LogOut, Shield, Users, Search } from 'lucide-react'
 import { useRef } from 'react'
 import { userService } from '../services/userService'
 import { APP_NAME, APP_LOGO_URL } from '../config/appConfig'

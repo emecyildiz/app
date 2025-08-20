@@ -1,141 +1,124 @@
+import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { Star, Calendar, Clock, Heart } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { tmdbService } from '../services/tmdbService'
 import { useFavoritesStore } from '../store/favoritesStore'
 
-const MovieCard = ({ movie, index = 0, showFavoriteButton = true }) => {
-  const { addToFavorites, removeFromFavorites, isFavorite } = useFavoritesStore()
-  const isMovieFavorite = isFavorite(movie.id)
+const MovieCard = ({ movie, showFavoriteButton = true }) => {
+  const {
+    id,
+    title,
+    original_title,
+    poster_path,
+    backdrop_path,
+    vote_average,
+    release_date,
+    runtime,
+    overview
+  } = movie
 
-  const handleFavoriteClick = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    if (isMovieFavorite) {
-      removeFromFavorites(movie.id)
-    } else {
-      addToFavorites(movie)
-    }
+  const { addToFavorites, removeFromFavorites, isFavorite } = useFavoritesStore()
+  const isFavorited = isFavorite(id)
+
+  const posterURL = tmdbService.getImageURL(poster_path, 'w500')
+  const backdropURL = tmdbService.getImageURL(backdrop_path, 'w500')
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Tarih yok'
+    return new Date(dateString).getFullYear()
   }
 
-  const handleMovieClick = () => {
-    // Scroll to top when movie is clicked
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    })
+  const formatRuntime = (minutes) => {
+    if (!minutes) return null
+    const hours = Math.floor(minutes / 60)
+    const mins = minutes % 60
+    return `${hours}s ${mins}dk`
   }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="group relative"
+      transition={{ duration: 0.3 }}
+      whileHover={{ y: -5 }}
+      className="group relative overflow-hidden rounded-lg bg-dark-800 hover:bg-dark-700 transition-all duration-300"
     >
-      <Link to={`/movies/${movie.id}`} className="block" onClick={handleMovieClick}>
-        <div className="relative overflow-hidden rounded-xl bg-dark-200 transition-all duration-300 hover:transform hover:scale-[1.02]">
-          {/* Poster */}
-          <div className="aspect-[2/3] overflow-hidden">
-            <img
-              src={movie.posterUrl || movie.poster}
-              alt={movie.title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              loading="lazy"
-            />
-            
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            
-            {/* Rating Badge */}
-            <div className="absolute top-3 right-3 glass px-2 py-1 rounded-lg flex items-center gap-1">
-              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-              <span className="text-white font-semibold text-sm">
-                {movie.averageRating ? movie.averageRating.toFixed(1) : 'N/A'}
-              </span>
-              {movie.ratingsCount > 0 && (
-                <span className="text-gray-400 text-xs ml-1">({movie.ratingsCount})</span>
-              )}
+      <Link to={`/movies/${id}`}>
+        {/* Poster */}
+        <div className="relative aspect-[2/3] overflow-hidden">
+          <img
+            src={posterURL || backdropURL || '/placeholder-movie.jpg'}
+            alt={title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              e.target.src = '/placeholder-movie.jpg'
+            }}
+          />
+          
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute bottom-0 left-0 right-0 p-4">
+              <p className="text-sm text-gray-300 line-clamp-3">
+                {overview || 'Açıklama bulunamadı'}
+              </p>
             </div>
-            {movie.friendsAverage && (
-              <div className="absolute top-12 right-3 glass px-2 py-1 rounded-lg flex items-center gap-1">
-                <Star className="w-4 h-4 text-blue-500 fill-blue-500" />
-                <span className="text-white font-semibold text-sm">
-                  {movie.friendsAverage.toFixed(1)}
-                </span>
-                {movie.friendsCount > 0 && (
-                  <span className="text-gray-400 text-xs ml-1">({movie.friendsCount})</span>
-                )}
-              </div>
-            )}
-
-            {/* Favorite Button */}
-            {showFavoriteButton && (
-              <button
-                onClick={handleFavoriteClick}
-                className={`absolute top-3 left-3 p-2 rounded-full transition-all duration-300 ${
-                  isMovieFavorite
-                    ? 'bg-red-500/90 opacity-100'
-                    : 'bg-black/50 opacity-0 group-hover:opacity-100 hover:bg-red-500/90'
-                }`}
-              >
-                <Heart
-                  className={`w-4 h-4 transition-colors ${
-                    isMovieFavorite ? 'text-white fill-current' : 'text-white'
-                  }`}
-                />
-              </button>
-            )}
           </div>
 
-          {/* Content */}
-          <div className="p-4">
-            <h3 className="text-white font-semibold text-lg mb-2 line-clamp-1 group-hover:text-primary-400 transition-colors">
-              {movie.title}
-            </h3>
-            
-            <p className="text-gray-400 text-sm line-clamp-2 mb-3">
-              {movie.description}
-            </p>
+          {/* Rating Badge */}
+          {vote_average > 0 && (
+            <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/70 text-yellow-400 px-2 py-1 rounded-full text-sm font-medium">
+              <Star className="w-3 h-3 fill-current" />
+              <span>{vote_average.toFixed(1)}</span>
+            </div>
+          )}
 
-            <div className="flex items-center gap-4 text-xs text-gray-500">
+          {/* Favorite Button */}
+          {showFavoriteButton && (
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                if (isFavorited) {
+                  removeFromFavorites(id)
+                } else {
+                  addToFavorites(movie)
+                }
+              }}
+              className="absolute top-2 left-2 p-2 bg-black/70 rounded-full hover:bg-black/90 transition-colors"
+            >
+              <Heart 
+                className={`w-4 h-4 ${isFavorited ? 'text-red-500 fill-current' : 'text-white'}`} 
+              />
+            </button>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="p-4">
+          <h3 className="font-semibold text-white text-lg mb-2 line-clamp-2 group-hover:text-primary-400 transition-colors">
+            {title}
+          </h3>
+          
+          {original_title && original_title !== title && (
+            <p className="text-gray-400 text-sm mb-2 line-clamp-1">
+              {original_title}
+            </p>
+          )}
+
+          <div className="flex items-center gap-4 text-sm text-gray-400">
+            {release_date && (
               <div className="flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
-                <span>{movie.releaseYear || new Date(movie.releaseDate).getFullYear()}</span>
+                <span>{formatDate(release_date)}</span>
               </div>
-              {(movie.duration || movie.runtime) && (
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  <span>{movie.duration || movie.runtime} dk</span>
-                </div>
-              )}
-            </div>
-
-            {/* Genres */}
-            <div className="flex flex-wrap gap-1 mt-3">
-              {movie.genres && movie.genres.slice(0, 2).map((genre, index) => (
-                <span
-                  key={genre.id || index}
-                  className="px-2 py-1 text-xs bg-dark-300 text-gray-300 rounded-md"
-                >
-                  {typeof genre === 'string' ? genre : genre.name}
-                </span>
-              ))}
-              {movie.genres && movie.genres.length > 2 && (
-                <span className="px-2 py-1 text-xs bg-dark-300 text-gray-300 rounded-md">
-                  +{movie.genres.length - 2}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Hover Play Button */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-            <div className="w-16 h-16 rounded-full bg-primary-500/90 flex items-center justify-center transform scale-0 group-hover:scale-100 transition-transform duration-300">
-              <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-              </svg>
-            </div>
+            )}
+            
+            {runtime && (
+              <div className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                <span>{formatRuntime(runtime)}</span>
+              </div>
+            )}
           </div>
         </div>
       </Link>

@@ -1,143 +1,186 @@
-import axios from 'axios'
-
-// Using backend API for TMDB data
+import { supabase } from '../config/supabase'
 
 class MovieService {
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_URL || 'https://app-production-c295.up.railway.app'
-    console.log('MovieService - baseURL:', this.baseURL)
-    
-    this.apiClient = axios.create({
-      baseURL: this.baseURL,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
+    this.supabase = supabase
   }
 
-  getAuthHeaders() {
-    const token = typeof window !== 'undefined' ? sessionStorage.getItem('auth-token') : null
-    return token ? { Authorization: `Bearer ${token}` } : {}
-  }
-
-  async getMovies(page = 1, limit = 12) {
+  // Kullanıcının film puanlarını getir
+  async getMyRatings(page = 1, limit = 20) {
     try {
-      const response = await this.apiClient.get('/api/movies', {
-        params: { page, limit },
-      })
-      return response.data.data
+      const { data: { user } } = await this.supabase.auth.getUser()
+      if (!user) throw new Error('Kullanıcı girişi yapılmamış')
+
+      const from = (page - 1) * limit
+      const to = from + limit - 1
+
+      const { data, error, count } = await this.supabase
+        .from('movie_ratings')
+        .select(`
+          *,
+          movie:movies(*)
+        `, { count: 'exact' })
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .range(from, to)
+
+      if (error) throw error
+
+      return {
+        ratings: data || [],
+        totalPages: Math.ceil((count || 0) / limit),
+        currentPage: page
+      }
     } catch (error) {
-      console.error('Error fetching movies:', error)
-      throw new Error('Filmler yüklenirken bir hata oluştu')
+      console.error('Film puanları yüklenirken hata:', error)
+      return { ratings: [], totalPages: 0, currentPage: page }
     }
   }
 
-  async getMovieById(id) {
+  // Film puanla
+  async rateMovie(movieId, rating, comment = '') {
     try {
-      const response = await this.apiClient.get(`/api/movies/${id}`)
-      return response.data.data.movie
+      const { data: { user } } = await this.supabase.auth.getUser()
+      if (!user) throw new Error('Kullanıcı girişi yapılmamış')
+
+      // Önce mevcut puanı kontrol et
+      const { data: existingRating } = await this.supabase
+        .from('movie_ratings')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('movie_id', movieId)
+        .single()
+
+      if (existingRating) {
+        // Mevcut puanı güncelle
+        const { data, error } = await this.supabase
+          .from('movie_ratings')
+          .update({
+            rating,
+            comment,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingRating.id)
+          .select()
+          .single()
+
+        if (error) throw error
+        return { success: true, data }
+      } else {
+        // Yeni puan ekle
+        const { data, error } = await this.supabase
+          .from('movie_ratings')
+          .insert({
+            user_id: user.id,
+            movie_id: movieId,
+            rating,
+            comment
+          })
+          .select()
+          .single()
+
+        if (error) throw error
+        return { success: true, data }
+      }
     } catch (error) {
-      console.error('Error fetching movie:', error)
-      throw new Error('Film detayları yüklenirken bir hata oluştu')
+      console.error('Film puanlanırken hata:', error)
+      return { success: false, error: error.message }
     }
   }
 
-  async getGenres() {
+  // Film yorumunu sil
+  async deleteRating(movieId) {
     try {
-      const response = await this.apiClient.get('/api/movies/genres')
-      return response.data.data || []
+      const { data: { user } } = await this.supabase.auth.getUser()
+      if (!user) throw new Error('Kullanıcı girişi yapılmamış')
+
+      const { error } = await this.supabase
+        .from('movie_ratings')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', movieId)
+
+      if (error) throw error
+      return { success: true }
     } catch (error) {
-      console.error('Error fetching genres:', error)
-      return []
+      console.error('Film puanı silinirken hata:', error)
+      return { success: false, error: error.message }
     }
   }
 
-  async getMoviesByGenre(genreId, page = 1, limit = 12) {
+  // Kullanıcının izlediği filmleri getir
+  async getWatchedMovies(page = 1, limit = 20) {
     try {
-      const response = await this.apiClient.get(`/api/movies/genre/${genreId}`, { params: { page, limit } })
-      return response.data.data
+      const { data: { user } } = await this.supabase.auth.getUser()
+      if (!user) throw new Error('Kullanıcı girişi yapılmamış')
+
+      const from = (page - 1) * limit
+      const to = from + limit - 1
+
+      const { data, error, count } = await this.supabase
+        .from('watched_movies')
+        .select(`
+          *,
+          movie:movies(*)
+        `, { count: 'exact' })
+        .eq('user_id', user.id)
+        .order('watched_date', { ascending: false })
+        .range(from, to)
+
+      if (error) throw error
+
+      return {
+        movies: data || [],
+        totalPages: Math.ceil((count || 0) / limit),
+        currentPage: page
+      }
     } catch (error) {
-      console.error('Error fetching movies by genre:', error)
-      throw new Error('Kategori filmleri yüklenirken bir hata oluştu')
+      console.error('İzlenen filmler yüklenirken hata:', error)
+      return { movies: [], totalPages: 0, currentPage: page }
     }
   }
 
-  async getMoviesByActor(actor, page = 1, limit = 12) {
+  // Film izlendi olarak işaretle
+  async markAsWatched(movieId, watchedDate = new Date().toISOString()) {
     try {
-      const response = await this.apiClient.get(`/api/movies/actor/${encodeURIComponent(actor)}`, { params: { page, limit } })
-      return response.data.data
+      const { data: { user } } = await this.supabase.auth.getUser()
+      if (!user) throw new Error('Kullanıcı girişi yapılmamış')
+
+      const { data, error } = await this.supabase
+        .from('watched_movies')
+        .upsert({
+          user_id: user.id,
+          movie_id: movieId,
+          watched_date: watchedDate
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+      return { success: true, data }
     } catch (error) {
-      console.error('Error fetching movies by actor:', error)
-      throw new Error('Aktör filmleri yüklenirken bir hata oluştu')
+      console.error('Film izlendi olarak işaretlenirken hata:', error)
+      return { success: false, error: error.message }
     }
   }
 
-  async rateMovie(movieId, rating) {
+  // Film izlenmedi olarak işaretle
+  async markAsUnwatched(movieId) {
     try {
-      const response = await this.apiClient.post(`/api/movies/${movieId}/rate`, { rating }, {
-        headers: this.getAuthHeaders(),
-      })
-      return response.data.data
-    } catch (error) {
-      console.error('Error rating movie:', error)
-      throw error
-    }
-  }
+      const { data: { user } } = await this.supabase.auth.getUser()
+      if (!user) throw new Error('Kullanıcı girişi yapılmamış')
 
-  async removeRating(movieId) {
-    try {
-      const response = await this.apiClient.delete(`/api/movies/${movieId}/rate`, {
-        headers: this.getAuthHeaders(),
-      })
-      return response.data.data
-    } catch (error) {
-      console.error('Error removing rating:', error)
-      throw error
-    }
-  }
+      const { error } = await this.supabase
+        .from('watched_movies')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('movie_id', movieId)
 
-  async getMyRatings(page = 1, limit = 12) {
-    try {
-      const response = await this.apiClient.get('/api/users/ratings', {
-        params: { page, limit },
-        headers: this.getAuthHeaders(),
-      })
-      return response.data.data
+      if (error) throw error
+      return { success: true }
     } catch (error) {
-      console.error('Error fetching my ratings:', error)
-      throw error
-    }
-  }
-
-  async searchMovies(query, page = 1, limit = 12) {
-    try {
-      const response = await this.apiClient.get('/api/movies/search', {
-        params: { q: query, page, limit },
-      })
-      return response.data.data
-    } catch (error) {
-      console.error('Error searching movies:', error)
-      throw new Error('Arama yapılırken bir hata oluştu')
-    }
-  }
-
-  async getTrendingMovies() {
-    try {
-      const response = await this.apiClient.get('/api/movies/trending')
-      return response.data.data.movies || []
-    } catch (error) {
-      console.error('Error fetching trending movies:', error)
-      return []
-    }
-  }
-
-  async getAllActors() {
-    try {
-      const response = await this.apiClient.get('/api/movies/actors')
-      return response.data.data || []
-    } catch (error) {
-      console.error('Error fetching actors:', error)
-      return []
+      console.error('Film izlenmedi olarak işaretlenirken hata:', error)
+      return { success: false, error: error.message }
     }
   }
 }
