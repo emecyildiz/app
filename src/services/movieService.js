@@ -1,11 +1,6 @@
 import axios from 'axios'
-import { mockMovies, mockGenres } from '../utils/mockData'
-import { tmdbService } from './tmdbService'
 
-// For development, we'll use mock data
-// In production, replace with actual API endpoints
-const USE_TMDB_API = false // Using backend API
-const USE_MOCK_DATA = false // No mock data, only real API
+// Using backend API for TMDB data
 
 class MovieService {
   constructor() {
@@ -26,66 +21,21 @@ class MovieService {
   }
 
   async getMovies(page = 1, limit = 12) {
-    if (USE_TMDB_API) {
-      try {
-        return await tmdbService.getMovies(page, limit)
-      } catch (error) {
-        console.error('TMDB API error, falling back to mock data:', error)
-        // Fallback to mock data
-      }
-    }
-    
-    if (USE_MOCK_DATA) {
-      const start = (page - 1) * limit
-      const end = start + limit
-      const paginatedMovies = mockMovies.slice(start, end)
-      
-      return {
-        movies: paginatedMovies,
-        totalPages: Math.ceil(mockMovies.length / limit),
-        currentPage: page,
-      }
-    }
-
     try {
       const response = await this.apiClient.get('/api/movies', {
         params: { page, limit },
       })
-      return response.data.data // Backend response formatı
+      return response.data.data
     } catch (error) {
       console.error('Error fetching movies:', error)
-      // Fallback olarak mock data döndür
-      const start = (page - 1) * limit
-      const end = start + limit
-      const paginatedMovies = mockMovies.slice(start, end)
-      
-      return {
-        movies: paginatedMovies,
-        totalPages: Math.ceil(mockMovies.length / limit),
-        currentPage: page,
-      }
+      throw new Error('Filmler yüklenirken bir hata oluştu')
     }
   }
 
   async getMovieById(id) {
-    if (USE_TMDB_API) {
-      try {
-        return await tmdbService.getMovieById(id)
-      } catch (error) {
-        console.error('TMDB API error, falling back to mock data:', error)
-        // Fallback to mock data
-      }
-    }
-    
-    if (USE_MOCK_DATA) {
-      const movie = mockMovies.find((m) => m.id === parseInt(id))
-      if (!movie) throw new Error('Film bulunamadı')
-      return movie
-    }
-
     try {
       const response = await this.apiClient.get(`/api/movies/${id}`)
-      return response.data.data.movie // Backend response formatı
+      return response.data.data.movie
     } catch (error) {
       console.error('Error fetching movie:', error)
       throw new Error('Film detayları yüklenirken bir hata oluştu')
@@ -93,89 +43,32 @@ class MovieService {
   }
 
   async getGenres() {
-    if (USE_TMDB_API) {
-      try {
-        return await tmdbService.getGenres()
-      } catch (error) {
-        console.error('TMDB API error, falling back to mock data:', error)
-        // Fallback to mock data
-      }
-    }
-    
-    if (USE_MOCK_DATA) {
-      return mockGenres
-    }
-
     try {
       const response = await this.apiClient.get('/api/movies/genres')
       return response.data.data || []
     } catch (error) {
       console.error('Error fetching genres:', error)
-      // Return empty to avoid mismatched IDs vs TMDB
       return []
     }
   }
 
   async getMoviesByGenre(genreId, page = 1, limit = 12) {
-    if (USE_MOCK_DATA) {
-      const filtered = mockMovies.filter(m => Array.isArray(m.genres) && m.genres.includes(genreId))
-      const start = (page - 1) * limit
-      const end = start + limit
-      const paginated = filtered.slice(start, end)
-      return {
-        movies: paginated,
-        totalPages: Math.ceil(filtered.length / limit) || 1,
-        currentPage: page,
-      }
-    }
-
     try {
-      // Try a conventional endpoint if backend exists
       const response = await this.apiClient.get(`/api/movies/genre/${genreId}`, { params: { page, limit } })
-      // Expect same shape as getMovies
       return response.data.data
     } catch (error) {
       console.error('Error fetching movies by genre:', error)
-      // Fallback to mock
-      const filtered = mockMovies.filter(m => Array.isArray(m.genres) && m.genres.includes(genreId))
-      const start = (page - 1) * limit
-      const end = start + limit
-      const paginated = filtered.slice(start, end)
-      return {
-        movies: paginated,
-        totalPages: Math.ceil(filtered.length / limit) || 1,
-        currentPage: page,
-      }
+      throw new Error('Kategori filmleri yüklenirken bir hata oluştu')
     }
   }
 
   async getMoviesByActor(actor, page = 1, limit = 12) {
-    if (USE_MOCK_DATA) {
-      const filtered = mockMovies.filter(m => Array.isArray(m.cast) && m.cast.some(a => (a || '').toLowerCase() === (actor || '').toLowerCase()))
-      const start = (page - 1) * limit
-      const end = start + limit
-      const paginated = filtered.slice(start, end)
-      return {
-        movies: paginated,
-        totalPages: Math.ceil(filtered.length / limit) || 1,
-        currentPage: page,
-      }
-    }
-
     try {
       const response = await this.apiClient.get(`/api/movies/actor/${encodeURIComponent(actor)}`, { params: { page, limit } })
       return response.data.data
     } catch (error) {
       console.error('Error fetching movies by actor:', error)
-      const filtered = mockMovies.filter(m => Array.isArray(m.cast) && m.cast.some(a => (a || '').toLowerCase() === (actor || '').toLowerCase()))
-      const start = (page - 1) * limit
-      const end = start + limit
-      const paginated = filtered.slice(start, end)
-      return {
-        movies: paginated,
-        totalPages: Math.ceil(filtered.length / limit) || 1,
-        currentPage: page,
-      }
+      throw new Error('Aktör filmleri yüklenirken bir hata oluştu')
     }
   }
 
@@ -217,36 +110,11 @@ class MovieService {
   }
 
   async searchMovies(query, page = 1, limit = 12) {
-    if (USE_TMDB_API) {
-      try {
-        return await tmdbService.searchMovies(query, page, limit)
-      } catch (error) {
-        console.error('TMDB API error, falling back to mock data:', error)
-        // Fallback to mock data
-      }
-    }
-    
-    if (USE_MOCK_DATA) {
-      const searchResults = mockMovies.filter((movie) =>
-        movie.title.toLowerCase().includes(query.toLowerCase()) ||
-        movie.description.toLowerCase().includes(query.toLowerCase())
-      )
-      const start = (page - 1) * limit
-      const end = start + limit
-      const paginatedMovies = searchResults.slice(start, end)
-      
-      return {
-        movies: paginatedMovies,
-        totalPages: Math.ceil(searchResults.length / limit),
-        currentPage: page,
-      }
-    }
-
     try {
       const response = await this.apiClient.get('/api/movies/search', {
         params: { q: query, page, limit },
       })
-      return response.data.data // Backend response formatı
+      return response.data.data
     } catch (error) {
       console.error('Error searching movies:', error)
       throw new Error('Arama yapılırken bir hata oluştu')
@@ -254,46 +122,22 @@ class MovieService {
   }
 
   async getTrendingMovies() {
-    if (USE_MOCK_DATA) {
-      return mockMovies
-        .sort((a, b) => b.rating - a.rating)
-        .slice(0, 10)
-    }
-
     try {
       const response = await this.apiClient.get('/api/movies/trending')
-      return response.data.data.movies || [] // Backend response formatı
+      return response.data.data.movies || []
     } catch (error) {
       console.error('Error fetching trending movies:', error)
-      return mockMovies.slice(0, 10) // Fallback
+      return []
     }
   }
 
   async getAllActors() {
-    if (USE_MOCK_DATA) {
-      // Mock verilerden aktörleri çıkar
-      const allActors = new Set()
-      mockMovies.forEach(movie => {
-        if (movie.cast && Array.isArray(movie.cast)) {
-          movie.cast.forEach(actor => allActors.add(actor))
-        }
-      })
-      return Array.from(allActors).sort()
-    }
-
     try {
       const response = await this.apiClient.get('/api/movies/actors')
       return response.data.data || []
     } catch (error) {
       console.error('Error fetching actors:', error)
-      // Fallback - mock verilerden aktörleri çıkar
-      const allActors = new Set()
-      mockMovies.forEach(movie => {
-        if (movie.cast && Array.isArray(movie.cast)) {
-          movie.cast.forEach(actor => allActors.add(actor))
-        }
-      })
-      return Array.from(allActors).sort()
+      return []
     }
   }
 }
