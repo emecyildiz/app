@@ -1,9 +1,11 @@
 import axios from 'axios'
 import { mockMovies, mockGenres } from '../utils/mockData'
+import { tmdbService } from './tmdbService'
 
 // For development, we'll use mock data
 // In production, replace with actual API endpoints
-const USE_MOCK_DATA = false // Now using real API since Railway is working
+const USE_TMDB_API = false // Using backend API
+const USE_MOCK_DATA = false // No mock data, only real API
 
 class MovieService {
   constructor() {
@@ -24,6 +26,15 @@ class MovieService {
   }
 
   async getMovies(page = 1, limit = 12) {
+    if (USE_TMDB_API) {
+      try {
+        return await tmdbService.getMovies(page, limit)
+      } catch (error) {
+        console.error('TMDB API error, falling back to mock data:', error)
+        // Fallback to mock data
+      }
+    }
+    
     if (USE_MOCK_DATA) {
       const start = (page - 1) * limit
       const end = start + limit
@@ -57,6 +68,15 @@ class MovieService {
   }
 
   async getMovieById(id) {
+    if (USE_TMDB_API) {
+      try {
+        return await tmdbService.getMovieById(id)
+      } catch (error) {
+        console.error('TMDB API error, falling back to mock data:', error)
+        // Fallback to mock data
+      }
+    }
+    
     if (USE_MOCK_DATA) {
       const movie = mockMovies.find((m) => m.id === parseInt(id))
       if (!movie) throw new Error('Film bulunamadı')
@@ -73,6 +93,15 @@ class MovieService {
   }
 
   async getGenres() {
+    if (USE_TMDB_API) {
+      try {
+        return await tmdbService.getGenres()
+      } catch (error) {
+        console.error('TMDB API error, falling back to mock data:', error)
+        // Fallback to mock data
+      }
+    }
+    
     if (USE_MOCK_DATA) {
       return mockGenres
     }
@@ -188,6 +217,15 @@ class MovieService {
   }
 
   async searchMovies(query, page = 1, limit = 12) {
+    if (USE_TMDB_API) {
+      try {
+        return await tmdbService.searchMovies(query, page, limit)
+      } catch (error) {
+        console.error('TMDB API error, falling back to mock data:', error)
+        // Fallback to mock data
+      }
+    }
+    
     if (USE_MOCK_DATA) {
       const searchResults = mockMovies.filter((movie) =>
         movie.title.toLowerCase().includes(query.toLowerCase()) ||

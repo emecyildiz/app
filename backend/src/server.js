@@ -1,5 +1,6 @@
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
+const axios = require('axios');
 require('dotenv').config();
 
 const app = express();
@@ -25,6 +26,15 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
+
+// TMDB API setup
+const TMDB_API_KEY = process.env.TMDB_API_KEY;
+const TMDB_BASE_URL = process.env.TMDB_API_BASE_URL || 'https://api.themoviedb.org/3';
+const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p';
+
+if (!TMDB_API_KEY) {
+  console.error('TMDB_API_KEY is missing in environment variables');
+}
 
 // Helpers
 async function getUserFromRequest(req) {
@@ -193,6 +203,188 @@ app.get('/api/users/stats', requireUser, async (req, res) => {
 
 app.get('/test', (req, res) => {
   res.json({ message: 'Backend is working!' });
+});
+
+// TMDB API Endpoints
+app.get('/api/movies', async (req, res) => {
+  try {
+    const { page = 1, limit = 12 } = req.query;
+    
+    const response = await axios.get(`${TMDB_BASE_URL}/movie/popular`, {
+      params: {
+        api_key: TMDB_API_KEY,
+        page,
+        language: 'tr-TR'
+      }
+    });
+
+    const movies = response.data.results.map(movie => ({
+      id: movie.id,
+      title: movie.title,
+      original_title: movie.original_title,
+      overview: movie.overview,
+      poster_path: movie.poster_path ? `${TMDB_IMAGE_BASE_URL}/w500${movie.poster_path}` : null,
+      backdrop_path: movie.backdrop_path ? `${TMDB_IMAGE_BASE_URL}/w1280${movie.backdrop_path}` : null,
+      release_date: movie.release_date,
+      vote_average: movie.vote_average,
+      vote_count: movie.vote_count,
+      popularity: movie.popularity,
+      genre_ids: movie.genre_ids || []
+    }));
+
+    res.json({
+      data: {
+        movies,
+        totalPages: response.data.total_pages,
+        currentPage: parseInt(page),
+        totalResults: response.data.total_results
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching movies from TMDB:', error);
+    res.status(500).json({ error: 'Failed to fetch movies' });
+  }
+});
+
+app.get('/api/movies/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const response = await axios.get(`${TMDB_BASE_URL}/movie/${id}`, {
+      params: {
+        api_key: TMDB_API_KEY,
+        append_to_response: 'credits,videos,images',
+        language: 'tr-TR'
+      }
+    });
+
+    const movie = response.data;
+    const formattedMovie = {
+      id: movie.id,
+      title: movie.title,
+      original_title: movie.original_title,
+      overview: movie.overview,
+      poster_path: movie.poster_path ? `${TMDB_IMAGE_BASE_URL}/w500${movie.poster_path}` : null,
+      backdrop_path: movie.backdrop_path ? `${TMDB_IMAGE_BASE_URL}/w1280${movie.backdrop_path}` : null,
+      release_date: movie.release_date,
+      vote_average: movie.vote_average,
+      vote_count: movie.vote_count,
+      popularity: movie.popularity,
+      runtime: movie.runtime,
+      status: movie.status,
+      genres: movie.genres || [],
+      cast: movie.credits?.cast?.slice(0, 10) || [],
+      crew: movie.credits?.crew?.slice(0, 10) || [],
+      videos: movie.videos?.results || [],
+      images: movie.images || {}
+    };
+
+    res.json({
+      data: {
+        movie: formattedMovie
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching movie from TMDB:', error);
+    res.status(500).json({ error: 'Failed to fetch movie' });
+  }
+});
+
+app.get('/api/movies/genres', async (req, res) => {
+  try {
+    const response = await axios.get(`${TMDB_BASE_URL}/genre/movie/list`, {
+      params: {
+        api_key: TMDB_API_KEY,
+        language: 'tr-TR'
+      }
+    });
+
+    res.json({
+      data: response.data.genres || []
+    });
+  } catch (error) {
+    console.error('Error fetching genres from TMDB:', error);
+    res.status(500).json({ error: 'Failed to fetch genres' });
+  }
+});
+
+app.get('/api/movies/search', async (req, res) => {
+  try {
+    const { q: query, page = 1, limit = 12 } = req.query;
+    
+    if (!query) {
+      return res.status(400).json({ error: 'Query parameter is required' });
+    }
+
+    const response = await axios.get(`${TMDB_BASE_URL}/search/movie`, {
+      params: {
+        api_key: TMDB_API_KEY,
+        query,
+        page,
+        language: 'tr-TR'
+      }
+    });
+
+    const movies = response.data.results.map(movie => ({
+      id: movie.id,
+      title: movie.title,
+      original_title: movie.original_title,
+      overview: movie.overview,
+      poster_path: movie.poster_path ? `${TMDB_IMAGE_BASE_URL}/w500${movie.poster_path}` : null,
+      backdrop_path: movie.backdrop_path ? `${TMDB_IMAGE_BASE_URL}/w1280${movie.backdrop_path}` : null,
+      release_date: movie.release_date,
+      vote_average: movie.vote_average,
+      vote_count: movie.vote_count,
+      popularity: movie.popularity,
+      genre_ids: movie.genre_ids || []
+    }));
+
+    res.json({
+      data: {
+        movies,
+        totalPages: response.data.total_pages,
+        currentPage: parseInt(page),
+        totalResults: response.data.total_results
+      }
+    });
+  } catch (error) {
+    console.error('Error searching movies from TMDB:', error);
+    res.status(500).json({ error: 'Failed to search movies' });
+  }
+});
+
+app.get('/api/movies/trending', async (req, res) => {
+  try {
+    const response = await axios.get(`${TMDB_BASE_URL}/trending/movie/week`, {
+      params: {
+        api_key: TMDB_API_KEY,
+        language: 'tr-TR'
+      }
+    });
+
+    const movies = response.data.results.slice(0, 10).map(movie => ({
+      id: movie.id,
+      title: movie.title,
+      original_title: movie.original_title,
+      overview: movie.overview,
+      poster_path: movie.poster_path ? `${TMDB_IMAGE_BASE_URL}/w500${movie.poster_path}` : null,
+      backdrop_path: movie.backdrop_path ? `${TMDB_IMAGE_BASE_URL}/w1280${movie.backdrop_path}` : null,
+      release_date: movie.release_date,
+      vote_average: movie.vote_average,
+      vote_count: movie.vote_count,
+      popularity: movie.popularity,
+      genre_ids: movie.genre_ids || []
+    }));
+
+    res.json({
+      data: {
+        movies
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching trending movies from TMDB:', error);
+    res.status(500).json({ error: 'Failed to fetch trending movies' });
+  }
 });
 
 // Admin APIs
