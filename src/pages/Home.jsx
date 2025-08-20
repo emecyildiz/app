@@ -16,7 +16,7 @@ const Home = () => {
             transition={{ duration: 0.8 }}
           >
             <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
-              {import.meta.env.VITE_APP_NAME || 'ratemet'}'e Hoş Geldiniz
+              ratemet'e Hoş Geldiniz
             </h1>
             
             <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
@@ -48,7 +48,7 @@ const Home = () => {
           >
             <h2 className="text-4xl font-bold text-white mb-4">Özellikler</h2>
             <p className="text-gray-400 text-lg">
-              {(import.meta.env.VITE_APP_NAME || 'ratemet') + "'"}in sunduğu özellikler
+              ratemet'in sunduğu özellikler
             </p>
           </motion.div>
 
