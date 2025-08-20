@@ -14,9 +14,28 @@ import MovieCard from '../components/MovieCard'
 
 const Profile = () => {
   const { user, profile, updateProfile, updateAvatar, signOut, isLoading } = useAuthStore()
-  const { favorites, removeFromFavorites, getFavoritesCount } = useFavoritesStore()
+  const { favorites, removeFromFavorites, getFavoritesCount, clearFavorites } = useFavoritesStore()
   const [activeTab, setActiveTab] = useState('overview')
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  
+  // Friends state
+  const [friends, setFriends] = useState([])
+  const [requests, setRequests] = useState([])
+  const [friendsBusy, setFriendsBusy] = useState(false)
+
+  // Movie ratings state
+  const [ratedMovies, setRatedMovies] = useState([])
+  const [ratingsPage, setRatingsPage] = useState(1)
+  const [ratingsTotalPages, setRatingsTotalPages] = useState(1)
+  const [ratingsLoading, setRatingsLoading] = useState(false)
+
+  const [stats, setStats] = useState({ 
+    watchedMovies: 0, 
+    ratings: 0, 
+    favorites: 0, 
+    memberSince: user?.created_at || null, 
+    memberSinceDays: 0 
+  })
   
   const {
     register,
@@ -53,14 +72,6 @@ const Profile = () => {
       setIsEditModalOpen(false)
     }
   }
-
-  const [stats, setStats] = useState({ 
-    watchedMovies: 0, 
-    ratings: 0, 
-    favorites: 0, 
-    memberSince: user?.created_at || null, 
-    memberSinceDays: 0 
-  })
 
   useEffect(() => {
     let mounted = true
@@ -113,17 +124,6 @@ const Profile = () => {
     { id: 'friends', label: 'Arkadaşlar', icon: Users },
     { id: 'settings', label: 'Ayarlar', icon: Settings },
   ]
-
-  // Friends state
-  const [friends, setFriends] = useState([])
-  const [requests, setRequests] = useState([])
-  const [friendsBusy, setFriendsBusy] = useState(false)
-
-  // Movie ratings state
-  const [ratedMovies, setRatedMovies] = useState([])
-  const [ratingsPage, setRatingsPage] = useState(1)
-  const [ratingsTotalPages, setRatingsTotalPages] = useState(1)
-  const [ratingsLoading, setRatingsLoading] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -376,7 +376,7 @@ const Profile = () => {
                     <button
                       onClick={() => {
                         if (window.confirm('Tüm favorileri temizlemek istediğinize emin misiniz?')) {
-                          useFavoritesStore.getState().clearFavorites()
+                          clearFavorites()
                         }
                       }}
                       className="text-sm text-gray-400 hover:text-red-400 transition-colors"
