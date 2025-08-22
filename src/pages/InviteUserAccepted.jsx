@@ -7,7 +7,7 @@ import { useAuthStore } from '../store/newAuthStore'
 const InviteUserAccepted = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { initializeAuth } = useAuthStore()
+  const {} = useAuthStore()
   const [status, setStatus] = useState('loading')
 
   useEffect(() => {
@@ -15,7 +15,7 @@ const InviteUserAccepted = () => {
       try {
         const type = searchParams.get('type')
         if (type === 'invite') {
-          await initializeAuth()
+          // auth already bootstrapped centrally
           setStatus('success')
           setTimeout(() => navigate('/profile'), 1500)
         } else {

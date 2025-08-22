@@ -4,9 +4,7 @@ import { useAuthStore } from '../store/newAuthStore'
 import LoadingSpinner from './LoadingSpinner'
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isLoading, session, initializeAuth } = useAuthStore()
-  // Ensure auth ready on protected mounts
-  useEffect(() => { try { initializeAuth() } catch {} }, [initializeAuth])
+  const { isAuthenticated, isLoading, session } = useAuthStore()
 
   // Wait until auth hydrated
   if (isLoading) {

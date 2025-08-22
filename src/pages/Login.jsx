@@ -4,11 +4,12 @@ import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
 import { Film, Mail, Lock, LogIn } from 'lucide-react'
 import { useAuthStore } from '../store/newAuthStore'
+import { APP_NAME, APP_LOGO_URL } from '../config/appConfig'
 
 const Login = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { signIn, isLoading, initializeAuth } = useAuthStore()
+  const { signIn, isLoading } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   
@@ -30,7 +31,6 @@ const Login = () => {
   const onSubmit = async (data) => {
     const result = await signIn(data.username, data.password)
     if (result.success) {
-      await initializeAuth()
       navigate('/')
     }
   }
@@ -45,8 +45,7 @@ const Login = () => {
       >
         {/* Logo */}
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
-          <img src={import.meta.env.VITE_APP_LOGO_URL || '/favicon.ico'} alt="ratemet" className="w-10 h-10 rounded" />
-          <span className="text-2xl font-bold text-white">{import.meta.env.VITE_APP_NAME || 'ratemet'}</span>
+          <img src={APP_LOGO_URL} alt={APP_NAME} className="h-10 w-auto" />
         </Link>
 
         {/* Form Card */}

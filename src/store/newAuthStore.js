@@ -2,59 +2,86 @@ import { create } from 'zustand'
 import { supabase } from '../config/supabase'
 import toast from 'react-hot-toast'
 
+// Ensure only one initialization runs at a time across the app
+let inFlightAuthInit = null
+
 const useAuthStore = create((set, get) => ({
   user: null,
   profile: null,
   isAuthenticated: false,
   isLoading: false,
   session: null,
+  isInitialized: false, // Track if auth has been initialized
+  isInitializing: false,
 
   // Initialize auth state
   initializeAuth: async () => {
-    try {
-      set({ isLoading: true })
-      
-      // Debug: Check localStorage
-      console.log('LocalStorage keys:', Object.keys(localStorage).filter(key => key.includes('supabase') || key.startsWith('sb-')))
-      
-      // Get initial session
-      const { data: { session }, error } = await supabase.auth.getSession()
-      
-      if (error) {
-        console.error('Error getting session:', error)
-        set({ isLoading: false })
-        return
-      }
+    // Prevent multiple initializations and dedupe concurrent calls
+    if (get().isInitialized) {
+      console.log('Auth already initialized, skipping...')
+      return
+    }
+    if (get().isInitializing && inFlightAuthInit) {
+      console.log('Auth initialization in progress, awaiting existing run...')
+      return inFlightAuthInit
+    }
 
-      if (session?.user?.id) {
-        const { user } = session
-        console.log('Found session for user:', user.email)
-        console.log('Session expires at:', new Date(session.expires_at * 1000))
+    set({ isLoading: true, isInitializing: true })
 
-        // Immediately mark authenticated so UI can render
-        set({ user, session, isAuthenticated: true, isLoading: false })
-        // Persist API token for backend endpoints expecting Bearer
-        try {
-          sessionStorage.setItem('auth-token', session.access_token)
-        } catch {}
+    inFlightAuthInit = (async () => {
+      try {
+        console.log('Starting auth initialization...')
+        // Get initial session from Supabase (now persisted)
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (error) {
+          console.error('Error getting session:', error)
+          set({ isLoading: false, isInitialized: true })
+          return
+        }
 
-        // Fetch profile in background and update when ready
-        ;(async () => {
+        if (session?.user?.id) {
+          const { user } = session
+          console.log('Found session for user:', user.email)
+          console.log('Session expires at:', new Date(session.expires_at * 1000))
+
+          // Store token in sessionStorage for backend compatibility
           try {
-            const { data, error: profileError } = await supabase
+            sessionStorage.setItem('auth-token', session.access_token)
+          } catch {}
+
+          // Fetch profile with timeout
+          try {
+            console.log('Fetching profile for user:', user.id)
+            
+            // Add timeout to prevent hanging
+            const profilePromise = supabase
               .from('profiles')
               .select('*')
               .eq('id', user.id)
               .single()
 
+            const timeoutPromise = new Promise((_, reject) => 
+              setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+            )
+
+            const { data, error: profileError } = await Promise.race([profilePromise, timeoutPromise])
+
             if (profileError && profileError.code === 'PGRST116') {
-              await supabase.from('profiles').insert({
+              console.log('Profile not found, creating new profile')
+              const insertPromise = supabase.from('profiles').insert({
                 id: user.id,
                 name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
                 username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
                 role: 'USER',
                 social_links: {}
               })
+              
+              const insertTimeout = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Profile insert timeout')), 3000)
+              )
+              
+              await Promise.race([insertPromise, insertTimeout])
             }
 
             const finalProfile = data || {
@@ -64,36 +91,57 @@ const useAuthStore = create((set, get) => ({
               role: 'USER',
               social_links: {}
             }
-            set({ profile: finalProfile })
+
+            console.log('Setting complete auth state with profile:', finalProfile.name)
+            // Set complete state at once
+            set({ 
+              user, 
+              session, 
+              profile: finalProfile,
+              isAuthenticated: true, 
+              isLoading: false,
+              isInitialized: true 
+            })
           } catch (error) {
-            console.error('Background profile fetch error:', error)
+            console.error('Profile fetch error:', error)
             const fallback = {
               id: user.id,
               name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
               username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
               role: 'USER'
             }
-            set({ profile: fallback })
+            console.log('Using fallback profile:', fallback.name)
+            set({ 
+              user, 
+              session, 
+              profile: fallback,
+              isAuthenticated: true, 
+              isLoading: false,
+              isInitialized: true 
+            })
           }
-        })()
-      }
-      if (!session?.user?.id) {
-        // No valid session: purge any stale supabase tokens to avoid ghost state
-        try {
-          Object.keys(localStorage).forEach((key) => {
-            if (key.includes('supabase') || key.startsWith('sb-')) {
-              localStorage.removeItem(key)
-            }
+        } else {
+          // No valid session
+          console.log('No valid session found')
+          set({ 
+            user: null, 
+            profile: null, 
+            session: null, 
+            isAuthenticated: false, 
+            isLoading: false,
+            isInitialized: true 
           })
-          sessionStorage.removeItem('auth-token')
-        } catch {}
-        set({ user: null, profile: null, session: null, isAuthenticated: false })
+        }
+      } catch (error) {
+        console.error('Auth initialization error:', error)
+        set({ isLoading: false, isInitialized: true })
+      } finally {
+        set({ isInitializing: false })
+        inFlightAuthInit = null
       }
-      set({ isLoading: false })
-    } catch (error) {
-      console.error('Auth initialization error:', error)
-      set({ isLoading: false })
-    }
+    })()
+
+    return inFlightAuthInit
   },
 
   // Setup auth listener
@@ -105,15 +153,16 @@ const useAuthStore = create((set, get) => ({
         if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           if (session) {
             const { user } = session
+            console.log('Processing SIGNED_IN event for user:', user.email)
 
-            // Immediately set authenticated so UI shows
-            set({ user, session, isAuthenticated: true, isLoading: false })
+            // Store token
             try {
               sessionStorage.setItem('auth-token', session.access_token)
             } catch {}
 
-            // Update profile in background
+            // Fetch profile immediately
             try {
+              console.log('Fetching profile for user:', user.id)
               const { data, error: profileError } = await supabase
                 .from('profiles')
                 .select('*')
@@ -121,6 +170,7 @@ const useAuthStore = create((set, get) => ({
                 .single()
 
               if (profileError && profileError.code === 'PGRST116') {
+                console.log('Profile not found, creating new profile')
                 await supabase.from('profiles').insert({
                   id: user.id,
                   name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
@@ -137,26 +187,46 @@ const useAuthStore = create((set, get) => ({
                 role: 'USER',
                 social_links: {}
               }
-              set({ profile: finalProfile })
+
+              console.log('Setting complete auth state with profile:', finalProfile.name)
+              // Set complete state at once
+              set({ 
+                user, 
+                session, 
+                profile: finalProfile,
+                isAuthenticated: true, 
+                isLoading: false,
+                isInitialized: true
+              })
             } catch (error) {
-              console.error('Listener background profile fetch error:', error)
+              console.error('Listener profile fetch error:', error)
               const fallback = {
                 id: user.id,
                 name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
                 username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
                 role: 'USER'
               }
-              set({ profile: fallback })
+              console.log('Using fallback profile:', fallback.name)
+              set({ 
+                user, 
+                session, 
+                profile: fallback,
+                isAuthenticated: true, 
+                isLoading: false,
+                isInitialized: true
+              })
             }
           }
         } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+          console.log('Processing SIGNED_OUT event')
           try { sessionStorage.removeItem('auth-token') } catch {}
           set({
             user: null,
             profile: null,
             session: null,
             isAuthenticated: false,
-            isLoading: false
+            isLoading: false,
+            isInitialized: false
           })
         }
       }
@@ -322,6 +392,11 @@ const useAuthStore = create((set, get) => ({
 
   // Sign in with email and password
   signIn: async (email, password) => {
+    // Prevent multiple sign-in attempts
+    if (get().isLoading) {
+      return { success: false, error: 'Giriş işlemi devam ediyor' }
+    }
+
     set({ isLoading: true })
     
     try {
@@ -339,6 +414,11 @@ const useAuthStore = create((set, get) => ({
         return { success: false, error: message, errorCode }
       }
 
+      // Store token
+      try {
+        sessionStorage.setItem('auth-token', data.session.access_token)
+      } catch {}
+
       // Get user profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
@@ -350,9 +430,15 @@ const useAuthStore = create((set, get) => ({
         console.error('Error fetching profile:', profileError)
       }
 
+      // Set complete state at once
       set({
         user: data.user,
-        profile,
+        profile: profile || {
+          id: data.user.id,
+          name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
+          username: data.user.user_metadata?.username || data.user.email?.split('@')[0] || 'user',
+          role: 'USER'
+        },
         session: data.session,
         isAuthenticated: true,
         isLoading: false
@@ -391,54 +477,65 @@ const useAuthStore = create((set, get) => ({
 
   // Sign out
   signOut: async () => {
-    try {
-      // Best-effort local signout (doesn't require network)
-      try { await supabase.auth.signOut({ scope: 'local' }) } catch {}
-      // Try global revoke
-      try { await supabase.auth.signOut() } catch {}
+    // Prevent multiple sign-out attempts
+    if (get().isLoading) {
+      return
+    }
 
-      // Clear tokens from storages
-      try { sessionStorage.removeItem('auth-token') } catch {}
-      try {
-        Object.keys(localStorage).forEach((key) => {
-          if (key.includes('supabase') || key.startsWith('sb-') || key.includes('auth-token')) {
-            localStorage.removeItem(key)
-          }
-        })
+    set({ isLoading: true })
+
+    try {
+      // Sign out from Supabase (this will clear persisted session)
+      const { error } = await supabase.auth.signOut()
+      
+      if (error) {
+        console.error('Supabase sign out error:', error)
+      }
+
+      // Clear sessionStorage token
+      try { 
+        sessionStorage.removeItem('auth-token') 
       } catch {}
 
+      // Reset state completely
       set({
         user: null,
         profile: null,
         session: null,
         isAuthenticated: false,
-        isLoading: false
+        isLoading: false,
+        isInitialized: false // Reset initialization flag
       })
 
       toast.success('Çıkış yapıldı!')
 
-      // Redirect to login to ensure clean state
-      try { window.location.replace('/login') } catch {}
+      // Redirect to login
+      try { 
+        window.location.replace('/login') 
+      } catch {}
     } catch (error) {
       console.error('Sign out error:', error)
       toast.error('Çıkış sırasında bir hata oluştu')
+      set({ isLoading: false })
     }
   },
 
   // Force sign out without calling Supabase (last resort)
   forceSignOut: () => {
-    try { sessionStorage.removeItem('auth-token') } catch {}
+    try { 
+      sessionStorage.removeItem('auth-token') 
+    } catch {}
+    
+    // Clear Supabase persisted session
     try {
-      Object.keys(localStorage).forEach((key) => {
-        if (key.includes('supabase') || key.startsWith('sb-') || key.includes('auth-token')) {
-          localStorage.removeItem(key)
-        }
-      })
+      supabase.auth.signOut({ scope: 'local' })
     } catch {}
 
     // Reset state
     set({ user: null, profile: null, session: null, isAuthenticated: false, isLoading: false })
-    try { window.location.replace('/login') } catch {}
+    try { 
+      window.location.replace('/login') 
+    } catch {}
   },
 
   // Update profile

@@ -19,7 +19,17 @@ const Navbar = () => {
   const searchTimeout = useRef(null)
 
   // Guard: if auth store hasn't hydrated yet, avoid rendering actions that rely on it
-  const safeIsAuthenticated = Boolean(isAuthenticated && profile)
+  const safeIsAuthenticated = Boolean(isAuthenticated && profile && user)
+  
+  // Debug auth state
+  console.log('Navbar Auth State:', {
+    isAuthenticated,
+    hasUser: !!user,
+    hasProfile: !!profile,
+    safeIsAuthenticated,
+    userEmail: user?.email,
+    profileName: profile?.name
+  })
 
   const handleSearchChange = (e) => {
     setQuery(e.target.value)
@@ -237,7 +247,7 @@ const Navbar = () => {
 
               {/* Mobile Auth Buttons */}
               <div className="space-y-2 pt-4 border-t border-white/10">
-                {isAuthenticated ? (
+                {safeIsAuthenticated ? (
                   <>
                     <Link
                       to="/profile"

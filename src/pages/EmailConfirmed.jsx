@@ -7,7 +7,7 @@ import { useAuthStore } from '../store/newAuthStore'
 const EmailConfirmed = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { initializeAuth } = useAuthStore()
+  const {} = useAuthStore()
   const [status, setStatus] = useState('loading') // loading, success, error
 
   useEffect(() => {
@@ -19,8 +19,7 @@ const EmailConfirmed = () => {
         const type = searchParams.get('type')
 
         if (type === 'signup' && accessToken) {
-          // Re-initialize auth to get the updated session
-          await initializeAuth()
+          // Auth already bootstrapped centrally; session will be picked up by listener
           setStatus('success')
           
           // Redirect to login after 3 seconds

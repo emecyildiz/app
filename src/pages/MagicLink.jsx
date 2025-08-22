@@ -7,7 +7,7 @@ import { useAuthStore } from '../store/newAuthStore'
 const MagicLink = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { initializeAuth } = useAuthStore()
+  const {} = useAuthStore()
   const [status, setStatus] = useState('loading')
 
   useEffect(() => {
@@ -15,7 +15,7 @@ const MagicLink = () => {
       try {
         const type = searchParams.get('type')
         if (type === 'magiclink' || type === 'recovery') {
-          await initializeAuth()
+          // auth already bootstrapped centrally
           setStatus('success')
           setTimeout(() => navigate('/'), 1500)
         } else {

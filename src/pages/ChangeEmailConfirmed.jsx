@@ -7,7 +7,7 @@ import { useAuthStore } from '../store/newAuthStore'
 const ChangeEmailConfirmed = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { initializeAuth } = useAuthStore()
+  const {} = useAuthStore()
   const [status, setStatus] = useState('loading')
 
   useEffect(() => {
@@ -15,7 +15,7 @@ const ChangeEmailConfirmed = () => {
       try {
         const type = searchParams.get('type')
         if (type === 'email_change') {
-          await initializeAuth()
+          // auth already bootstrapped centrally
           setStatus('success')
           setTimeout(() => navigate('/profile'), 1500)
         } else {

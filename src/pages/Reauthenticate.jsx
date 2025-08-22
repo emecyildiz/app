@@ -7,7 +7,7 @@ import { useAuthStore } from '../store/newAuthStore'
 const Reauthenticate = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { initializeAuth } = useAuthStore()
+  const {} = useAuthStore()
   const [status, setStatus] = useState('loading')
 
   useEffect(() => {
@@ -15,7 +15,7 @@ const Reauthenticate = () => {
       try {
         const type = searchParams.get('type')
         if (type === 'reauthentication') {
-          await initializeAuth()
+          // auth already bootstrapped centrally
           setStatus('success')
           setTimeout(() => navigate('/profile'), 1200)
         } else {

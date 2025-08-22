@@ -7,7 +7,7 @@ import { useAuthStore } from '../store/newAuthStore'
 const ConfirmSignup = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { initializeAuth } = useAuthStore()
+  const {} = useAuthStore()
   const [status, setStatus] = useState('loading')
 
   useEffect(() => {
@@ -16,7 +16,7 @@ const ConfirmSignup = () => {
         const type = searchParams.get('type')
         const accessToken = searchParams.get('access_token')
         if (type === 'signup' && accessToken) {
-          await initializeAuth()
+          // auth already bootstrapped centrally
           setStatus('success')
           setTimeout(() => navigate('/login', { state: { message: 'E‑posta doğrulandı. Giriş yapabilirsiniz.' } }), 2500)
         } else {
