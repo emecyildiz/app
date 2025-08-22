@@ -1,38 +1,70 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { Film, UserPlus } from 'lucide-react'
+import { Film, UserPlus, PlayCircle, User } from 'lucide-react'
+import { useAuthStore } from '../store/newAuthStore'
 
 const Home = () => {
+  const { isAuthenticated, user, profile } = useAuthStore()
+  const displayName = profile?.name || user?.email?.split('@')[0] || 'Hoş geldin'
+  
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-900 via-primary-800 to-dark-900"></div>
-        
-        <div className="relative z-10 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
-              ratemet'e Hoş Geldiniz
-            </h1>
-            
-            <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-              Film dünyasına katılın ve binlerce film arasından favorilerinizi keşfedin.
-            </p>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-900/60 via-primary-800/60 to-dark-900/80"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary-500/10 via-transparent to-transparent" />
 
-            <div className="flex gap-4 justify-center">
-              <Link to="/register" className="btn btn-primary text-lg px-8 py-3">
-                <UserPlus className="w-5 h-5" />
-                Hemen Üye Ol
-              </Link>
-              <Link to="/login" className="btn btn-secondary text-lg px-8 py-3">
-                Giriş Yap
-              </Link>
-            </div>
-          </motion.div>
+        <div className="relative z-10 text-center px-6">
+          {isAuthenticated && user ? (
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7 }}
+            >
+              <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-gray-300 mb-5">
+                <User className="w-4 h-4 text-primary-300" />
+                {displayName}
+              </div>
+              <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight text-white mb-4">
+                Kaldığın yerden devam et
+              </h1>
+              <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+                Popüler filmleri keşfet, favorilerine ekle ve değerlendirmelerini paylaş.
+              </p>
+              <div className="flex flex-wrap gap-4 justify-center">
+                <Link to="/movies" className="btn btn-primary text-lg px-8 py-3">
+                  <PlayCircle className="w-5 h-5" />
+                  Filmleri Keşfet
+                </Link>
+                <Link to="/profile" className="btn btn-ghost text-lg px-8 py-3">
+                  <User className="w-5 h-5" />
+                  Profilim
+                </Link>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
+                ratemet'e Hoş Geldiniz
+              </h1>
+              <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+                Film dünyasına katılın ve binlerce film arasından favorilerinizi keşfedin.
+              </p>
+              <div className="flex gap-4 justify-center">
+                <Link to="/register" className="btn btn-primary text-lg px-8 py-3">
+                  <UserPlus className="w-5 h-5" />
+                  Hemen Üye Ol
+                </Link>
+                <Link to="/login" className="btn btn-secondary text-lg px-8 py-3">
+                  Giriş Yap
+                </Link>
+              </div>
+            </motion.div>
+          )}
         </div>
       </section>
 
@@ -108,15 +140,33 @@ const Home = () => {
             viewport={{ once: true }}
             className="glass rounded-2xl p-12 text-center"
           >
-            <h2 className="text-4xl font-bold text-white mb-4">
-              Film Dünyasına Katılın
-            </h2>
-            <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
-              Binlerce film arasından favorilerinizi keşfedin, değerlendirin ve diğer film tutkunlarıyla paylaşın.
-            </p>
-            <Link to="/register" className="btn btn-primary text-lg px-8 py-3">
-              Hemen Üye Ol
-            </Link>
+            {isAuthenticated && user ? (
+              <>
+                <h2 className="text-4xl font-bold text-white mb-4">
+                  Bugün ne izlemek istersin?
+                </h2>
+                <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
+                  Editörün seçtikleri ve popüler yapımlar seni bekliyor.
+                </p>
+                <Link to="/movies" className="btn btn-primary text-lg px-8 py-3">
+                  <PlayCircle className="w-5 h-5" />
+                  Popüler Filmleri Gör
+                </Link>
+              </>
+            ) : (
+              <>
+                <h2 className="text-4xl font-bold text-white mb-4">
+                  Film Dünyasına Katılın
+                </h2>
+                <p className="text-gray-300 text-lg mb-8 max-w-2xl mx-auto">
+                  Binlerce film arasından favorilerinizi keşfedin, değerlendirin ve diğer film tutkunlarıyla paylaşın.
+                </p>
+                <Link to="/register" className="btn btn-primary text-lg px-8 py-3">
+                  <UserPlus className="w-5 h-5" />
+                  Hemen Üye Ol
+                </Link>
+              </>
+            )}
           </motion.div>
         </div>
       </section>
