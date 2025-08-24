@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Film, UserPlus, PlayCircle, User } from 'lucide-react'
 import { useAuthStore } from '../store/newAuthStore'
@@ -7,12 +8,42 @@ const Home = () => {
   const { isAuthenticated, user, profile } = useAuthStore()
   const displayName = profile?.name || user?.email?.split('@')[0] || 'Hoş geldin'
   
+  const containerRef = useRef(null)
+  const [tilt, setTilt] = useState({ x: 0, y: 0 })
+
+  const handleMouseMove = (e) => {
+    const el = containerRef.current
+    if (!el) return
+    const rect = el.getBoundingClientRect()
+    const relX = (e.clientX - rect.left) / rect.width
+    const relY = (e.clientY - rect.top) / rect.height
+    const rotateY = (relX - 0.5) * 12 // left/right
+    const rotateX = (0.5 - relY) * 8 // up/down
+    setTilt({ x: rotateX, y: rotateY })
+  }
+
+  const resetTilt = () => setTilt({ x: 0, y: 0 })
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative h-screen flex items-center justify-center">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-900/60 via-primary-800/60 to-dark-900/80"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary-500/10 via-transparent to-transparent" />
+      <section
+        ref={containerRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={resetTilt}
+        className="relative h-screen flex items-center justify-center overflow-hidden hero-3d"
+      >
+        {/* 3D layers */}
+        <motion.div
+          className="absolute inset-0 tilt-container"
+          style={{ transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale(1.04)` }}
+          transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+        >
+          <div
+            className="parallax-layer depth-30 maze-bg"
+            style={{ backgroundImage: "url('/brand/arka_plan.jpg')" }}
+          />
+        </motion.div>
 
         <div className="relative z-10 text-center px-6">
           {isAuthenticated && user ? (
