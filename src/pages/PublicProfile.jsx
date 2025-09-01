@@ -9,6 +9,7 @@ export default function PublicProfile() {
   const { username } = useParams()
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [privacyPublic, setPrivacyPublic] = useState(true)
   const [friendStatus, setFriendStatus] = useState('none')
   const [busy, setBusy] = useState(false)
   const { isAuthenticated, user } = useAuthStore()
@@ -20,6 +21,8 @@ export default function PublicProfile() {
       try {
         const data = await userService.getPublicProfile(username)
         if (mounted) setProfile(data)
+        // Capture privacy flag if server returns it
+        if (mounted && data && typeof data.isPublic === 'boolean') setPrivacyPublic(Boolean(data.isPublic))
       } finally {
         if (mounted) setLoading(false)
       }
@@ -176,6 +179,7 @@ export default function PublicProfile() {
           </div>
         </motion.div>
 
+        {/* Privacy gating: if profile is private and not friends/self, show only summary cards */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -198,6 +202,8 @@ export default function PublicProfile() {
             <p className="text-gray-400">Favori</p>
           </div>
         </motion.div>
+
+        {/* In a future step: if privacyPublic || friendStatus === 'friends' || friendStatus === 'self', render detailed favorites/ratings/comments sections here */}
       </div>
     </div>
   )

@@ -40,6 +40,8 @@ const Profile = () => {
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -51,6 +53,7 @@ const Profile = () => {
       twitter: profile?.social_links?.twitter || '',
       instagram: profile?.social_links?.instagram || '',
       letterboxd: profile?.social_links?.letterboxd || '',
+      isPublic: (profile?.social_links?.privacy || 'public') !== 'private',
     },
   })
 
@@ -61,6 +64,7 @@ const Profile = () => {
       email: data.email,
       bio: data.bio,
       location: data.location,
+      isPublic: data.isPublic,
       socialLinks: {
         twitter: data.twitter,
         instagram: data.instagram,
@@ -560,13 +564,7 @@ const Profile = () => {
                         <span className="text-gray-300">Profilimi herkese açık yap</span>
                         <input
                           type="checkbox"
-                          className="w-5 h-5 rounded border-gray-600 bg-dark-200 text-primary-500 focus:ring-primary-500"
-                        />
-                      </label>
-                      <label className="flex items-center justify-between">
-                        <span className="text-gray-300">İzleme geçmişimi göster</span>
-                        <input
-                          type="checkbox"
+                          {...register('isPublic')}
                           className="w-5 h-5 rounded border-gray-600 bg-dark-200 text-primary-500 focus:ring-primary-500"
                         />
                       </label>

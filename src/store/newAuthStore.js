@@ -554,7 +554,11 @@ const useAuthStore = create((set, get) => ({
         username: updates.username,
         bio: updates.bio,
         location: updates.location,
-        social_links: updates.socialLinks,
+        social_links: {
+          ...(updates.socialLinks || {}),
+          // privacy: 'public' | 'private' (default public)
+          privacy: updates.isPublic === false ? 'private' : 'public'
+        },
         updated_at: new Date().toISOString()
       }
 

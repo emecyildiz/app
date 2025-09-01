@@ -170,6 +170,7 @@ app.get('/api/users/public/:identifier', async (req, res) => {
       bio: p.bio || null,
       location: p.location || null,
       memberSince: p.created_at || null,
+      isPublic: (p?.social_links && typeof p.social_links === 'object') ? (p.social_links.privacy !== 'private') : true,
       stats: {
         ratings: ratingsCount || 0,
         comments: commentsCount || 0,
@@ -177,6 +178,24 @@ app.get('/api/users/public/:identifier', async (req, res) => {
         watchedMovies: 0,
       },
     });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Public privacy status by username or id
+app.get('/api/users/privacy/:identifier', async (req, res) => {
+  try {
+    const idf = decodeURIComponent(req.params.identifier);
+    let query = supabase.from('profiles').select('social_links').limit(1);
+    if (/^[0-9a-fA-F-]{36}$/.test(idf)) query = query.eq('id', idf);
+    else query = query.eq('username', idf);
+    const { data: arr, error } = await query;
+    if (error) throw error;
+    const p = (arr && arr[0]) || null;
+    if (!p) return res.status(404).json({ error: 'not_found' });
+    const isPublic = (p?.social_links && typeof p.social_links === 'object') ? (p.social_links.privacy !== 'private') : true;
+    res.json({ isPublic });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

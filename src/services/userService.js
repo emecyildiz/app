@@ -149,6 +149,37 @@ class UserService {
     }
   }
 
+  async getPrivacy(identifier) {
+    try {
+      const response = await axios.get(`${API_URL}/api/users/privacy/${encodeURIComponent(identifier)}`);
+      return Boolean(response.data?.isPublic);
+    } catch (error) {
+      console.error('Error fetching privacy:', error);
+      return true;
+    }
+  }
+
+  // Public lists (subject to privacy / friendship handled server-side in future)
+  async getUserFavorites(userId, page = 1) {
+    try {
+      const response = await axios.get(`${API_URL}/api/users/${userId}/favorites`, { params: { page }, headers: this.getAuthHeaders() });
+      return response.data || { items: [], totalPages: 0 };
+    } catch (error) {
+      console.error('Error fetching user favorites:', error);
+      return { items: [], totalPages: 0 };
+    }
+  }
+
+  async getUserRatings(userId, page = 1) {
+    try {
+      const response = await axios.get(`${API_URL}/api/users/${userId}/ratings`, { params: { page }, headers: this.getAuthHeaders() });
+      return response.data || { items: [], totalPages: 0 };
+    } catch (error) {
+      console.error('Error fetching user ratings:', error);
+      return { items: [], totalPages: 0 };
+    }
+  }
+
   // ===== Friendships =====
   async getFriendStatus(otherUserId) {
     try {
