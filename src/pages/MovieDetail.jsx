@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { 
   Star, 
@@ -16,6 +16,7 @@ import { useMovieStore } from '../store/movieStore'
 import { useFavoritesStore } from '../store/favoritesStore'
 import { tmdbService } from '../services/tmdbService'
 import { movieService } from '../services/movieService'
+import { useAuthStore } from '../store/newAuthStore'
 import MovieCard from '../components/MovieCard'
 import LoadingSpinner from '../components/LoadingSpinner'
 import toast from 'react-hot-toast'
@@ -24,6 +25,8 @@ const MovieDetail = () => {
   const { id } = useParams()
   const { currentMovie, loading, error, loadMovieDetails, clearCurrentMovie } = useMovieStore()
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavoritesStore()
+  const { isAuthenticated } = useAuthStore()
+  const navigate = useNavigate()
   const [similarMovies, setSimilarMovies] = useState([])
   const [loadingSimilar, setLoadingSimilar] = useState(false)
   const [userRating, setUserRating] = useState(0)
@@ -93,6 +96,11 @@ const MovieDetail = () => {
   }
 
   const handleRateMovie = async () => {
+    if (!isAuthenticated) {
+      toast.error('Puan vermek için giriş yapın')
+      navigate('/login')
+      return
+    }
     if (!userRating) return
     
     setRatingLoading(true)
@@ -277,7 +285,14 @@ const MovieDetail = () => {
 
                   {/* Rate Movie Button */}
                   <button
-                    onClick={() => setShowRatingModal(true)}
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        toast.error('Puan vermek için giriş yapın')
+                        navigate('/login')
+                        return
+                      }
+                      setShowRatingModal(true)
+                    }}
                     className="btn btn-secondary inline-flex items-center gap-2"
                   >
                     <Star className="w-4 h-4" />
@@ -287,6 +302,11 @@ const MovieDetail = () => {
                   {/* Favorite Button */}
                   <button
                     onClick={() => {
+                      if (!isAuthenticated) {
+                        toast.error('Favorilere eklemek için giriş yapın')
+                        navigate('/login')
+                        return
+                      }
                       if (isFavorite(id)) {
                         removeFromFavorites(id)
                         toast.success('Favorilerden çıkarıldı')

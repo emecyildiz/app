@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Star, Calendar, Clock, Heart } from 'lucide-react'
 import { tmdbService } from '../services/tmdbService'
 import { useFavoritesStore } from '../store/favoritesStore'
+import { useAuthStore } from '../store/newAuthStore'
+import toast from 'react-hot-toast'
 
 const MovieCard = ({ movie, showFavoriteButton = true }) => {
   const {
@@ -17,6 +19,8 @@ const MovieCard = ({ movie, showFavoriteButton = true }) => {
     overview
   } = movie
 
+  const { isAuthenticated } = useAuthStore()
+  const navigate = useNavigate()
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavoritesStore()
   const isFavorited = isFavorite(id)
 
@@ -78,6 +82,11 @@ const MovieCard = ({ movie, showFavoriteButton = true }) => {
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
+                if (!isAuthenticated) {
+                  toast.error('Favorilere eklemek için giriş yapın')
+                  navigate('/login')
+                  return
+                }
                 if (isFavorited) {
                   removeFromFavorites(id)
                 } else {
