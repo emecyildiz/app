@@ -156,10 +156,10 @@ app.get('/api/users/public/:identifier', async (req, res) => {
     const p = (arr && arr[0]) || null;
     if (!p) return res.status(404).json({ error: 'not_found' });
 
-    const [{ count: ratingsCount }, { count: commentsCount }] = await Promise.all([
-      supabase.from('ratings').select('user_id', { count: 'exact', head: true }).eq('user_id', p.id),
-      supabase.from('comments').select('user_id', { count: 'exact', head: true }).eq('user_id', p.id),
-    ]);
+    const { count: ratingsCount } = await supabase
+      .from('movie_ratings')
+      .select('user_id', { count: 'exact', head: true })
+      .eq('user_id', p.id);
 
     // Normalized response for frontend
     res.json({
@@ -173,7 +173,6 @@ app.get('/api/users/public/:identifier', async (req, res) => {
       isPublic: (p?.social_links && typeof p.social_links === 'object') ? (p.social_links.privacy !== 'private') : true,
       stats: {
         ratings: ratingsCount || 0,
-        comments: commentsCount || 0,
         favorites: 0,
         watchedMovies: 0,
       },
@@ -356,6 +355,265 @@ app.get('/api/movies/:id/similar', async (req, res) => {
   } catch (error) {
     console.error('TMDB API Error:', error.response?.data || error.message);
     res.status(500).json({ error: 'TMDB API error' });
+  }
+});
+
+// ========== Friendships ==========
+// Get friendship status with other user
+app.get('/api/friends/status/:otherUserId', requireUser, async (req, res) => {
+  try {
+    const me = req.user.id;
+    const other = req.params.otherUserId;
+    if (!other) return res.status(400).json({ error: 'otherUserId required' });
+    if (other === me) return res.json({ status: 'self' });
+
+    const { data: rows, error } = await supabase
+      .from('friendships')
+      .select('id, from_user_id, to_user_id, status, created_at')
+      .or(`and(from_user_id.eq.${me},to_user_id.eq.${other}),and(from_user_id.eq.${other},to_user_id.eq.${me})`)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (error) throw error;
+    const r = (rows && rows[0]) || null;
+    if (!r) return res.json({ status: 'none' });
+    if (r.status === 'accepted') return res.json({ status: 'friends' });
+    if (r.status === 'pending') {
+      if (r.from_user_id === me) return res.json({ status: 'pending_outgoing' });
+      if (r.to_user_id === me) return res.json({ status: 'pending_incoming' });
+    }
+    return res.json({ status: 'none' });
+  } catch (e) {
+    console.error('friends/status error:', e);
+    // If friend_requests table does not exist yet, degrade gracefully
+    if (e?.message?.includes('relation') || e?.code === 'PGRST204') {
+      return res.json({ status: 'none' });
+    }
+    res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+// ========== Favorites ==========
+// Add favorite
+app.post('/api/favorites', requireUser, async (req, res) => {
+  try {
+    const uid = req.user.id;
+    const movieId = req.body?.movieId;
+    if (!movieId) return res.status(400).json({ success: false, error: 'movieId required' });
+    // Upsert-like behavior: ignore duplicates
+    const { data, error } = await supabase
+      .from('favorites')
+      .upsert({ user_id: uid, movie_id: movieId }, { onConflict: 'user_id,movie_id', ignoreDuplicates: true })
+      .select('user_id')
+      .single();
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (e) {
+    console.error('favorites add error:', e);
+    res.status(500).json({ success: false });
+  }
+});
+
+// Remove favorite
+app.delete('/api/favorites/:movieId', requireUser, async (req, res) => {
+  try {
+    const uid = req.user.id;
+    const movieId = req.params.movieId;
+    const { error } = await supabase
+      .from('favorites')
+      .delete()
+      .eq('user_id', uid)
+      .eq('movie_id', movieId);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (e) {
+    console.error('favorites remove error:', e);
+    res.status(500).json({ success: false });
+  }
+});
+
+// Get my favorites count
+app.get('/api/users/favorites/count', requireUser, async (req, res) => {
+  try {
+    const uid = req.user.id;
+    const { count, error } = await supabase
+      .from('favorites')
+      .select('user_id', { count: 'exact', head: true })
+      .eq('user_id', uid);
+    if (error) throw error;
+    res.json({ count: count || 0 });
+  } catch (e) {
+    console.error('favorites count error:', e);
+    res.status(500).json({ count: 0 });
+  }
+});
+
+// Send friend request
+app.post('/api/friends/request', requireUser, async (req, res) => {
+  try {
+    const me = req.user.id;
+    const toUserId = req.body?.toUserId;
+    if (!toUserId) return res.status(400).json({ error: 'toUserId required' });
+    if (toUserId === me) return res.status(400).json({ error: 'cannot_add_self' });
+
+    // Check existing relationship
+    const { data: existing, error: exErr } = await supabase
+      .from('friendships')
+      .select('id, from_user_id, to_user_id, status')
+      .or(`and(from_user_id.eq.${me},to_user_id.eq.${toUserId}),and(from_user_id.eq.${toUserId},to_user_id.eq.${me})`)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (exErr) throw exErr;
+    const ex = (existing && existing[0]) || null;
+    if (ex) {
+      if (ex.status === 'accepted') return res.json({ success: true, status: 'friends' });
+      if (ex.status === 'pending') {
+        const status = ex.from_user_id === me ? 'pending_outgoing' : 'pending_incoming';
+        return res.json({ success: true, status });
+      }
+    }
+
+    const { data, error } = await supabase
+      .from('friendships')
+      .insert({ from_user_id: me, to_user_id: toUserId, status: 'pending' })
+      .select('id')
+      .single();
+    if (error) throw error;
+    res.json({ success: true, status: 'pending_outgoing', requestId: data.id });
+  } catch (e) {
+    console.error('friends/request error:', e);
+    if (e?.message?.includes('relation') || e?.code === 'PGRST204') {
+      return res.status(501).json({ success: false, error: 'not_supported' });
+    }
+    res.status(500).json({ success: false, error: 'internal_error' });
+  }
+});
+
+// Respond to friend request (accept or reject)
+app.post('/api/friends/respond', requireUser, async (req, res) => {
+  try {
+    const me = req.user.id;
+    const fromUserId = req.body?.fromUserId;
+    const action = (req.body?.action || '').toString();
+    if (!fromUserId || !action) return res.status(400).json({ error: 'invalid_payload' });
+
+    // Find the pending request to me
+    const { data: reqRow, error: findErr } = await supabase
+      .from('friendships')
+      .select('id, status')
+      .eq('from_user_id', fromUserId)
+      .eq('to_user_id', me)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+    if (findErr || !reqRow) return res.json({ success: false, status: 'none' });
+
+    if (action === 'accept') {
+      const { error: updErr } = await supabase
+        .from('friendships')
+        .update({ status: 'accepted', responded_at: new Date().toISOString() })
+        .eq('id', reqRow.id);
+      if (updErr) throw updErr;
+      return res.json({ success: true, status: 'friends' });
+    }
+    if (action === 'reject') {
+      const { error: delErr } = await supabase
+        .from('friendships')
+        .delete()
+        .eq('id', reqRow.id);
+      if (delErr) throw delErr;
+      return res.json({ success: true, status: 'none' });
+    }
+    return res.status(400).json({ error: 'invalid_action' });
+  } catch (e) {
+    console.error('friends/respond error:', e);
+    if (e?.message?.includes('relation') || e?.code === 'PGRST204') {
+      return res.status(501).json({ success: false, error: 'not_supported' });
+    }
+    res.status(500).json({ success: false, error: 'internal_error' });
+  }
+});
+
+// Unfriend
+app.delete('/api/friends/:otherUserId', requireUser, async (req, res) => {
+  try {
+    const me = req.user.id;
+    const other = req.params.otherUserId;
+    const { error } = await supabase
+      .from('friendships')
+      .delete()
+      .or(`and(from_user_id.eq.${me},to_user_id.eq.${other},status.eq.accepted),and(from_user_id.eq.${other},to_user_id.eq.${me},status.eq.accepted)`);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (e) {
+    console.error('friends/unfriend error:', e);
+    if (e?.message?.includes('relation') || e?.code === 'PGRST204') {
+      return res.status(501).json({ success: false, error: 'not_supported' });
+    }
+    res.status(500).json({ success: false });
+  }
+});
+
+// List friends
+app.get('/api/friends/list/:userId?', requireUser, async (req, res) => {
+  try {
+    const target = req.params.userId || req.user.id;
+    const { data: links, error } = await supabase
+      .from('friendships')
+      .select('from_user_id, to_user_id')
+      .or(`from_user_id.eq.${target},to_user_id.eq.${target}`)
+      .eq('status', 'accepted');
+    if (error) throw error;
+    const friendIds = new Set();
+    (links || []).forEach(l => {
+      if (l.from_user_id === target) friendIds.add(l.to_user_id);
+      else friendIds.add(l.from_user_id);
+    });
+    const ids = Array.from(friendIds);
+    if (ids.length === 0) return res.json([]);
+    const { data: profs, error: perr } = await supabase
+      .from('profiles')
+      .select('id, name, username, avatar_url')
+      .in('id', ids);
+    if (perr) throw perr;
+    const list = (profs || []).map(p => ({ id: p.id, name: p.name, username: p.username, avatar: p.avatar_url || null }));
+    res.json(list);
+  } catch (e) {
+    console.error('friends/list error:', e);
+    if (e?.message?.includes('relation') || e?.code === 'PGRST204') {
+      return res.json([]);
+    }
+    res.status(500).json([]);
+  }
+});
+
+// List incoming friend requests
+app.get('/api/friends/requests', requireUser, async (req, res) => {
+  try {
+    const me = req.user.id;
+    const { data: reqs, error } = await supabase
+      .from('friendships')
+      .select('id, from_user_id, created_at, profiles:from_user_id(id, name, username, avatar_url)')
+      .eq('to_user_id', me)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    const shaped = (reqs || []).map(r => ({
+      id: r.id,
+      fromUser: {
+        id: r.profiles?.id || r.from_user_id,
+        name: r.profiles?.name || null,
+        username: r.profiles?.username || null,
+        avatar: r.profiles?.avatar_url || null,
+      },
+      createdAt: r.created_at,
+    }));
+    res.json(shaped);
+  } catch (e) {
+    console.error('friends/requests error:', e);
+    if (e?.message?.includes('relation') || e?.code === 'PGRST204') {
+      return res.json([]);
+    }
+    res.status(500).json([]);
   }
 });
 

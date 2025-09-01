@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Star, Calendar, Clock, Heart } from 'lucide-react'
 import { tmdbService } from '../services/tmdbService'
 import { useFavoritesStore } from '../store/favoritesStore'
+import { userService } from '../services/userService'
 import { useAuthStore } from '../store/newAuthStore'
 import toast from 'react-hot-toast'
 
@@ -89,8 +90,10 @@ const MovieCard = ({ movie, showFavoriteButton = true }) => {
                 }
                 if (isFavorited) {
                   removeFromFavorites(id)
+                  userService.removeFavorite(id)
                 } else {
                   addToFavorites(movie)
+                  userService.addFavorite(id)
                 }
               }}
               className="absolute top-2 left-2 p-2 bg-black/70 rounded-full hover:bg-black/90 transition-colors"

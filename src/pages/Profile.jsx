@@ -86,7 +86,7 @@ const Profile = () => {
           setStats({
             watchedMovies: data.watchedMovies || 0,
             ratings: data.ratings || 0,
-            favorites: getFavoritesCount(),
+            favorites: typeof data.favoritesCount === 'number' ? data.favoritesCount : getFavoritesCount(),
             memberSince: data.memberSince || user?.created_at || null,
             memberSinceDays: data.memberSinceDays || 0,
           })

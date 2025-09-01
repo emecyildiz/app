@@ -309,9 +309,11 @@ const MovieDetail = () => {
                       }
                       if (isFavorite(id)) {
                         removeFromFavorites(id)
+                        userService.removeFavorite(id)
                         toast.success('Favorilerden çıkarıldı')
                       } else {
                         addToFavorites(currentMovie)
+                        userService.addFavorite(id)
                         toast.success('Favorilere eklendi')
                       }
                     }}
