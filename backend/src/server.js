@@ -481,10 +481,7 @@ app.post('/api/friends/request', requireUser, async (req, res) => {
     res.json({ success: true, status: 'pending_outgoing', requestId: data.id });
   } catch (e) {
     console.error('friends/request error:', e);
-    if (e?.message?.includes('relation') || e?.code === 'PGRST204') {
-      return res.status(501).json({ success: false, error: 'not_supported' });
-    }
-    res.status(500).json({ success: false, error: 'internal_error' });
+    res.status(500).json({ success: false, error: e?.message || 'internal_error' });
   }
 });
 
@@ -526,10 +523,7 @@ app.post('/api/friends/respond', requireUser, async (req, res) => {
     return res.status(400).json({ error: 'invalid_action' });
   } catch (e) {
     console.error('friends/respond error:', e);
-    if (e?.message?.includes('relation') || e?.code === 'PGRST204') {
-      return res.status(501).json({ success: false, error: 'not_supported' });
-    }
-    res.status(500).json({ success: false, error: 'internal_error' });
+    res.status(500).json({ success: false, error: e?.message || 'internal_error' });
   }
 });
 
@@ -546,10 +540,7 @@ app.delete('/api/friends/:otherUserId', requireUser, async (req, res) => {
     res.json({ success: true });
   } catch (e) {
     console.error('friends/unfriend error:', e);
-    if (e?.message?.includes('relation') || e?.code === 'PGRST204') {
-      return res.status(501).json({ success: false, error: 'not_supported' });
-    }
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, error: e?.message || 'internal_error' });
   }
 });
 
@@ -579,10 +570,7 @@ app.get('/api/friends/list/:userId?', requireUser, async (req, res) => {
     res.json(list);
   } catch (e) {
     console.error('friends/list error:', e);
-    if (e?.message?.includes('relation') || e?.code === 'PGRST204') {
-      return res.json([]);
-    }
-    res.status(500).json([]);
+    res.status(500).json({ error: e?.message || 'internal_error' });
   }
 });
 
@@ -610,10 +598,7 @@ app.get('/api/friends/requests', requireUser, async (req, res) => {
     res.json(shaped);
   } catch (e) {
     console.error('friends/requests error:', e);
-    if (e?.message?.includes('relation') || e?.code === 'PGRST204') {
-      return res.json([]);
-    }
-    res.status(500).json([]);
+    res.status(500).json({ error: e?.message || 'internal_error' });
   }
 });
 
