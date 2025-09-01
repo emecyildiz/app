@@ -41,7 +41,7 @@ const Home = () => {
         >
           <div
             className="parallax-layer depth-30 maze-bg"
-            style={{ backgroundImage: "url('/brand/arka_plan.jpg')" }}
+            style={{ backgroundImage: `url(${import.meta.env.BASE_URL || ''}brand/arka_plan.jpg)` }}
           />
         </motion.div>
 

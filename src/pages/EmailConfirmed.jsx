@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CheckCircle, XCircle, Film } from 'lucide-react'
+import { APP_NAME, APP_LOGO_URL } from '../config/appConfig'
 import { useAuthStore } from '../store/newAuthStore'
 
 const EmailConfirmed = () => {
@@ -50,8 +51,8 @@ const EmailConfirmed = () => {
       >
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <img src={import.meta.env.VITE_APP_LOGO_URL || '/favicon.ico'} alt="ratemet" className="w-10 h-10 rounded" />
-          <span className="text-2xl font-bold text-white">{import.meta.env.VITE_APP_NAME || 'ratemet'}</span>
+          <img src={APP_LOGO_URL || '/favicon.ico'} alt={APP_NAME} className="w-10 h-10 rounded" />
+          <span className="text-2xl font-bold text-white">{APP_NAME}</span>
         </div>
 
         {/* Content Card */}
