@@ -127,6 +127,23 @@ class UserService {
     }
   }
 
+  async getMyFavoriteIds(page = 1, limit = 50) {
+    try {
+      const { data: { user } } = await this.supabase?.auth?.getUser?.() || { data: { user: null } };
+      const uid = user?.id || null;
+      const token = this.getAuthToken();
+      if (!uid || !token) return { items: [], totalPages: 0 };
+      const response = await axios.get(`${API_URL}/api/users/${uid}/favorites`, {
+        params: { page, limit },
+        headers: this.getAuthHeaders()
+      });
+      return response.data || { items: [], totalPages: 0 };
+    } catch (error) {
+      console.error('Error getting my favorites list:', error);
+      return { items: [], totalPages: 0 };
+    }
+  }
+
   async searchUsers(query, limit = 10) {
     try {
       const response = await axios.get(`${API_URL}/api/users/search`, {

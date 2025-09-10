@@ -447,6 +447,32 @@ app.get('/api/users/favorites/count', requireUser, async (req, res) => {
   }
 });
 
+// Get user's favorite movie IDs (self only for now)
+app.get('/api/users/:userId/favorites', requireUser, async (req, res) => {
+  try {
+    const uid = req.user.id;
+    const target = req.params.userId;
+    if (target !== uid) return res.status(403).json({ error: 'forbidden' });
+    const page = Math.max(parseInt(req.query.page || '1', 10), 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit || '50', 10), 1), 100);
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    const { data, error, count } = await supabase
+      .from('favorites')
+      .select('movie_id', { count: 'exact' })
+      .eq('user_id', uid)
+      .order('created_at', { ascending: false })
+      .range(from, to);
+    if (error) throw error;
+    const items = (data || []).map(r => r.movie_id);
+    res.json({ items, totalPages: Math.ceil((count || 0) / limit) });
+  } catch (e) {
+    console.error('favorites list error:', e);
+    res.status(500).json({ items: [], totalPages: 0 });
+  }
+});
+
 // Send friend request
 app.post('/api/friends/request', requireUser, async (req, res) => {
   try {

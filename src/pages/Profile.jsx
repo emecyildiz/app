@@ -148,6 +148,32 @@ const Profile = () => {
     return () => { mounted = false }
   }, [activeTab])
 
+  // Load friends once for stats/count even if not on friends tab
+  useEffect(() => {
+    let mounted = true
+    const preloadFriends = async () => {
+      if (!user) return
+      try {
+        const list = await userService.listFriends()
+        if (mounted) setFriends(list || [])
+      } catch (_) {}
+    }
+    preloadFriends()
+    return () => { mounted = false }
+  }, [user])
+
+  // Optional: preload my favorite IDs to reconcile UI if needed (hidden, non-blocking)
+  useEffect(() => {
+    let mounted = true
+    const preloadFavorites = async () => {
+      try {
+        await userService.getMyFavoriteIds(1, 1)
+      } catch (_) {}
+    }
+    preloadFavorites()
+    return () => { mounted = false }
+  }, [])
+
   const acceptRequest = async (requestId, fromUserId) => {
     setFriendsBusy(true)
     try {
