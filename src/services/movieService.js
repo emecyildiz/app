@@ -12,7 +12,6 @@ class MovieService {
       const payload = {
         id: Number(movie.id),
         title: movie.title || null,
-        original_title: movie.original_title || null,
         poster_path: movie.poster_path || null
       }
       const { error } = await this.supabase
