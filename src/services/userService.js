@@ -166,6 +166,32 @@ class UserService {
     }
   }
 
+  // ===== Comments =====
+  async upsertComment(movieId, content) {
+    try {
+      const response = await axios.post(`${API_URL}/api/comments`, { movieId, content }, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data?.success === true;
+    } catch (error) {
+      console.error('Error upserting comment:', error);
+      return false;
+    }
+  }
+
+  async listMyComments(page = 1, limit = 20) {
+    try {
+      const response = await axios.get(`${API_URL}/api/users/me/comments`, {
+        params: { page, limit },
+        headers: this.getAuthHeaders()
+      });
+      return response.data || { comments: [], totalPages: 0 };
+    } catch (error) {
+      console.error('Error listing my comments:', error);
+      return { comments: [], totalPages: 0 };
+    }
+  }
+
   async getPrivacy(identifier) {
     try {
       const response = await axios.get(`${API_URL}/api/users/privacy/${encodeURIComponent(identifier)}`);

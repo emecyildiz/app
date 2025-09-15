@@ -204,11 +204,16 @@ app.get('/api/users/privacy/:identifier', async (req, res) => {
 app.get('/api/users/stats', requireUser, async (req, res) => {
   try {
     const uid = req.user.id;
-    const [{ count: favoritesCount }, { count: ratingsCount }] = await Promise.all([
+    const [
+      { count: favoritesCount },
+      { count: ratingsCount },
+      { count: commentsCount }
+    ] = await Promise.all([
       supabase.from('favorites').select('user_id', { count: 'exact', head: true }).eq('user_id', uid),
       supabase.from('ratings').select('user_id', { count: 'exact', head: true }).eq('user_id', uid),
+      supabase.from('comments').select('user_id', { count: 'exact', head: true }).eq('user_id', uid),
     ]);
-    res.json({ favoritesCount: favoritesCount || 0, ratingsCount: ratingsCount || 0, memberSince: null, memberSinceDays: 0 });
+    res.json({ favoritesCount: favoritesCount || 0, ratingsCount: ratingsCount || 0, commentsCount: commentsCount || 0, memberSince: null, memberSinceDays: 0 });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -355,6 +360,51 @@ app.get('/api/movies/:id/similar', async (req, res) => {
   } catch (error) {
     console.error('TMDB API Error:', error.response?.data || error.message);
     res.status(500).json({ error: 'TMDB API error' });
+  }
+});
+
+// ========== Comments ==========
+// Add or update comment for a movie by current user (comment-only allowed)
+app.post('/api/comments', requireUser, async (req, res) => {
+  try {
+    const uid = req.user.id;
+    const { movieId, content } = req.body || {};
+    const mid = parseInt(movieId, 10);
+    if (!mid || Number.isNaN(mid)) return res.status(400).json({ success: false, error: 'invalid_movieId' });
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+      return res.status(400).json({ success: false, error: 'empty_comment' });
+    }
+    // Upsert comment (one per user/movie) - assumes unique index on (user_id, movie_id)
+    const { error } = await supabase
+      .from('comments')
+      .upsert({ user_id: uid, movie_id: mid, content }, { onConflict: 'user_id,movie_id' });
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (e) {
+    console.error('comments upsert error:', e);
+    res.status(500).json({ success: false, error: e?.message || 'internal_error' });
+  }
+});
+
+// List my comments (paginated)
+app.get('/api/users/me/comments', requireUser, async (req, res) => {
+  try {
+    const uid = req.user.id;
+    const page = Math.max(parseInt(req.query.page || '1', 10), 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit || '20', 10), 1), 100);
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+    const { data, error, count } = await supabase
+      .from('comments')
+      .select('*', { count: 'exact' })
+      .eq('user_id', uid)
+      .order('created_at', { ascending: false })
+      .range(from, to);
+    if (error) throw error;
+    res.json({ comments: data || [], totalPages: Math.ceil((count || 0) / limit) });
+  } catch (e) {
+    console.error('comments list error:', e);
+    res.status(500).json({ comments: [], totalPages: 0 });
   }
 });
 

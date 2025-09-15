@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Camera, User, Mail, Calendar, Film, Star, Heart, Settings, LogOut, MapPin, Edit2, Twitter, Instagram, Link, Users, UserMinus, Check, X } from 'lucide-react'
+import { Camera, User, Mail, Calendar, Film, Star, Heart, Settings, LogOut, MapPin, Edit2, Twitter, Instagram, Link, Users, UserMinus, Check, X, MessageSquare } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 
@@ -32,6 +32,7 @@ const Profile = () => {
   const [stats, setStats] = useState({ 
     watchedMovies: 0, 
     ratings: 0, 
+    comments: 0,
     favorites: 0, 
     memberSince: user?.created_at || null, 
     memberSinceDays: 0 
@@ -86,6 +87,7 @@ const Profile = () => {
           setStats({
             watchedMovies: data.watchedMovies || 0,
             ratings: data.ratings || 0,
+            comments: data.commentsCount || 0,
             favorites: typeof data.favoritesCount === 'number' ? data.favoritesCount : getFavoritesCount(),
             memberSince: data.memberSince || user?.created_at || null,
             memberSinceDays: data.memberSinceDays || 0,
@@ -334,6 +336,11 @@ const Profile = () => {
             <Star className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
             <p className="text-3xl font-bold text-white mb-1">{stats.ratings}</p>
             <p className="text-gray-400">Puan Verildi</p>
+          </div>
+          <div className="glass rounded-xl p-6 text-center">
+            <MessageSquare className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+            <p className="text-3xl font-bold text-white mb-1">{stats.comments}</p>
+            <p className="text-gray-400">Yorum</p>
           </div>
           <div className="glass rounded-xl p-6 text-center">
             <Heart className="w-8 h-8 text-red-500 mx-auto mb-2" />

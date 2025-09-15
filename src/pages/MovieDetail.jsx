@@ -494,7 +494,7 @@ const MovieDetail = () => {
                 </div>
               </div>
 
-              {/* Comment */}
+              {/* Comment (optional) */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                   Yorumunuz (İsteğe bağlı)
@@ -507,6 +507,35 @@ const MovieDetail = () => {
                   placeholder="Film hakkında düşüncelerinizi paylaşın..."
                   maxLength={500}
                 />
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!isAuthenticated) {
+                        toast.error('Yorum yapmak için giriş yapın')
+                        navigate('/login')
+                        return
+                      }
+                      if (!userComment.trim()) {
+                        toast.error('Yorum boş olamaz')
+                        return
+                      }
+                      setRatingLoading(true)
+                      try {
+                        await userService.upsertComment(id, userComment.trim())
+                        toast.success('Yorum kaydedildi')
+                        setUserComment('')
+                        setShowRatingModal(false)
+                      } finally {
+                        setRatingLoading(false)
+                      }
+                    }}
+                    className="btn btn-secondary btn-sm"
+                    disabled={ratingLoading}
+                  >
+                    Sadece Yorumu Kaydet
+                  </button>
+                </div>
               </div>
 
               {/* Actions */}
