@@ -361,13 +361,12 @@ app.get('/api/movies/:id/similar', async (req, res) => {
 // Ensure a movie row exists (service role upsert)
 app.post('/api/movies/ensure', requireUser, async (req, res) => {
   try {
-    const { id, title, poster_path } = req.body || {}
+    const { id, title } = req.body || {}
     const movieId = parseInt(id, 10)
     if (!movieId || Number.isNaN(movieId)) return res.status(400).json({ success: false, error: 'invalid_id' })
     const payload = {
       id: movieId,
-      title: title || null,
-      poster_path: poster_path || null
+      title: title || null
     }
     const { error } = await supabase
       .from('movies')
