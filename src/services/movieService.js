@@ -9,15 +9,19 @@ class MovieService {
   async ensureMovieRow(movie) {
     try {
       if (!movie || !movie.id) return
-      const payload = {
-        id: Number(movie.id),
-        title: movie.title || null,
-        poster_path: movie.poster_path || null
+      // Prefer backend endpoint to bypass RLS
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://app-production-c295.up.railway.app'}/api/movies/ensure`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionStorage.getItem('auth-token') || ''}`
+        },
+        body: JSON.stringify({ id: movie.id, title: movie.title, poster_path: movie.poster_path })
+      })
+      if (!response.ok) {
+        const t = await response.text().catch(() => '')
+        throw new Error(`ensure failed: ${response.status} ${t}`)
       }
-      const { error } = await this.supabase
-        .from('movies')
-        .upsert(payload, { onConflict: 'id' })
-      if (error) throw error
     } catch (e) {
       // Soft fail: do not block rating if movie upsert has minor issues
       console.error('ensureMovieRow error:', e)

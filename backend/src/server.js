@@ -358,6 +358,28 @@ app.get('/api/movies/:id/similar', async (req, res) => {
   }
 });
 
+// Ensure a movie row exists (service role upsert)
+app.post('/api/movies/ensure', requireUser, async (req, res) => {
+  try {
+    const { id, title, poster_path } = req.body || {}
+    const movieId = parseInt(id, 10)
+    if (!movieId || Number.isNaN(movieId)) return res.status(400).json({ success: false, error: 'invalid_id' })
+    const payload = {
+      id: movieId,
+      title: title || null,
+      poster_path: poster_path || null
+    }
+    const { error } = await supabase
+      .from('movies')
+      .upsert(payload, { onConflict: 'id' })
+    if (error) throw error
+    res.json({ success: true })
+  } catch (e) {
+    console.error('movies/ensure error:', e)
+    res.status(500).json({ success: false, error: e?.message || 'internal_error' })
+  }
+})
+
 // ========== Friendships ==========
 // Get friendship status with other user
 app.get('/api/friends/status/:otherUserId', requireUser, async (req, res) => {
