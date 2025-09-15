@@ -375,6 +375,16 @@ app.post('/api/comments', requireUser, async (req, res) => {
     if (!text) {
       return res.status(400).json({ success: false, error: 'empty_comment' });
     }
+    // Ensure movie exists for potential FK
+    try {
+      const { error: movieErr } = await supabase
+        .from('movies')
+        .upsert({ id: mid }, { onConflict: 'id' });
+      if (movieErr) throw movieErr;
+    } catch (ensureErr) {
+      console.error('comments ensure movie error:', ensureErr);
+      // not fatal if no FK is set
+    }
     // Manual upsert to work even if unique index isn't present
     const { data: existing, error: findErr } = await supabase
       .from('comments')
@@ -386,7 +396,7 @@ app.post('/api/comments', requireUser, async (req, res) => {
     if (existing && existing.id) {
       const { error: updErr } = await supabase
         .from('comments')
-        .update({ content: text, created_at: new Date().toISOString() })
+        .update({ content: text, updated_at: new Date().toISOString() })
         .eq('id', existing.id);
       if (updErr) throw updErr;
     } else {
@@ -421,6 +431,25 @@ app.get('/api/users/me/comments', requireUser, async (req, res) => {
   } catch (e) {
     console.error('comments list error:', e);
     res.status(500).json({ comments: [], totalPages: 0 });
+  }
+});
+
+// Delete my comment for a movie
+app.delete('/api/comments/:movieId', requireUser, async (req, res) => {
+  try {
+    const uid = req.user.id;
+    const mid = parseInt(req.params.movieId, 10);
+    if (!mid || Number.isNaN(mid)) return res.status(400).json({ success: false, error: 'invalid_movieId' });
+    const { error } = await supabase
+      .from('comments')
+      .delete()
+      .eq('user_id', uid)
+      .eq('movie_id', mid);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (e) {
+    console.error('comments delete error:', e);
+    res.status(500).json({ success: false, error: e?.message || 'internal_error' });
   }
 });
 

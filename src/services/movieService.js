@@ -28,6 +28,44 @@ class MovieService {
     }
   }
 
+  // Upsert only the comment into ratings table (no rating required)
+  async upsertComment(movieId, comment, movie = null) {
+    try {
+      const { data: { user } } = await this.supabase.auth.getUser()
+      if (!user) throw new Error('Kullanıcı girişi yapılmamış')
+
+      if (movie) {
+        await this.ensureMovieRow(movie)
+      }
+
+      // Check existing rating row
+      const { data: existing } = await this.supabase
+        .from('ratings')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('movie_id', movieId)
+        .maybeSingle()
+
+      if (existing && existing.id) {
+        const { error } = await this.supabase
+          .from('ratings')
+          .update({ comment, updated_at: new Date().toISOString() })
+          .eq('id', existing.id)
+        if (error) throw error
+        return { success: true }
+      } else {
+        const { error } = await this.supabase
+          .from('ratings')
+          .insert({ user_id: user.id, movie_id: movieId, comment })
+        if (error) throw error
+        return { success: true }
+      }
+    } catch (e) {
+      console.error('Yorum kaydedilirken hata:', e)
+      return { success: false, error: e.message }
+    }
+  }
+
   // Kullanıcının film puanlarını getir
   async getMyRatings(page = 1, limit = 20) {
     try {

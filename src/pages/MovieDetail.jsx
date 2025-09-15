@@ -519,16 +519,21 @@ const MovieDetail = () => {
                         navigate('/login')
                         return
                       }
-                      if (!userComment.trim()) {
+                      const text = userComment.trim()
+                      if (!text) {
                         toast.error('Yorum boş olamaz')
                         return
                       }
                       setRatingLoading(true)
                       try {
-                        await userService.upsertComment(id, userComment.trim())
-                        toast.success('Yorum kaydedildi')
-                        setUserComment('')
-                        setShowRatingModal(false)
+                        const result = await movieService.upsertComment(id, text, currentMovie)
+                        if (result.success) {
+                          toast.success('Yorum kaydedildi')
+                          setUserComment('')
+                          setShowRatingModal(false)
+                        } else {
+                          toast.error(result.error || 'Yorum kaydedilemedi')
+                        }
                       } finally {
                         setRatingLoading(false)
                       }

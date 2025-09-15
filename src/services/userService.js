@@ -192,6 +192,18 @@ class UserService {
     }
   }
 
+  async deleteComment(movieId) {
+    try {
+      const response = await axios.delete(`${API_URL}/api/comments/${movieId}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data?.success === true;
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      return false;
+    }
+  }
+
   async getPrivacy(identifier) {
     try {
       const response = await axios.get(`${API_URL}/api/users/privacy/${encodeURIComponent(identifier)}`);

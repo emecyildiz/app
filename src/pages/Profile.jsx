@@ -491,6 +491,20 @@ const Profile = () => {
                               {rating.rating}
                             </span>
                           </div>
+                          <button
+                            onClick={async () => {
+                              try {
+                                const res = await movieService.deleteRating(rating.movie.id)
+                                if (res.success) {
+                                  setRatedMovies(prev => prev.filter(r => r.id !== rating.id))
+                                  setStats(s => ({ ...s, ratings: Math.max(0, (s.ratings || 0) - 1) }))
+                                }
+                              } catch {}
+                            }}
+                            className="absolute top-3 right-3 btn btn-secondary btn-sm"
+                          >
+                            Sil
+                          </button>
                           {rating.comment && (
                             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                               <div className="text-sm text-gray-300">
@@ -531,7 +545,21 @@ const Profile = () => {
                   <div className="space-y-4">
                     {myComments.map((c) => (
                       <div key={c.id} className="glass rounded-xl p-4">
-                        <div className="text-gray-300 whitespace-pre-wrap">{c.content}</div>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="text-gray-300 whitespace-pre-wrap flex-1">{c.content}</div>
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={async () => {
+                              const ok = await userService.deleteComment(c.movie_id)
+                              if (ok) {
+                                setMyComments(prev => prev.filter(x => x.id !== c.id))
+                                setStats(s => ({ ...s, comments: Math.max(0, (s.comments || 0) - 1) }))
+                              }
+                            }}
+                          >
+                            Sil
+                          </button>
+                        </div>
                         <div className="text-xs text-gray-500 mt-2">
                           {new Date(c.created_at).toLocaleString('tr-TR')}
                         </div>
