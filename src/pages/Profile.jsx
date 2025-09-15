@@ -86,7 +86,7 @@ const Profile = () => {
         if (mounted && data) {
           setStats({
             watchedMovies: data.watchedMovies || 0,
-            ratings: data.ratings || 0,
+            ratings: data.ratingsCount || 0,
             comments: data.commentsCount || 0,
             favorites: typeof data.favoritesCount === 'number' ? data.favoritesCount : getFavoritesCount(),
             memberSince: data.memberSince || user?.created_at || null,
@@ -456,7 +456,7 @@ const Profile = () => {
                 {ratedMovies.length > 0 ? (
                   <>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-                      {ratedMovies.map((rating, index) => (
+                      {ratedMovies.filter(r => r && r.movie).map((rating, index) => (
                         <div key={rating.id} className="relative group">
                           <MovieCard movie={rating.movie} index={index} />
                           <div className="absolute top-3 left-3 glass px-2 py-1 rounded-lg flex items-center gap-1">

@@ -52,11 +52,11 @@ const MovieCard = ({ movie, showFavoriteButton = true }) => {
         {/* Poster */}
         <div className="relative aspect-[2/3] overflow-hidden">
           <img
-            src={posterURL || backdropURL || '/placeholder-movie.jpg'}
+            src={posterURL || backdropURL || '/brand/placeholder-movie.jpg'}
             alt={title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             onError={(e) => {
-              e.target.src = '/placeholder-movie.jpg'
+              e.target.src = '/brand/placeholder-movie.jpg'
             }}
           />
           
