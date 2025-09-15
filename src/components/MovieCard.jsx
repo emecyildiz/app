@@ -27,6 +27,21 @@ const MovieCard = ({ movie, showFavoriteButton = true }) => {
 
   const posterURL = tmdbService.getImageURL(poster_path, 'w500')
   const backdropURL = tmdbService.getImageURL(backdrop_path, 'w500')
+  const fallbackPoster = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450">
+      <defs>
+        <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stop-color="#1f2937"/>
+          <stop offset="100%" stop-color="#111827"/>
+        </linearGradient>
+      </defs>
+      <rect width="300" height="450" fill="url(#g)"/>
+      <g fill="#6b7280">
+        <circle cx="150" cy="180" r="60" fill="#374151"/>
+        <rect x="85" y="260" width="130" height="18" rx="9"/>
+      </g>
+    </svg>`
+  )
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Tarih yok'
@@ -52,11 +67,14 @@ const MovieCard = ({ movie, showFavoriteButton = true }) => {
         {/* Poster */}
         <div className="relative aspect-[2/3] overflow-hidden">
           <img
-            src={posterURL || backdropURL || '/brand/placeholder-movie.jpg'}
+            src={posterURL || backdropURL || fallbackPoster}
             alt={title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             onError={(e) => {
-              e.target.src = '/brand/placeholder-movie.jpg'
+              if (e.currentTarget && e.currentTarget.src !== fallbackPoster) {
+                e.currentTarget.onerror = null
+                e.currentTarget.src = fallbackPoster
+              }
             }}
           />
           
