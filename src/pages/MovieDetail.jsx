@@ -106,7 +106,7 @@ const MovieDetail = () => {
     
     setRatingLoading(true)
     try {
-      const result = await movieService.rateMovie(id, userRating, userComment)
+      const result = await movieService.rateMovie(id, userRating, userComment, currentMovie)
       if (result.success) {
         toast.success('Film puanınız kaydedildi!')
         setShowRatingModal(false)

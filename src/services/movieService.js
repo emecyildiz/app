@@ -5,6 +5,26 @@ class MovieService {
     this.supabase = supabase
   }
 
+  // Ensure a movie row exists to satisfy FK on ratings.movie_id
+  async ensureMovieRow(movie) {
+    try {
+      if (!movie || !movie.id) return
+      const payload = {
+        id: Number(movie.id),
+        title: movie.title || null,
+        original_title: movie.original_title || null,
+        poster_path: movie.poster_path || null
+      }
+      const { error } = await this.supabase
+        .from('movies')
+        .upsert(payload, { onConflict: 'id' })
+      if (error) throw error
+    } catch (e) {
+      // Soft fail: do not block rating if movie upsert has minor issues
+      console.error('ensureMovieRow error:', e)
+    }
+  }
+
   // Kullanıcının film puanlarını getir
   async getMyRatings(page = 1, limit = 20) {
     try {
@@ -38,10 +58,15 @@ class MovieService {
   }
 
   // Film puanla
-  async rateMovie(movieId, rating, comment = '') {
+  async rateMovie(movieId, rating, comment = '', movie = null) {
     try {
       const { data: { user } } = await this.supabase.auth.getUser()
       if (!user) throw new Error('Kullanıcı girişi yapılmamış')
+
+      // Ensure movie exists in movies table to satisfy FK
+      if (movie) {
+        await this.ensureMovieRow(movie)
+      }
 
       // Önce mevcut puanı kontrol et
       const { data: existingRating } = await this.supabase
