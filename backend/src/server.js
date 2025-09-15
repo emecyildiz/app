@@ -397,8 +397,9 @@ app.get('/api/friends/status/:otherUserId', requireUser, async (req, res) => {
 app.post('/api/favorites', requireUser, async (req, res) => {
   try {
     const uid = req.user.id;
-    const movieId = req.body?.movieId;
-    if (!movieId) return res.status(400).json({ success: false, error: 'movieId required' });
+    const movieIdRaw = req.body?.movieId;
+    const movieId = parseInt(movieIdRaw, 10);
+    if (!movieId || Number.isNaN(movieId)) return res.status(400).json({ success: false, error: 'movieId required' });
     // Upsert-like behavior: ignore duplicates
     const { data, error } = await supabase
       .from('favorites')
@@ -417,7 +418,8 @@ app.post('/api/favorites', requireUser, async (req, res) => {
 app.delete('/api/favorites/:movieId', requireUser, async (req, res) => {
   try {
     const uid = req.user.id;
-    const movieId = req.params.movieId;
+    const movieId = parseInt(req.params.movieId, 10);
+    if (!movieId || Number.isNaN(movieId)) return res.status(400).json({ success: false, error: 'movieId invalid' });
     const { error } = await supabase
       .from('favorites')
       .delete()

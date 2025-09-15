@@ -46,7 +46,7 @@ class MovieService {
       // Önce mevcut puanı kontrol et
       const { data: existingRating } = await this.supabase
         .from('ratings')
-        .select('*')
+        .select('id')
         .eq('user_id', user.id)
         .eq('movie_id', movieId)
         .maybeSingle()
@@ -70,12 +70,12 @@ class MovieService {
         // Yeni puan ekle
         const { data, error } = await this.supabase
           .from('ratings')
-          .insert({
+          .upsert({
             user_id: user.id,
             movie_id: movieId,
             rating,
             comment
-          })
+          }, { onConflict: 'user_id,movie_id' })
           .select()
           .single()
 
