@@ -123,10 +123,36 @@ const Profile = () => {
     return () => { mounted = false }
   }, [activeTab, ratingsPage])
 
+  // Load my comments when comments tab active
+  const [myComments, setMyComments] = useState([])
+  const [commentsPage, setCommentsPage] = useState(1)
+  const [commentsTotalPages, setCommentsTotalPages] = useState(1)
+  const [commentsLoading, setCommentsLoading] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    const loadComments = async () => {
+      if (activeTab !== 'comments') return
+      try {
+        setCommentsLoading(true)
+        const data = await userService.listMyComments(commentsPage, 20)
+        if (mounted) {
+          setMyComments(prev => commentsPage === 1 ? data.comments : [...prev, ...data.comments])
+          setCommentsTotalPages(data.totalPages || 1)
+        }
+      } finally {
+        if (mounted) setCommentsLoading(false)
+      }
+    }
+    loadComments()
+    return () => { mounted = false }
+  }, [activeTab, commentsPage])
+
   const tabs = [
     { id: 'overview', label: 'Genel Bakış', icon: User },
     { id: 'favorites', label: 'Favorilerim', icon: Heart },
     { id: 'ratings', label: 'Puanladıklarım', icon: Star },
+    { id: 'comments', label: 'Yorumlarım', icon: MessageSquare },
     { id: 'friends', label: 'Arkadaşlar', icon: Users },
     { id: 'settings', label: 'Ayarlar', icon: Settings },
   ]
@@ -494,6 +520,37 @@ const Profile = () => {
                     <p className="text-gray-400 text-lg">Henüz film puanlamadınız</p>
                     <p className="text-gray-500 text-sm mt-2">Film detay sayfalarından puan verebilirsiniz</p>
                   </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'comments' && (
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-6">Yorumlarım ({stats.comments})</h2>
+                {myComments.length > 0 ? (
+                  <div className="space-y-4">
+                    {myComments.map((c) => (
+                      <div key={c.id} className="glass rounded-xl p-4">
+                        <div className="text-gray-300 whitespace-pre-wrap">{c.content}</div>
+                        <div className="text-xs text-gray-500 mt-2">
+                          {new Date(c.created_at).toLocaleString('tr-TR')}
+                        </div>
+                      </div>
+                    ))}
+                    {commentsPage < commentsTotalPages && (
+                      <div className="flex justify-center">
+                        <button
+                          onClick={() => setCommentsPage(p => p + 1)}
+                          disabled={commentsLoading}
+                          className="btn btn-primary"
+                        >
+                          {commentsLoading ? 'Yükleniyor...' : 'Daha Fazla Göster'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="glass rounded-xl p-12 text-center text-gray-400">Henüz yorum yok</div>
                 )}
               </div>
             )}

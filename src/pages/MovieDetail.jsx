@@ -108,6 +108,9 @@ const MovieDetail = () => {
     try {
       const result = await movieService.rateMovie(id, userRating, userComment, currentMovie)
       if (result.success) {
+        if (userComment && userComment.trim().length > 0) {
+          try { await userService.upsertComment(id, userComment.trim()) } catch {}
+        }
         toast.success('Film puanınız kaydedildi!')
         setShowRatingModal(false)
         setUserRating(0)
