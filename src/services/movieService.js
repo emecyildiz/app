@@ -15,7 +15,7 @@ class MovieService {
       const to = from + limit - 1
 
       const { data, error, count } = await this.supabase
-        .from('movie_ratings')
+        .from('ratings')
         .select(`
           *,
           movie:movies(*)
@@ -45,16 +45,16 @@ class MovieService {
 
       // Önce mevcut puanı kontrol et
       const { data: existingRating } = await this.supabase
-        .from('movie_ratings')
+        .from('ratings')
         .select('*')
         .eq('user_id', user.id)
         .eq('movie_id', movieId)
-        .single()
+        .maybeSingle()
 
       if (existingRating) {
         // Mevcut puanı güncelle
         const { data, error } = await this.supabase
-          .from('movie_ratings')
+          .from('ratings')
           .update({
             rating,
             comment,
@@ -69,7 +69,7 @@ class MovieService {
       } else {
         // Yeni puan ekle
         const { data, error } = await this.supabase
-          .from('movie_ratings')
+          .from('ratings')
           .insert({
             user_id: user.id,
             movie_id: movieId,
@@ -95,7 +95,7 @@ class MovieService {
       if (!user) throw new Error('Kullanıcı girişi yapılmamış')
 
       const { error } = await this.supabase
-        .from('movie_ratings')
+        .from('ratings')
         .delete()
         .eq('user_id', user.id)
         .eq('movie_id', movieId)
