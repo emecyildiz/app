@@ -371,14 +371,30 @@ app.post('/api/comments', requireUser, async (req, res) => {
     const { movieId, content } = req.body || {};
     const mid = parseInt(movieId, 10);
     if (!mid || Number.isNaN(mid)) return res.status(400).json({ success: false, error: 'invalid_movieId' });
-    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+    const text = (typeof content === 'string' ? content : '').trim();
+    if (!text) {
       return res.status(400).json({ success: false, error: 'empty_comment' });
     }
-    // Upsert comment (one per user/movie) - assumes unique index on (user_id, movie_id)
-    const { error } = await supabase
+    // Manual upsert to work even if unique index isn't present
+    const { data: existing, error: findErr } = await supabase
       .from('comments')
-      .upsert({ user_id: uid, movie_id: mid, content }, { onConflict: 'user_id,movie_id' });
-    if (error) throw error;
+      .select('id')
+      .eq('user_id', uid)
+      .eq('movie_id', mid)
+      .maybeSingle();
+    if (findErr && findErr.code && findErr.code !== 'PGRST116') throw findErr;
+    if (existing && existing.id) {
+      const { error: updErr } = await supabase
+        .from('comments')
+        .update({ content: text, created_at: new Date().toISOString() })
+        .eq('id', existing.id);
+      if (updErr) throw updErr;
+    } else {
+      const { error: insErr } = await supabase
+        .from('comments')
+        .insert({ user_id: uid, movie_id: mid, content: text });
+      if (insErr) throw insErr;
+    }
     res.json({ success: true });
   } catch (e) {
     console.error('comments upsert error:', e);
