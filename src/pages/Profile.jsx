@@ -9,6 +9,7 @@ import { useAuthStore } from '../store/newAuthStore'
 import { useFavoritesStore } from '../store/favoritesStore'
 import { userService } from '../services/userService'
 import { movieService } from '../services/movieService'
+import { tmdbService } from '../services/tmdbService'
 import AvatarUpload from '../components/AvatarUpload'
 import MovieCard from '../components/MovieCard'
 
@@ -175,6 +176,35 @@ const Profile = () => {
     loadFriendsData()
     return () => { mounted = false }
   }, [activeTab])
+
+  // Favorites tab: genres and filtering
+  const [genreOptions, setGenreOptions] = useState([])
+  const [selectedGenreId, setSelectedGenreId] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+    const loadGenres = async () => {
+      if (activeTab !== 'favorites') return
+      try {
+        const res = await tmdbService.getGenres()
+        if (mounted) setGenreOptions(res.genres || [])
+      } catch (_) {}
+    }
+    loadGenres()
+    return () => { mounted = false }
+  }, [activeTab])
+
+  const filteredFavorites = favorites.filter((m) => {
+    if (!selectedGenreId) return true
+    const gid = Number(selectedGenreId)
+    if (Array.isArray(m?.genre_ids)) {
+      return m.genre_ids.includes(gid)
+    }
+    if (Array.isArray(m?.genres)) {
+      return m.genres.some(g => Number(g.id) === gid)
+    }
+    return false
+  })
 
   // Load friends once for stats/count even if not on friends tab
   useEffect(() => {
@@ -433,25 +463,37 @@ const Profile = () => {
 
             {activeTab === 'favorites' && (
               <div>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-white">Favori Filmlerim ({favorites.length})</h2>
-                  {favorites.length > 0 && (
-                    <button
-                      onClick={() => {
-                        if (window.confirm('Tüm favorileri temizlemek istediğinize emin misiniz?')) {
-                          clearFavorites()
-                        }
-                      }}
-                      className="text-sm text-gray-400 hover:text-red-400 transition-colors"
+                <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
+                  <h2 className="text-2xl font-bold text-white">Favori Filmlerim ({filteredFavorites.length}/{favorites.length})</h2>
+                  <div className="flex items-center gap-3">
+                    <select
+                      value={selectedGenreId}
+                      onChange={(e) => setSelectedGenreId(e.target.value)}
+                      className="input py-2 px-3"
                     >
-                      Tümünü Temizle
-                    </button>
-                  )}
+                      <option value="">Tüm Türler</option>
+                      {genreOptions.map((g) => (
+                        <option key={g.id} value={g.id}>{g.name}</option>
+                      ))}
+                    </select>
+                    {favorites.length > 0 && (
+                      <button
+                        onClick={() => {
+                          if (window.confirm('Tüm favorileri temizlemek istediğinize emin misiniz?')) {
+                            clearFavorites()
+                          }
+                        }}
+                        className="text-sm text-gray-400 hover:text-red-400 transition-colors"
+                      >
+                        Tümünü Temizle
+                      </button>
+                    )}
+                  </div>
                 </div>
                 
-                {favorites.length > 0 ? (
+                {filteredFavorites.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-                    {favorites.map((movie, index) => (
+                    {filteredFavorites.map((movie, index) => (
                       <div key={movie.id} className="relative group">
                         <MovieCard movie={movie} index={index} />
                         <button
