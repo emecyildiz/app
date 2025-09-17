@@ -5,6 +5,8 @@ async function authenticateToken(req, res, next) {
     const authHeader = req.headers.authorization || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
     if (!token) return res.status(401).json({ error: 'unauthorized' });
+    // Attach token to Supabase client for downstream RLS-sensitive queries
+    try { await supabase.auth.setAuth(token); } catch {}
     const { data, error } = await supabase.auth.getUser(token);
     if (error || !data?.user) return res.status(401).json({ error: 'unauthorized' });
     req.user = data.user;

@@ -2,13 +2,27 @@ const supabase = require('../config/supabase');
 
 class RecommendationService {
   async createRecommendation(userId, { toUserId, title, note, movieIds }) {
+    // Basic validation/sanitization
+    const cleanTitle = (title || '').toString().trim();
+    const cleanNote = (note || '').toString().trim();
+    const targetUserId = (toUserId || '').toString().trim();
+    const itemsIds = Array.isArray(movieIds)
+      ? movieIds
+          .map((m) => parseInt(m, 10))
+          .filter((n) => Number.isFinite(n) && n > 0)
+      : [];
+
+    if (!userId || !targetUserId || !cleanTitle || itemsIds.length === 0) {
+      throw new Error('invalid_payload');
+    }
+
     const { data: recommendation, error: recError } = await supabase
       .from('recommendations')
       .insert({
         from_user_id: userId,
-        to_user_id: toUserId,
-        title,
-        note
+        to_user_id: targetUserId,
+        title: cleanTitle,
+        note: cleanNote || null,
       })
       .select()
       .single();
@@ -18,7 +32,7 @@ class RecommendationService {
     }
 
     // Film listesini ekle
-    const items = movieIds.map(movieId => ({
+    const items = itemsIds.map((movieId) => ({
       recommendation_id: recommendation.id,
       movie_id: movieId
     }));
