@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog } from '@headlessui/react';
 import { toast } from 'react-hot-toast';
 import recommendationService from '../services/recommendationService';
+import { userService } from '../services/userService';
 
 export default function RecommendationModal({ isOpen, onClose, movie, onSuccess }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -25,8 +26,7 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess 
     }
 
     try {
-      const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`);
-      const data = await response.json();
+      const data = await userService.searchUsers(query, 10);
       setSearchResults(data);
     } catch (error) {
       console.error('Kullanıcı arama hatası:', error);

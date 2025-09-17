@@ -35,14 +35,10 @@ class RecommendationService {
   }
 
   async getRecommendations(userId, { type = 'received', status } = {}) {
+    // Keep selection minimal to avoid join/rls issues
     let query = supabase
       .from('recommendations')
-      .select(`
-        *,
-        from_user:from_user_id(id, email, full_name),
-        to_user:to_user_id(id, email, full_name),
-        items:recommendation_items(movie_id)
-      `);
+      .select('*, items:recommendation_items(movie_id)', { count: 'exact' });
 
     // Gelen veya giden önerileri filtrele
     if (type === 'received') {
@@ -68,12 +64,7 @@ class RecommendationService {
   async getRecommendationById(id) {
     const { data, error } = await supabase
       .from('recommendations')
-      .select(`
-        *,
-        from_user:from_user_id(id, email, full_name),
-        to_user:to_user_id(id, email, full_name),
-        items:recommendation_items(movie_id)
-      `)
+      .select(`*, items:recommendation_items(movie_id)`) 
       .eq('id', id)
       .single();
 

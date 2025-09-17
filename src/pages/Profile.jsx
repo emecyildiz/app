@@ -702,13 +702,13 @@ const Profile = () => {
                       <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {friends.map((f) => (
                           <li key={f.id} className="flex items-center justify-between bg-white/5 rounded-lg p-3">
-                            <div className="flex items-center gap-3">
+                            <a href={`/u/${encodeURIComponent(f.username || f.id)}`} className="flex items-center gap-3 hover:opacity-90">
                               <img src={f.avatar || `https://ui-avatars.com/api/?name=${f.name || f.username}&background=ef4444&color=fff`} alt={f.name} className="w-8 h-8 rounded-full"/>
                               <div>
                                 <p className="text-white text-sm font-medium">{f.name || f.username}</p>
                                 <p className="text-gray-400 text-xs">@{f.username}</p>
                               </div>
-                            </div>
+                            </a>
                             <button disabled={friendsBusy} onClick={() => unfriend(f.id)} className="btn btn-secondary btn-sm">
                               <UserMinus className="w-4 h-4" />
                               Kaldır
