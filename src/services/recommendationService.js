@@ -48,6 +48,21 @@ class RecommendationService {
     );
     return response.data;
   }
+
+  async deleteRecommendation(id) {
+    // Try DELETE first, fallback to POST /delete
+    try {
+      const response = await axios.delete(`${this.baseURL}/${id}`, {
+        headers: this.getAuthHeaders(),
+      });
+      return response.data;
+    } catch (e) {
+      const response = await axios.post(`${this.baseURL}/${id}/delete`, {}, {
+        headers: this.getAuthHeaders(),
+      });
+      return response.data;
+    }
+  }
 }
 
 export default new RecommendationService();

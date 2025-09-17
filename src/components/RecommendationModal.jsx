@@ -75,18 +75,18 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess 
 
   return (
     <Dialog open={isOpen} onClose={handleClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-      
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" aria-hidden="true" />
+
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="mx-auto max-w-lg w-full rounded bg-white p-6">
-          <Dialog.Title className="text-lg font-medium mb-4">
+        <Dialog.Panel className="mx-auto max-w-lg w-full glass rounded-xl p-6">
+          <Dialog.Title className="text-lg font-semibold text-white mb-4">
             Film Önerisi Gönder
           </Dialog.Title>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Kullanıcı Arama */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Kime önerilecek?
               </label>
               {!selectedUser ? (
@@ -96,10 +96,10 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess 
                     value={searchQuery}
                     onChange={(e) => handleSearch(e.target.value)}
                     placeholder="Kullanıcı ara..."
-                    className="w-full p-2 border rounded"
+                    className="input w-full"
                   />
                   {searchResults.length > 0 && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border rounded shadow-lg max-h-48 overflow-auto">
+                    <div className="absolute z-10 w-full mt-1 bg-dark-800 border border-white/10 rounded-lg shadow-xl max-h-56 overflow-auto">
                       {searchResults.map((user) => (
                         <button
                           key={user.id}
@@ -109,35 +109,31 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess 
                             setSearchResults([]);
                             setSearchQuery('');
                           }}
-                          className="w-full p-2 text-left hover:bg-gray-100 flex items-center space-x-2"
+                          className="w-full px-3 py-2 text-left hover:bg-white/10 flex items-center gap-2 text-white"
                         >
-                          {user.avatar && (
-                            <img
-                              src={user.avatar}
-                              alt=""
-                              className="w-8 h-8 rounded-full"
-                            />
+                          {user.avatar ? (
+                            <img src={user.avatar} alt="" className="w-8 h-8 rounded-full" />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs">@</div>
                           )}
-                          <span>{user.name || user.username}</span>
+                          <span className="truncate">{user.name || user.username}</span>
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="flex items-center space-x-2 p-2 border rounded">
-                  {selectedUser.avatar && (
-                    <img
-                      src={selectedUser.avatar}
-                      alt=""
-                      className="w-8 h-8 rounded-full"
-                    />
+                <div className="flex items-center gap-2 p-2 border border-white/10 rounded bg-white/5">
+                  {selectedUser.avatar ? (
+                    <img src={selectedUser.avatar} alt="" className="w-8 h-8 rounded-full" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs">@</div>
                   )}
-                  <span>{selectedUser.name || selectedUser.username}</span>
+                  <span className="text-white">{selectedUser.name || selectedUser.username}</span>
                   <button
                     type="button"
                     onClick={() => setSelectedUser(null)}
-                    className="ml-auto text-sm text-red-600 hover:text-red-800"
+                    className="ml-auto text-sm text-red-400 hover:text-red-300"
                   >
                     Değiştir
                   </button>
@@ -147,27 +143,27 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess 
 
             {/* Başlık */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Başlık
               </label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full p-2 border rounded"
+                className="input w-full"
                 placeholder="Öneri başlığı"
               />
             </div>
 
             {/* Not */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-1">
                 Not (Opsiyonel)
               </label>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                className="w-full p-2 border rounded"
+                className="input w-full"
                 rows="3"
                 placeholder="Neden önerdiğinizi belirtebilirsiniz..."
               />
@@ -178,14 +174,14 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess 
               <button
                 type="button"
                 onClick={handleClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                className="btn btn-secondary btn-sm"
                 disabled={isLoading}
               >
                 İptal
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
+                className="btn btn-primary btn-sm disabled:opacity-50"
                 disabled={isLoading || !selectedUser || !title.trim()}
               >
                 {isLoading ? 'Gönderiliyor...' : 'Gönder'}

@@ -85,4 +85,26 @@ router.post('/:id/respond', async (req, res) => {
   }
 });
 
+// Delete a recommendation (sender or recipient)
+router.delete('/:id', async (req, res) => {
+  try {
+    const result = await recommendationService.deleteRecommendation(req.params.id, req.user.id);
+    res.json(result);
+  } catch (error) {
+    console.error('Error deleting recommendation:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Alternate delete (POST) for environments that block DELETE
+router.post('/:id/delete', async (req, res) => {
+  try {
+    const result = await recommendationService.deleteRecommendation(req.params.id, req.user.id);
+    res.json(result);
+  } catch (error) {
+    console.error('Error deleting recommendation (POST):', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

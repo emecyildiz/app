@@ -136,6 +136,16 @@ const Profile = () => {
   const [sentRecommendations, setSentRecommendations] = useState([])
   const [recommendationsLoading, setRecommendationsLoading] = useState(false)
 
+  const toggleLocalRecommendationWatched = (recId, movieId, isWatched) => {
+    setReceivedRecommendations(prev => prev.map(r => {
+      if (r.id !== recId) return r
+      return {
+        ...r,
+        items: (r.items || []).map(i => i.movie_id === movieId ? { ...i, isWatched } : i)
+      }
+    }))
+  }
+
   useEffect(() => {
     let mounted = true
     const loadComments = async () => {
@@ -172,13 +182,65 @@ const Profile = () => {
       if (activeTab !== 'recommendations') return
       try {
         setRecommendationsLoading(true)
-        const [received, sent] = await Promise.all([
+        const [received, sent, watchedSet] = await Promise.all([
           recommendationService.getRecommendations('received'),
-          recommendationService.getRecommendations('sent')
+          recommendationService.getRecommendations('sent'),
+          movieService.getWatchedIds()
         ])
+
+        // Enrich with user display info (name, username, avatar)
+        const all = [...(received || []), ...(sent || [])]
+        const idSet = new Set()
+        all.forEach(r => {
+          if (r?.from_user_id) idSet.add(r.from_user_id)
+          if (r?.to_user_id) idSet.add(r.to_user_id)
+        })
+
+        let profileMap = {}
+        if (idSet.size > 0) {
+          try {
+            const ids = Array.from(idSet)
+            const results = await Promise.all(ids.map(id => userService.getPublicProfile(id)))
+            results.forEach(p => {
+              if (p && p.id) profileMap[p.id] = {
+                id: p.id,
+                name: p.name || null,
+                username: p.username || null,
+                avatar: p.avatar || null,
+              }
+            })
+          } catch (_) {}
+        }
+
+        // Fetch minimal movie info from TMDB for mini cards (title/poster)
+        const movieIdSet = new Set()
+        ;(received || []).forEach(r => (r.items || []).forEach(i => movieIdSet.add(Number(i.movie_id))))
+        let movieMap = {}
+        if (movieIdSet.size > 0) {
+          try {
+            const ids = Array.from(movieIdSet)
+            const details = await Promise.all(ids.map(id => tmdbService.getMovieDetails(id).catch(()=>null)))
+            details.forEach(d => {
+              if (d && d.id) movieMap[d.id] = { title: d.title || d.original_title || `#${d.id}`, poster_path: d.poster_path || null }
+            })
+          } catch (_) {}
+        }
+
+        const hydrate = (rec) => ({
+          ...rec,
+          from_user: profileMap[rec?.from_user_id] || null,
+          to_user: profileMap[rec?.to_user_id] || null,
+          items: (rec.items || []).map(it => ({
+            ...it,
+            isWatched: watchedSet.has(Number(it.movie_id)),
+            poster_path: movieMap[Number(it.movie_id)]?.poster_path || null,
+            movie_title: movieMap[Number(it.movie_id)]?.title || `#${it.movie_id}`
+          }))
+        })
+
         if (mounted) {
-          setReceivedRecommendations(received || [])
-          setSentRecommendations(sent || [])
+          setReceivedRecommendations((received || []).map(hydrate))
+          setSentRecommendations((sent || []).map(hydrate))
         }
       } catch (error) {
         console.error('Error loading recommendations:', error)
@@ -727,74 +789,107 @@ const Profile = () => {
             {activeTab === 'recommendations' && (
               <div>
                 <div className="space-y-8">
-                  {/* Gelen Öneriler */}
+                  {/* Gelen Öneriler (İzlendi / İzlenmedi) */}
                   <div>
                     <h2 className="text-2xl font-bold text-white mb-4">Gelen Öneriler</h2>
-                    <div className="glass rounded-xl p-4">
-                      {recommendationsLoading ? (
-                        <div className="text-center py-8">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
-                          <p className="text-gray-400 mt-2">Yükleniyor...</p>
-                        </div>
-                      ) : receivedRecommendations.length === 0 ? (
-                        <p className="text-gray-400 text-center py-8">Henüz gelen öneri yok</p>
-                      ) : (
-                        <div className="space-y-4">
-                          {receivedRecommendations.map((rec) => (
-                            <div key={rec.id} className="bg-white/5 rounded-lg p-4">
-                              <div className="flex items-start justify-between gap-4">
-                                <div>
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <img
-                                      src={(rec.from_user && rec.from_user.avatar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(rec.from_user?.name || rec.from_user?.username || 'Kullanıcı')}&background=ef4444&color=fff`}
-                                      alt=""
-                                      className="w-6 h-6 rounded-full"
-                                    />
-                                    <span className="text-white font-medium">{rec.from_user?.name || rec.from_user?.username || 'Bilinmeyen'}</span>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* İzlenmedi */}
+                      <div className="glass rounded-xl p-4">
+                        <h3 className="text-white font-semibold mb-3">İzlemediklerim</h3>
+                        {recommendationsLoading ? (
+                          <div className="text-center py-8">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
+                            <p className="text-gray-400 mt-2">Yükleniyor...</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {receivedRecommendations.flatMap((rec) => (
+                              (rec.items || []).filter(i => !i.isWatched).map((item) => (
+                                <div key={`${rec.id}-${item.movie_id}`} className="flex items-start gap-3 bg-white/5 rounded-lg p-3">
+                                  {/* Mini poster placeholder */}
+                                  <div className="w-10 h-14 rounded-md overflow-hidden bg-white/10">
+                                    <img src={`https://image.tmdb.org/t/p/w92${item.poster_path || ''}`} alt="" className="w-full h-full object-cover" onError={(e)=>{e.currentTarget.style.display='none'}} />
                                   </div>
-                                  <h3 className="text-lg font-medium text-white mb-1">{rec.title}</h3>
-                                  {rec.note && (
-                                    <p className="text-gray-400 text-sm mb-3">{rec.note}</p>
-                                  )}
-                                  {Array.isArray(rec.items) && rec.items.length > 0 && (
-                                    <div className="flex flex-wrap gap-2">
-                                      {rec.items.map((item) => (
-                                        <span key={item.movie_id} className="px-2 py-1 text-xs bg-white/10 rounded">#{item.movie_id}</span>
-                                      ))}
-                                    </div>
-                                  )}
+                                  <div className="flex-1">
+                                    <div className="text-white text-sm font-medium">{item.movie_title || rec.title}</div>
+                                    {rec.note && <div className="text-xs text-gray-400 mt-1">{rec.note}</div>}
+                                    <div className="text-[11px] text-gray-500 mt-1">{new Date(rec.created_at).toLocaleString('tr-TR')}</div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      className="btn btn-primary btn-xs"
+                                      onClick={async ()=>{
+                                        const res = await movieService.markAsWatched(item.movie_id)
+                                        if (res?.success) toggleLocalRecommendationWatched(rec.id, item.movie_id, true)
+                                      }}
+                                    >İzledim</button>
+                                    <button
+                                      className="btn btn-secondary btn-xs"
+                                      onClick={async ()=>{
+                                        const ok = await recommendationService.deleteRecommendation(rec.id)
+                                        if (ok?.success || ok) {
+                                          setReceivedRecommendations(prev => prev.filter(r => r.id !== rec.id))
+                                        }
+                                      }}
+                                    >Sil</button>
+                                  </div>
                                 </div>
-                                {rec.status === 'pending' && (
-                                  <div className="flex gap-2">
-                                    <button
-                                      onClick={() => recommendationService.respondToRecommendation(rec.id, 'accepted')}
-                                      className="btn btn-primary btn-sm"
-                                    >
-                                      <Check className="w-4 h-4" />
-                                      Kabul Et
-                                    </button>
-                                    <button
-                                      onClick={() => recommendationService.respondToRecommendation(rec.id, 'rejected')}
-                                      className="btn btn-secondary btn-sm"
-                                    >
-                                      <X className="w-4 h-4" />
-                                      Reddet
-                                    </button>
+                              ))
+                            ))}
+                            {receivedRecommendations.every(r => (r.items || []).every(i => i.isWatched)) && (
+                              <p className="text-gray-400 text-center py-6">İzlemediğiniz öneri yok</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      {/* İzledim */}
+                      <div className="glass rounded-xl p-4">
+                        <h3 className="text-white font-semibold mb-3">İzlediklerim</h3>
+                        {recommendationsLoading ? (
+                          <div className="text-center py-8">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
+                            <p className="text-gray-400 mt-2">Yükleniyor...</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {receivedRecommendations.flatMap((rec) => (
+                              (rec.items || []).filter(i => i.isWatched).map((item) => (
+                                <div key={`${rec.id}-${item.movie_id}`} className="flex items-start gap-3 bg-white/5 rounded-lg p-3 opacity-80">
+                                  <div className="w-10 h-14 rounded-md overflow-hidden bg-white/10">
+                                    <img src={`https://image.tmdb.org/t/p/w92${item.poster_path || ''}`} alt="" className="w-full h-full object-cover" onError={(e)=>{e.currentTarget.style.display='none'}} />
                                   </div>
-                                )}
-                              </div>
-                              <div className="mt-2 text-xs text-gray-500">
-                                {new Date(rec.created_at).toLocaleString('tr-TR')}
-                                {rec.status !== 'pending' && (
-                                  <span className="ml-2">
-                                    • {rec.status === 'accepted' ? 'Kabul edildi' : 'Reddedildi'}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                                  <div className="flex-1">
+                                    <div className="text-white text-sm font-medium">{item.movie_title || rec.title}</div>
+                                    {rec.note && <div className="text-xs text-gray-400 mt-1">{rec.note}</div>}
+                                    <div className="text-[11px] text-gray-500 mt-1">{new Date(rec.created_at).toLocaleString('tr-TR')}</div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      className="btn btn-secondary btn-xs"
+                                      onClick={async ()=>{
+                                        const res = await movieService.markAsUnwatched(item.movie_id)
+                                        if (res?.success) toggleLocalRecommendationWatched(rec.id, item.movie_id, false)
+                                      }}
+                                    >İzlemedim</button>
+                                    <button
+                                      className="btn btn-secondary btn-xs"
+                                      onClick={async ()=>{
+                                        const ok = await recommendationService.deleteRecommendation(rec.id)
+                                        if (ok?.success || ok) {
+                                          setReceivedRecommendations(prev => prev.filter(r => r.id !== rec.id))
+                                        }
+                                      }}
+                                    >Sil</button>
+                                  </div>
+                                </div>
+                              ))
+                            ))}
+                            {receivedRecommendations.every(r => (r.items || []).every(i => !i.isWatched)) && (
+                              <p className="text-gray-400 text-center py-6">İzlediğiniz öneri yok</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -818,21 +913,23 @@ const Profile = () => {
                                   <div className="flex items-center gap-2 mb-2">
                                     <span className="text-white">Kime:</span>
                                     <img
-                                      src={rec.to_user.avatar || `https://ui-avatars.com/api/?name=${rec.to_user.name}&background=ef4444&color=fff`}
+                                      src={(rec.to_user && rec.to_user.avatar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(rec.to_user?.name || rec.to_user?.username || 'Kullanıcı')}&background=ef4444&color=fff`}
                                       alt=""
                                       className="w-6 h-6 rounded-full"
                                     />
-                                    <span className="text-white font-medium">{rec.to_user.name}</span>
+                                    <span className="text-white font-medium">{rec.to_user?.name || rec.to_user?.username || 'Bilinmeyen'}</span>
                                   </div>
                                   <h3 className="text-lg font-medium text-white mb-1">{rec.title}</h3>
                                   {rec.note && (
                                     <p className="text-gray-400 text-sm mb-3">{rec.note}</p>
                                   )}
-                                  <div className="flex flex-wrap gap-2">
-                                    {rec.items.map((item) => (
-                                      <MovieCard key={item.movie_id} movie={item.movie} />
-                                    ))}
-                                  </div>
+                                  {Array.isArray(rec.items) && rec.items.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                      {rec.items.map((item) => (
+                                        <span key={item.movie_id} className="px-2 py-1 text-xs bg-white/10 rounded">#{item.movie_id}</span>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                               <div className="mt-2 text-xs text-gray-500">

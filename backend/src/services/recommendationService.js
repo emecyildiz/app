@@ -54,11 +54,11 @@ class RecommendationService {
       .from('recommendations')
       .select('*, items:recommendation_items(movie_id)', { count: 'exact' });
 
-    // Gelen veya giden önerileri filtrele
+    // Gelen veya giden önerileri filtrele ve soft-delete flaglerini uygula
     if (type === 'received') {
-      query = query.eq('to_user_id', userId);
+      query = query.eq('to_user_id', userId).eq('deleted_by_recipient', false);
     } else if (type === 'sent') {
-      query = query.eq('from_user_id', userId);
+      query = query.eq('from_user_id', userId).eq('deleted_by_sender', false);
     }
 
     // Duruma göre filtrele (opsiyonel)
@@ -101,6 +101,28 @@ class RecommendationService {
 
     if (error) throw error;
     return data;
+  }
+
+  async deleteRecommendation(id, userId) {
+    // Soft delete: mark visibility flag depending on who deletes
+    const { data: rec, error: findErr } = await supabase
+      .from('recommendations')
+      .select('id, from_user_id, to_user_id, deleted_by_sender, deleted_by_recipient')
+      .eq('id', id)
+      .single();
+    if (findErr || !rec) throw findErr || new Error('not_found');
+
+    let updates = {};
+    if (rec.from_user_id === userId) updates.deleted_by_sender = true;
+    if (rec.to_user_id === userId) updates.deleted_by_recipient = true;
+    if (Object.keys(updates).length === 0) throw new Error('forbidden');
+
+    const { error: updErr } = await supabase
+      .from('recommendations')
+      .update(updates)
+      .eq('id', id);
+    if (updErr) throw updErr;
+    return { success: true };
   }
 }
 

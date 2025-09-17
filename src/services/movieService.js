@@ -249,6 +249,23 @@ class MovieService {
       return { success: false, error: error.message }
     }
   }
+
+  // Izlenen film ID'lerini getir (hızlı kontrol için)
+  async getWatchedIds() {
+    try {
+      const { data: { user } } = await this.supabase.auth.getUser()
+      if (!user) throw new Error('Kullanıcı girişi yapılmamış')
+      const { data, error } = await this.supabase
+        .from('watched_movies')
+        .select('movie_id')
+        .eq('user_id', user.id)
+      if (error) throw error
+      return new Set((data || []).map(r => Number(r.movie_id)))
+    } catch (e) {
+      console.error('Watched ids fetch error:', e)
+      return new Set()
+    }
+  }
 }
 
 export const movieService = new MovieService()
