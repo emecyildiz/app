@@ -215,6 +215,7 @@ const Profile = () => {
         // Fetch minimal movie info from TMDB for mini cards (title/poster)
         const movieIdSet = new Set()
         ;(received || []).forEach(r => (r.items || []).forEach(i => movieIdSet.add(Number(i.movie_id))))
+        ;(sent || []).forEach(r => (r.items || []).forEach(i => movieIdSet.add(Number(i.movie_id))))
         let movieMap = {}
         if (movieIdSet.size > 0) {
           try {
@@ -476,38 +477,38 @@ const Profile = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8"
+          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6"
         >
-          <div className="glass rounded-xl p-6 text-center">
+          <div className="glass rounded-lg p-4 text-center">
             <Film className="w-8 h-8 text-primary-500 mx-auto mb-2" />
-            <p className="text-3xl font-bold text-white mb-1">{stats.watchedMovies}</p>
+            <p className="text-2xl font-bold text-white mb-1">{stats.watchedMovies}</p>
             <p className="text-gray-400">Film İzlendi</p>
           </div>
-          <div className="glass rounded-xl p-6 text-center">
+          <div className="glass rounded-lg p-4 text-center">
             <Star className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-            <p className="text-3xl font-bold text-white mb-1">{stats.ratings}</p>
+            <p className="text-2xl font-bold text-white mb-1">{stats.ratings}</p>
             <p className="text-gray-400">Puan Verildi</p>
           </div>
-          <div className="glass rounded-xl p-6 text-center">
+          <div className="glass rounded-lg p-4 text-center">
             <MessageSquare className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-            <p className="text-3xl font-bold text-white mb-1">{stats.comments}</p>
+            <p className="text-2xl font-bold text-white mb-1">{stats.comments}</p>
             <p className="text-gray-400">Yorum</p>
           </div>
-          <div className="glass rounded-xl p-6 text-center">
+          <div className="glass rounded-lg p-4 text-center">
             <Heart className="w-8 h-8 text-red-500 mx-auto mb-2" />
-            <p className="text-3xl font-bold text-white mb-1">{stats.favorites}</p>
+            <p className="text-2xl font-bold text-white mb-1">{stats.favorites}</p>
             <p className="text-gray-400">Favori Film</p>
           </div>
-          <div className="glass rounded-xl p-6 text-center">
+          <div className="glass rounded-lg p-4 text-center">
             <Calendar className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-            <p className="text-3xl font-bold text-white mb-1">
+            <p className="text-2xl font-bold text-white mb-1">
               {stats.memberSinceDays}
             </p>
             <p className="text-gray-400">Gün Üye</p>
           </div>
-          <div className="glass rounded-xl p-6 text-center">
+          <div className="glass rounded-lg p-4 text-center">
             <User className="w-8 h-8 text-green-500 mx-auto mb-2" />
-            <p className="text-3xl font-bold text-white mb-1">
+            <p className="text-2xl font-bold text-white mb-1">
               {friends.length}
             </p>
             <p className="text-gray-400">Arkadaş</p>
@@ -893,7 +894,7 @@ const Profile = () => {
                     </div>
                   </div>
 
-                  {/* Gönderilen Öneriler */}
+                  {/* Gönderilen Öneriler - mini kartlar */}
                   <div>
                     <h2 className="text-2xl font-bold text-white mb-4">Gönderilen Öneriler</h2>
                     <div className="glass rounded-xl p-4">
@@ -905,42 +906,20 @@ const Profile = () => {
                       ) : sentRecommendations.length === 0 ? (
                         <p className="text-gray-400 text-center py-8">Henüz öneri göndermediniz</p>
                       ) : (
-                        <div className="space-y-4">
-                          {sentRecommendations.map((rec) => (
-                            <div key={rec.id} className="bg-white/5 rounded-lg p-4">
-                              <div className="flex items-start justify-between gap-4">
-                                <div>
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <span className="text-white">Kime:</span>
-                                    <img
-                                      src={(rec.to_user && rec.to_user.avatar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(rec.to_user?.name || rec.to_user?.username || 'Kullanıcı')}&background=ef4444&color=fff`}
-                                      alt=""
-                                      className="w-6 h-6 rounded-full"
-                                    />
-                                    <span className="text-white font-medium">{rec.to_user?.name || rec.to_user?.username || 'Bilinmeyen'}</span>
-                                  </div>
-                                  <h3 className="text-lg font-medium text-white mb-1">{rec.title}</h3>
-                                  {rec.note && (
-                                    <p className="text-gray-400 text-sm mb-3">{rec.note}</p>
-                                  )}
-                                  {Array.isArray(rec.items) && rec.items.length > 0 && (
-                                    <div className="flex flex-wrap gap-2">
-                                      {rec.items.map((item) => (
-                                        <span key={item.movie_id} className="px-2 py-1 text-xs bg-white/10 rounded">#{item.movie_id}</span>
-                                      ))}
-                                    </div>
-                                  )}
+                        <div className="space-y-3">
+                          {sentRecommendations.flatMap((rec) => (
+                            (rec.items || []).map((item) => (
+                              <div key={`${rec.id}-${item.movie_id}`} className="flex items-start gap-3 bg-white/5 rounded-lg p-3">
+                                <div className="w-10 h-14 rounded-md overflow-hidden bg-white/10">
+                                  <img src={`https://image.tmdb.org/t/p/w92${item.poster_path || ''}`} alt="" className="w-full h-full object-cover" onError={(e)=>{e.currentTarget.style.display='none'}} />
+                                </div>
+                                <div className="flex-1">
+                                  <div className="text-white text-sm font-medium">{item.movie_title || rec.title}</div>
+                                  {rec.note && <div className="text-xs text-gray-400 mt-1">{rec.note}</div>}
+                                  <div className="text-[11px] text-gray-500 mt-1">{new Date(rec.created_at).toLocaleString('tr-TR')}</div>
                                 </div>
                               </div>
-                              <div className="mt-2 text-xs text-gray-500">
-                                {new Date(rec.created_at).toLocaleString('tr-TR')}
-                                {rec.status !== 'pending' && (
-                                  <span className="ml-2">
-                                    • {rec.status === 'accepted' ? 'Kabul edildi' : 'Reddedildi'}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
+                            ))
                           ))}
                         </div>
                       )}
