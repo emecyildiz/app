@@ -10,8 +10,10 @@ import {
   ArrowLeft,
   Users,
   Award,
-  Heart
+  Heart,
+  Share2
 } from 'lucide-react'
+import RecommendationModal from '../components/RecommendationModal'
 import { useMovieStore } from '../store/movieStore'
 import { useFavoritesStore } from '../store/favoritesStore'
 import { tmdbService } from '../services/tmdbService'
@@ -33,6 +35,7 @@ const MovieDetail = () => {
   const [userRating, setUserRating] = useState(0)
   const [userComment, setUserComment] = useState('')
   const [showRatingModal, setShowRatingModal] = useState(false)
+  const [showRecommendModal, setShowRecommendModal] = useState(false)
   const [ratingLoading, setRatingLoading] = useState(false)
 
   useEffect(() => {
@@ -330,6 +333,22 @@ const MovieDetail = () => {
                     <Heart className={`w-4 h-4 ${isFavorite(id) ? 'fill-current' : ''}`} />
                     {isFavorite(id) ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
                   </button>
+
+                  {/* Recommend Button */}
+                  <button
+                    onClick={() => {
+                      if (!isAuthenticated) {
+                        toast.error('Film önermek için giriş yapın')
+                        navigate('/login')
+                        return
+                      }
+                      setShowRecommendModal(true)
+                    }}
+                    className="btn btn-secondary inline-flex items-center gap-2"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    Arkadaşına Öner
+                  </button>
                 </div>
               </motion.div>
             </div>
@@ -568,6 +587,17 @@ const MovieDetail = () => {
           </motion.div>
         </motion.div>
       )}
+
+      {/* Recommendation Modal */}
+      <RecommendationModal
+        isOpen={showRecommendModal}
+        onClose={() => setShowRecommendModal(false)}
+        movie={currentMovie}
+        onSuccess={() => {
+          setShowRecommendModal(false)
+          toast.success('Film önerisi gönderildi')
+        }}
+      />
     </div>
   )
 }

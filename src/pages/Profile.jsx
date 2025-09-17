@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Camera, User, Mail, Calendar, Film, Star, Heart, Settings, LogOut, MapPin, Edit2, Twitter, Instagram, Link, Users, UserMinus, Check, X, MessageSquare } from 'lucide-react'
+import { Camera, User, Mail, Calendar, Film, Star, Heart, Settings, LogOut, MapPin, Edit2, Twitter, Instagram, Link, Users, UserMinus, Check, X, MessageSquare, Share2 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 
@@ -10,6 +10,7 @@ import { useFavoritesStore } from '../store/favoritesStore'
 import { userService } from '../services/userService'
 import { movieService } from '../services/movieService'
 import { tmdbService } from '../services/tmdbService'
+import recommendationService from '../services/recommendationService'
 import AvatarUpload from '../components/AvatarUpload'
 import MovieCard from '../components/MovieCard'
 
@@ -130,6 +131,11 @@ const Profile = () => {
   const [commentsTotalPages, setCommentsTotalPages] = useState(1)
   const [commentsLoading, setCommentsLoading] = useState(false)
 
+  // Recommendations state
+  const [receivedRecommendations, setReceivedRecommendations] = useState([])
+  const [sentRecommendations, setSentRecommendations] = useState([])
+  const [recommendationsLoading, setRecommendationsLoading] = useState(false)
+
   useEffect(() => {
     let mounted = true
     const loadComments = async () => {
@@ -154,9 +160,36 @@ const Profile = () => {
     { id: 'favorites', label: 'Favorilerim', icon: Heart },
     { id: 'ratings', label: 'Puanladıklarım', icon: Star },
     { id: 'comments', label: 'Yorumlarım', icon: MessageSquare },
+    { id: 'recommendations', label: 'Öneriler', icon: Share2 },
     { id: 'friends', label: 'Arkadaşlar', icon: Users },
     { id: 'settings', label: 'Ayarlar', icon: Settings },
   ]
+
+  // Load recommendations when recommendations tab is active
+  useEffect(() => {
+    let mounted = true
+    const loadRecommendations = async () => {
+      if (activeTab !== 'recommendations') return
+      try {
+        setRecommendationsLoading(true)
+        const [received, sent] = await Promise.all([
+          recommendationService.getRecommendations('received'),
+          recommendationService.getRecommendations('sent')
+        ])
+        if (mounted) {
+          setReceivedRecommendations(received || [])
+          setSentRecommendations(sent || [])
+        }
+      } catch (error) {
+        console.error('Error loading recommendations:', error)
+        toast.error('Öneriler yüklenirken bir hata oluştu')
+      } finally {
+        if (mounted) setRecommendationsLoading(false)
+      }
+    }
+    loadRecommendations()
+    return () => { mounted = false }
+  }, [activeTab])
 
   useEffect(() => {
     let mounted = true
@@ -690,6 +723,133 @@ const Profile = () => {
             )}
 
 
+
+            {activeTab === 'recommendations' && (
+              <div>
+                <div className="space-y-8">
+                  {/* Gelen Öneriler */}
+                  <div>
+                    <h2 className="text-2xl font-bold text-white mb-4">Gelen Öneriler</h2>
+                    <div className="glass rounded-xl p-4">
+                      {recommendationsLoading ? (
+                        <div className="text-center py-8">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
+                          <p className="text-gray-400 mt-2">Yükleniyor...</p>
+                        </div>
+                      ) : receivedRecommendations.length === 0 ? (
+                        <p className="text-gray-400 text-center py-8">Henüz gelen öneri yok</p>
+                      ) : (
+                        <div className="space-y-4">
+                          {receivedRecommendations.map((rec) => (
+                            <div key={rec.id} className="bg-white/5 rounded-lg p-4">
+                              <div className="flex items-start justify-between gap-4">
+                                <div>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <img
+                                      src={rec.from_user.avatar || `https://ui-avatars.com/api/?name=${rec.from_user.name}&background=ef4444&color=fff`}
+                                      alt=""
+                                      className="w-6 h-6 rounded-full"
+                                    />
+                                    <span className="text-white font-medium">{rec.from_user.name}</span>
+                                  </div>
+                                  <h3 className="text-lg font-medium text-white mb-1">{rec.title}</h3>
+                                  {rec.note && (
+                                    <p className="text-gray-400 text-sm mb-3">{rec.note}</p>
+                                  )}
+                                  <div className="flex flex-wrap gap-2">
+                                    {rec.items.map((item) => (
+                                      <MovieCard key={item.movie_id} movie={item.movie} />
+                                    ))}
+                                  </div>
+                                </div>
+                                {rec.status === 'pending' && (
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => recommendationService.respondToRecommendation(rec.id, 'accepted')}
+                                      className="btn btn-primary btn-sm"
+                                    >
+                                      <Check className="w-4 h-4" />
+                                      Kabul Et
+                                    </button>
+                                    <button
+                                      onClick={() => recommendationService.respondToRecommendation(rec.id, 'rejected')}
+                                      className="btn btn-secondary btn-sm"
+                                    >
+                                      <X className="w-4 h-4" />
+                                      Reddet
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="mt-2 text-xs text-gray-500">
+                                {new Date(rec.created_at).toLocaleString('tr-TR')}
+                                {rec.status !== 'pending' && (
+                                  <span className="ml-2">
+                                    • {rec.status === 'accepted' ? 'Kabul edildi' : 'Reddedildi'}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Gönderilen Öneriler */}
+                  <div>
+                    <h2 className="text-2xl font-bold text-white mb-4">Gönderilen Öneriler</h2>
+                    <div className="glass rounded-xl p-4">
+                      {recommendationsLoading ? (
+                        <div className="text-center py-8">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
+                          <p className="text-gray-400 mt-2">Yükleniyor...</p>
+                        </div>
+                      ) : sentRecommendations.length === 0 ? (
+                        <p className="text-gray-400 text-center py-8">Henüz öneri göndermediniz</p>
+                      ) : (
+                        <div className="space-y-4">
+                          {sentRecommendations.map((rec) => (
+                            <div key={rec.id} className="bg-white/5 rounded-lg p-4">
+                              <div className="flex items-start justify-between gap-4">
+                                <div>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-white">Kime:</span>
+                                    <img
+                                      src={rec.to_user.avatar || `https://ui-avatars.com/api/?name=${rec.to_user.name}&background=ef4444&color=fff`}
+                                      alt=""
+                                      className="w-6 h-6 rounded-full"
+                                    />
+                                    <span className="text-white font-medium">{rec.to_user.name}</span>
+                                  </div>
+                                  <h3 className="text-lg font-medium text-white mb-1">{rec.title}</h3>
+                                  {rec.note && (
+                                    <p className="text-gray-400 text-sm mb-3">{rec.note}</p>
+                                  )}
+                                  <div className="flex flex-wrap gap-2">
+                                    {rec.items.map((item) => (
+                                      <MovieCard key={item.movie_id} movie={item.movie} />
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="mt-2 text-xs text-gray-500">
+                                {new Date(rec.created_at).toLocaleString('tr-TR')}
+                                {rec.status !== 'pending' && (
+                                  <span className="ml-2">
+                                    • {rec.status === 'accepted' ? 'Kabul edildi' : 'Reddedildi'}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {activeTab === 'settings' && (
               <div className="max-w-2xl">

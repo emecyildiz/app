@@ -1,6 +1,7 @@
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
+const recommendationsRouter = require('./routes/recommendations');
 require('dotenv').config();
 
 const app = express();
@@ -804,6 +805,9 @@ app.get('/api/admin/operators', requireAdmin, async (req, res) => {
 });
 
 // Health check
+// Recommendations routes
+app.use('/api/recommendations', recommendationsRouter);
+
 app.get('/health', async (req, res) => {
   try {
     // Test Supabase connection
