@@ -746,21 +746,23 @@ const Profile = () => {
                                 <div>
                                   <div className="flex items-center gap-2 mb-2">
                                     <img
-                                      src={rec.from_user.avatar || `https://ui-avatars.com/api/?name=${rec.from_user.name}&background=ef4444&color=fff`}
+                                      src={(rec.from_user && rec.from_user.avatar) || `https://ui-avatars.com/api/?name=${encodeURIComponent(rec.from_user?.name || rec.from_user?.username || 'Kullanıcı')}&background=ef4444&color=fff`}
                                       alt=""
                                       className="w-6 h-6 rounded-full"
                                     />
-                                    <span className="text-white font-medium">{rec.from_user.name}</span>
+                                    <span className="text-white font-medium">{rec.from_user?.name || rec.from_user?.username || 'Bilinmeyen'}</span>
                                   </div>
                                   <h3 className="text-lg font-medium text-white mb-1">{rec.title}</h3>
                                   {rec.note && (
                                     <p className="text-gray-400 text-sm mb-3">{rec.note}</p>
                                   )}
-                                  <div className="flex flex-wrap gap-2">
-                                    {rec.items.map((item) => (
-                                      <MovieCard key={item.movie_id} movie={item.movie} />
-                                    ))}
-                                  </div>
+                                  {Array.isArray(rec.items) && rec.items.length > 0 && (
+                                    <div className="flex flex-wrap gap-2">
+                                      {rec.items.map((item) => (
+                                        <span key={item.movie_id} className="px-2 py-1 text-xs bg-white/10 rounded">#{item.movie_id}</span>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
                                 {rec.status === 'pending' && (
                                   <div className="flex gap-2">
