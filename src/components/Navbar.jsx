@@ -245,6 +245,48 @@ const Navbar = () => {
                 })}
               </ul>
 
+              {/* Mobile User Search */}
+              <div className="pt-2">
+                <div className="relative">
+                  <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-2">
+                    <Search className="w-4 h-4 text-gray-400" />
+                    <input
+                      value={query}
+                      onChange={handleSearchChange}
+                      placeholder="Kullanıcı ara..."
+                      className="bg-transparent outline-none text-sm text-white placeholder:text-gray-400 w-full"
+                    />
+                    <button type="submit" className="text-xs px-2 py-1 bg-primary-500/20 text-primary-300 rounded">Ara</button>
+                  </form>
+                  {query && results.length > 0 && (
+                    <div className="absolute mt-2 w-full glass-dark rounded-lg border border-white/10 max-h-72 overflow-auto z-50">
+                      {results.map((u) => (
+                        <button
+                          key={u.id}
+                          onClick={() => { setIsMobileMenuOpen(false); goToPublicProfile(u.username, u.id) }}
+                          className="w-full text-left px-3 py-2 hover:bg-white/10 flex items-center gap-2"
+                        >
+                          <img
+                            src={u.avatar || `https://ui-avatars.com/api/?name=${u.name || u.username}&background=ef4444&color=fff`}
+                            alt={u.name}
+                            className="w-6 h-6 rounded-full"
+                          />
+                          <div className="flex flex-col">
+                            <span className="text-white text-sm">{u.name || u.username}</span>
+                            <span className="text-gray-400 text-xs">@{u.username}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {query && !isSearching && results.length === 0 && (
+                    <div className="absolute mt-2 w-full glass-dark rounded-lg border border-white/10 p-3 text-sm text-gray-400 z-50">
+                      Sonuç yok
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Mobile Auth Buttons */}
               <div className="space-y-2 pt-4 border-t border-white/10">
                 {safeIsAuthenticated ? (

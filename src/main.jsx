@@ -19,6 +19,15 @@ const authStore = useAuthStore.getState()
   }
 })()
 
+// Setup dynamic viewport unit to handle mobile browser UI chrome
+const setViewportUnit = () => {
+  const vh = window.innerHeight * 0.01
+  document.documentElement.style.setProperty('--vh', `${vh}px`)
+}
+setViewportUnit()
+window.addEventListener('resize', setViewportUnit)
+window.addEventListener('orientationchange', setViewportUnit)
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />

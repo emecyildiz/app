@@ -374,7 +374,7 @@ const Profile = () => {
   if (isLoading) return null
   if (!user) return <Navigate to="/login" replace />
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen-dvh pt-20">
       <div className="container mx-auto px-4 py-8">
         {/* Profile Header */}
         <motion.div
@@ -472,46 +472,42 @@ const Profile = () => {
           </div>
         </motion.div>
 
-        {/* Stats Cards */}
+        {/* Compact Metrics Strip */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6"
+          className="flex flex-wrap items-center gap-3 mb-6"
         >
-          <div className="glass rounded-lg p-4 text-center">
-            <Film className="w-8 h-8 text-primary-500 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-white mb-1">{stats.watchedMovies}</p>
-            <p className="text-gray-400">Film İzlendi</p>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
+            <Film className="w-4 h-4 text-primary-400" />
+            <span className="text-white font-semibold">{stats.watchedMovies}</span>
+            <span className="text-gray-400 text-sm">İzlendi</span>
           </div>
-          <div className="glass rounded-lg p-4 text-center">
-            <Star className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-white mb-1">{stats.ratings}</p>
-            <p className="text-gray-400">Puan Verildi</p>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
+            <Star className="w-4 h-4 text-yellow-400" />
+            <span className="text-white font-semibold">{stats.ratings}</span>
+            <span className="text-gray-400 text-sm">Puan</span>
           </div>
-          <div className="glass rounded-lg p-4 text-center">
-            <MessageSquare className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-white mb-1">{stats.comments}</p>
-            <p className="text-gray-400">Yorum</p>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
+            <MessageSquare className="w-4 h-4 text-blue-400" />
+            <span className="text-white font-semibold">{stats.comments}</span>
+            <span className="text-gray-400 text-sm">Yorum</span>
           </div>
-          <div className="glass rounded-lg p-4 text-center">
-            <Heart className="w-8 h-8 text-red-500 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-white mb-1">{stats.favorites}</p>
-            <p className="text-gray-400">Favori Film</p>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
+            <Heart className="w-4 h-4 text-red-400" />
+            <span className="text-white font-semibold">{stats.favorites}</span>
+            <span className="text-gray-400 text-sm">Favori</span>
           </div>
-          <div className="glass rounded-lg p-4 text-center">
-            <Calendar className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-white mb-1">
-              {stats.memberSinceDays}
-            </p>
-            <p className="text-gray-400">Gün Üye</p>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
+            <Calendar className="w-4 h-4 text-blue-400" />
+            <span className="text-white font-semibold">{stats.memberSinceDays}</span>
+            <span className="text-gray-400 text-sm">Gün</span>
           </div>
-          <div className="glass rounded-lg p-4 text-center">
-            <User className="w-8 h-8 text-green-500 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-white mb-1">
-              {friends.length}
-            </p>
-            <p className="text-gray-400">Arkadaş</p>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
+            <User className="w-4 h-4 text-green-400" />
+            <span className="text-white font-semibold">{friends.length}</span>
+            <span className="text-gray-400 text-sm">Arkadaş</span>
           </div>
         </motion.div>
 
@@ -521,25 +517,28 @@ const Profile = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          {/* Tab Navigation */}
-          <div className="flex flex-wrap gap-2 mb-8">
-            {tabs.map((tab) => {
-              const Icon = tab.icon
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                    activeTab === tab.id
-                      ? 'bg-primary-500 text-white'
-                      : 'bg-dark-200 text-gray-300 hover:bg-dark-300'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{tab.label}</span>
-                </button>
-              )
-            })}
+          {/* Tab Navigation (hidden on mobile) */}
+          <div className="mb-8 overflow-x-auto hidden sm:block">
+            <div className="inline-flex items-center bg-white/5 rounded-xl p-1 gap-1">
+              {tabs.map((tab) => {
+                const Icon = tab.icon
+                const isActive = activeTab === tab.id
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all whitespace-nowrap ${
+                      isActive
+                        ? 'bg-primary-500 text-white shadow'
+                        : 'text-gray-300 hover:bg-white/10'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{tab.label}</span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
           {/* Tab Content */}
@@ -980,6 +979,32 @@ const Profile = () => {
             )}
           </div>
         </motion.div>
+        {/* Spacer for mobile bottom nav */}
+        <div className="h-20 sm:h-0" />
+      </div>
+
+      {/* Mobile Bottom Nav (Instagram-style) */}
+      <div className="fixed inset-x-0 bottom-0 sm:hidden glass-dark border-t border-white/10 backdrop-blur-md pb-safe">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid grid-cols-5 gap-1 py-2">
+            {tabs.map((tab) => {
+              const Icon = tab.icon
+              const isActive = activeTab === tab.id
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex flex-col items-center justify-center gap-1 py-2 rounded-lg transition-colors ${
+                    isActive ? 'text-primary-400 bg-white/5' : 'text-gray-300 hover:text-white'
+                  }`}
+                >
+                  <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : ''}`} />
+                  <span className="text-[11px]">{tab.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Edit Profile Modal */}

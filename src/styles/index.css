@@ -18,6 +18,15 @@
     min-height: 100vh;
   }
 
+  /* Dynamic viewport height for mobile browsers */
+  :root {
+    --vh: 1vh;
+    --safe-top: env(safe-area-inset-top);
+    --safe-right: env(safe-area-inset-right);
+    --safe-bottom: env(safe-area-inset-bottom);
+    --safe-left: env(safe-area-inset-left);
+  }
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 10px;
@@ -113,6 +122,14 @@
 }
 
 @layer utilities {
+  /* Safe area padding utilities */
+  .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
+  .pt-safe { padding-top: max(env(safe-area-inset-top), 0px); }
+  .pl-safe { padding-left: max(env(safe-area-inset-left), 0px); }
+  .pr-safe { padding-right: max(env(safe-area-inset-right), 0px); }
+
+  /* Min-height using dynamic viewport */
+  .min-h-screen-dvh { min-height: calc(var(--vh, 1vh) * 100); }
   /* Animation delays */
   .animation-delay-200 {
     animation-delay: 200ms;
