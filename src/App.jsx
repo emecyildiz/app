@@ -10,6 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
 import OperatorRoute from './components/OperatorRoute'
 import LoadingSpinner from './components/LoadingSpinner'
+import ScrollToTop from './components/ScrollToTop'
 
 // Lazy load pages
 const Home = lazy(() => import('./pages/Home'))
@@ -59,6 +60,7 @@ function App() {
 
   return (
     <Router>
+      <ScrollToTop />
       <Toaster
         position="top-right"
         toastOptions={{
@@ -98,6 +100,14 @@ function App() {
           } />
           <Route
             path="profile"
+            element={
+              <ProtectedRoute>
+                <Navigate to="/profile/overview" replace />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="profile/:section"
             element={
               <ProtectedRoute>
                 <Profile />

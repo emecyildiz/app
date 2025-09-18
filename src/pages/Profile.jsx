@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Camera, User, Mail, Calendar, Film, Star, Heart, Settings, LogOut, MapPin, Edit2, Twitter, Instagram, Link, Users, UserMinus, Check, X, MessageSquare, Share2 } from 'lucide-react'
+import { Camera, User, Mail, Calendar, Film, Star, Heart, Settings, LogOut, MapPin, Edit2, Twitter, Instagram, Link, Users, UserMinus, Check, X, MessageSquare, Share2, ArrowLeft } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 
@@ -16,6 +16,9 @@ import MovieCard from '../components/MovieCard'
 
 const Profile = () => {
   const { user, profile, updateProfile, updateAvatar, signOut, isLoading } = useAuthStore()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { section } = useParams()
   const { favorites, removeFromFavorites, getFavoritesCount, clearFavorites } = useFavoritesStore()
   const [activeTab, setActiveTab] = useState('overview')
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -102,6 +105,29 @@ const Profile = () => {
     if (user) loadStats()
     return () => { mounted = false }
   }, [user])
+
+  // Sync tab with URL query param on mount and when it changes
+  useEffect(() => {
+    try {
+      const candidate = section || 'overview'
+      if (tabs.some(x => x.id === candidate)) setActiveTab(candidate)
+    } catch {}
+  }, [section])
+
+  useEffect(() => {
+    try {
+      const expectedPath = `/profile/${activeTab}`
+      if (location.pathname !== expectedPath) {
+        navigate(expectedPath, { replace: true })
+      }
+      // Ensure scroll to top on section change
+      try {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+      } catch {
+        window.scrollTo(0, 0)
+      }
+    } catch {}
+  }, [activeTab])
 
   // Film puanlarını yükle
   useEffect(() => {
@@ -376,140 +402,153 @@ const Profile = () => {
   return (
     <div className="min-h-screen-dvh pt-20">
       <div className="container mx-auto px-4 py-8">
-        {/* Profile Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="glass rounded-2xl p-8 mb-8"
-        >
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            {/* Avatar */}
-            <AvatarUpload
-              currentAvatar={profile?.avatar || `https://ui-avatars.com/api/?name=${profile?.name}&background=ef4444&color=fff&size=200`}
-              onUpload={updateAvatar}
-              size="large"
-            />
+        {activeTab === 'overview' ? (
+          <>
+            {/* Profile Header */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="glass rounded-2xl p-8 mb-8"
+            >
+              <div className="flex flex-col md:flex-row items-center gap-8">
+                {/* Avatar */}
+                <AvatarUpload
+                  currentAvatar={profile?.avatar || `https://ui-avatars.com/api/?name=${profile?.name}&background=ef4444&color=fff&size=200`}
+                  onUpload={updateAvatar}
+                  size="large"
+                />
 
-            {/* User Info */}
-            <div className="flex-1 text-center md:text-left">
-              <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">
-                {profile?.name}
-              </h1>
-              <p className="text-xl text-gray-400 mb-3">@{profile?.username}</p>
-              
-              {profile?.bio && (
-                <p className="text-gray-300 mb-4 max-w-2xl">{profile?.bio}</p>
-              )}
-              
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm">
-                {profile?.location && (
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <MapPin className="w-4 h-4" />
-                    <span>{profile.location}</span>
+                {/* User Info */}
+                <div className="flex-1 text-center md:text-left">
+                  <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">
+                    {profile?.name}
+                  </h1>
+                  <p className="text-xl text-gray-400 mb-3">@{profile?.username}</p>
+                  
+                  {profile?.bio && (
+                    <p className="text-gray-300 mb-4 max-w-2xl">{profile?.bio}</p>
+                  )}
+                  
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm">
+                    {profile?.location && (
+                      <div className="flex items-center gap-2 text-gray-300">
+                        <MapPin className="w-4 h-4" />
+                        <span>{profile.location}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <Calendar className="w-4 h-4" />
+                      <span>Üyelik: {stats.memberSince ? new Date(stats.memberSince).toLocaleDateString('tr-TR') : 'Bilinmiyor'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <Film className="w-4 h-4" />
+                      <span>{stats.watchedMovies} film izlendi</span>
+                    </div>
                   </div>
-                )}
-                <div className="flex items-center gap-2 text-gray-300">
-                  <Calendar className="w-4 h-4" />
-                  <span>Üyelik: {stats.memberSince ? new Date(stats.memberSince).toLocaleDateString('tr-TR') : 'Bilinmiyor'}</span>
+
+                  {/* Social Links */}
+                  {(profile?.social_links?.twitter || profile?.social_links?.instagram || profile?.social_links?.letterboxd) && (
+                    <div className="flex items-center justify-center md:justify-start gap-4 mt-4">
+                      {profile.social_links.twitter && (
+                        <a
+                          href={`https://twitter.com/${profile.social_links.twitter}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-400 hover:text-white transition-colors"
+                        >
+                          <Twitter className="w-5 h-5" />
+                        </a>
+                      )}
+                      {profile.social_links.instagram && (
+                        <a
+                          href={`https://instagram.com/${profile.social_links.instagram}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-400 hover:text-white transition-colors"
+                        >
+                          <Instagram className="w-5 h-5" />
+                        </a>
+                      )}
+                      {profile.social_links.letterboxd && (
+                        <a
+                          href={`https://letterboxd.com/${profile.social_links.letterboxd}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-gray-400 hover:text-white transition-colors"
+                        >
+                          <Link className="w-5 h-5" />
+                        </a>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-2 text-gray-300">
-                  <Film className="w-4 h-4" />
-                  <span>{stats.watchedMovies} film izlendi</span>
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="btn btn-primary"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                    Profili Düzenle
+                  </button>
+                  <button onClick={signOut} className="btn btn-secondary">
+                    <LogOut className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
+            </motion.div>
 
-              {/* Social Links */}
-              {(profile?.social_links?.twitter || profile?.social_links?.instagram || profile?.social_links?.letterboxd) && (
-                <div className="flex items-center justify-center md:justify-start gap-4 mt-4">
-                  {profile.social_links.twitter && (
-                    <a
-                      href={`https://twitter.com/${profile.social_links.twitter}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-400 hover:text-white transition-colors"
-                    >
-                      <Twitter className="w-5 h-5" />
-                    </a>
-                  )}
-                  {profile.social_links.instagram && (
-                    <a
-                      href={`https://instagram.com/${profile.social_links.instagram}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-400 hover:text-white transition-colors"
-                    >
-                      <Instagram className="w-5 h-5" />
-                    </a>
-                  )}
-                  {profile.social_links.letterboxd && (
-                    <a
-                      href={`https://letterboxd.com/${profile.social_links.letterboxd}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-400 hover:text-white transition-colors"
-                    >
-                      <Link className="w-5 h-5" />
-                    </a>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-3">
-              <button
-                onClick={() => setIsEditModalOpen(true)}
-                className="btn btn-primary"
-              >
-                <Edit2 className="w-4 h-4" />
-                Profili Düzenle
-              </button>
-              <button onClick={signOut} className="btn btn-secondary">
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
+            {/* Compact Metrics Strip */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="flex flex-wrap items-center gap-3 mb-6"
+            >
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
+                <Film className="w-4 h-4 text-primary-400" />
+                <span className="text-white font-semibold">{stats.watchedMovies}</span>
+                <span className="text-gray-400 text-sm">İzlendi</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
+                <Star className="w-4 h-4 text-yellow-400" />
+                <span className="text-white font-semibold">{stats.ratings}</span>
+                <span className="text-gray-400 text-sm">Puan</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
+                <MessageSquare className="w-4 h-4 text-blue-400" />
+                <span className="text-white font-semibold">{stats.comments}</span>
+                <span className="text-gray-400 text-sm">Yorum</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
+                <Heart className="w-4 h-4 text-red-400" />
+                <span className="text-white font-semibold">{stats.favorites}</span>
+                <span className="text-gray-400 text-sm">Favori</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
+                <Calendar className="w-4 h-4 text-blue-400" />
+                <span className="text-white font-semibold">{stats.memberSinceDays}</span>
+                <span className="text-gray-400 text-sm">Gün</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
+                <User className="w-4 h-4 text-green-400" />
+                <span className="text-white font-semibold">{friends.length}</span>
+                <span className="text-gray-400 text-sm">Arkadaş</span>
+              </div>
+            </motion.div>
+          </>
+        ) : (
+          <div className="mb-6 flex items-center justify-between">
+            <button onClick={() => navigate('/profile/overview')} className="btn btn-ghost">
+              <ArrowLeft className="w-4 h-4" />
+              <span>Geri</span>
+            </button>
+            <h2 className="text-xl font-bold text-white">{tabs.find(t => t.id === activeTab)?.label || ''}</h2>
+            <div className="w-12" />
           </div>
-        </motion.div>
-
-        {/* Compact Metrics Strip */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="flex flex-wrap items-center gap-3 mb-6"
-        >
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
-            <Film className="w-4 h-4 text-primary-400" />
-            <span className="text-white font-semibold">{stats.watchedMovies}</span>
-            <span className="text-gray-400 text-sm">İzlendi</span>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
-            <Star className="w-4 h-4 text-yellow-400" />
-            <span className="text-white font-semibold">{stats.ratings}</span>
-            <span className="text-gray-400 text-sm">Puan</span>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
-            <MessageSquare className="w-4 h-4 text-blue-400" />
-            <span className="text-white font-semibold">{stats.comments}</span>
-            <span className="text-gray-400 text-sm">Yorum</span>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
-            <Heart className="w-4 h-4 text-red-400" />
-            <span className="text-white font-semibold">{stats.favorites}</span>
-            <span className="text-gray-400 text-sm">Favori</span>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
-            <Calendar className="w-4 h-4 text-blue-400" />
-            <span className="text-white font-semibold">{stats.memberSinceDays}</span>
-            <span className="text-gray-400 text-sm">Gün</span>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
-            <User className="w-4 h-4 text-green-400" />
-            <span className="text-white font-semibold">{friends.length}</span>
-            <span className="text-gray-400 text-sm">Arkadaş</span>
-          </div>
-        </motion.div>
+        )}
 
         {/* Tabs */}
         <motion.div
@@ -517,7 +556,7 @@ const Profile = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          {/* Tab Navigation (hidden on mobile) */}
+          {/* Tab Navigation (hidden on mobile; replaced by profile hamburger) */}
           <div className="mb-8 overflow-x-auto hidden sm:block">
             <div className="inline-flex items-center bg-white/5 rounded-xl p-1 gap-1">
               {tabs.map((tab) => {
@@ -983,29 +1022,7 @@ const Profile = () => {
         <div className="h-20 sm:h-0" />
       </div>
 
-      {/* Mobile Bottom Nav (Instagram-style) */}
-      <div className="fixed inset-x-0 bottom-0 sm:hidden glass-dark border-t border-white/10 backdrop-blur-md pb-safe">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-5 gap-1 py-2">
-            {tabs.map((tab) => {
-              const Icon = tab.icon
-              const isActive = activeTab === tab.id
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex flex-col items-center justify-center gap-1 py-2 rounded-lg transition-colors ${
-                    isActive ? 'text-primary-400 bg-white/5' : 'text-gray-300 hover:text-white'
-                  }`}
-                >
-                  <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5]' : ''}`} />
-                  <span className="text-[11px]">{tab.label}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      </div>
+      {/* Mobile Bottom Nav removed; Profile uses top hamburger for sections */}
 
       {/* Edit Profile Modal */}
       {isEditModalOpen && (

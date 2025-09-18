@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Home, Film, Info, User, LogIn, UserPlus, Menu, X, LogOut, Shield, Users, Search } from 'lucide-react'
+import { Home, Film, Info, User, LogIn, UserPlus, Menu, X, LogOut, Shield, Users, Search, Heart, Star, MessageSquare, Share2, Settings } from 'lucide-react'
 import { useRef } from 'react'
 import { userService } from '../services/userService'
 import { APP_NAME, APP_LOGO_URL } from '../config/appConfig'
@@ -73,6 +73,17 @@ const Navbar = () => {
     ...(safeIsAuthenticated ? [{ path: '/profile', label: 'Profil', icon: User }] : []),
     ...(safeIsAuthenticated && profile?.role === 'ADMIN' ? [{ path: '/admin', label: 'Admin Panel', icon: Shield }] : []),
     ...(safeIsAuthenticated && profile?.role === 'OPERATOR' ? [{ path: '/operator', label: 'Operatör Paneli', icon: Shield }] : []),
+  ]
+
+  const isProfileRoute = location.pathname.startsWith('/profile')
+  const profileTabs = [
+    { id: 'overview', label: 'Genel Bakış', icon: User },
+    { id: 'favorites', label: 'Favorilerim', icon: Heart },
+    { id: 'ratings', label: 'Puanlar', icon: Star },
+    { id: 'comments', label: 'Yorumlar', icon: MessageSquare },
+    { id: 'recommendations', label: 'Öneriler', icon: Share2 },
+    { id: 'friends', label: 'Arkadaşlar', icon: Users },
+    { id: 'settings', label: 'Ayarlar', icon: Settings },
   ]
 
   return (
@@ -201,19 +212,21 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Mobile Menu Toggle */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden text-white hover:text-primary-400 transition-colors"
-          >
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          {/* Mobile Menu Toggle (only on profile route) */}
+          {isProfileRoute && (
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden text-white hover:text-primary-400 transition-colors"
+            >
+              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu (only on profile route) */}
       <AnimatePresence>
-        {isMobileMenuOpen && (
+        {isMobileMenuOpen && isProfileRoute && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
@@ -221,17 +234,32 @@ const Navbar = () => {
             className="md:hidden glass-dark border-t border-white/10"
           >
             <div className="container mx-auto px-4 py-4">
-              {/* Mobile Nav Links */}
+              {/* Mobile Nav Links: show profile tabs if on profile route */}
               <ul className="space-y-2 mb-4">
-                {navLinks.map((link) => {
+                {(isProfileRoute ? profileTabs : navLinks).map((link) => {
                   const Icon = link.icon
-                  const isActive = location.pathname === link.path
+                  const isActive = isProfileRoute
+                    ? location.pathname === `/profile/${link.id}`
+                    : location.pathname === link.path
+                  const handleClick = () => {
+                    if (isProfileRoute) {
+                      const tabId = link.id
+                      if (tabId) navigate(`/profile/${encodeURIComponent(tabId)}`)
+                    } else {
+                      navigate(link.path)
+                    }
+                    setIsMobileMenuOpen(false)
+                    try {
+                      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+                    } catch {
+                      window.scrollTo(0, 0)
+                    }
+                  }
                   return (
-                    <li key={link.path}>
-                      <Link
-                        to={link.path}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
+                    <li key={isProfileRoute ? link.id : link.path}>
+                      <button
+                        onClick={handleClick}
+                        className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                           isActive
                             ? 'text-primary-400 bg-primary-400/10'
                             : 'text-gray-300 hover:text-white hover:bg-white/10'
@@ -239,7 +267,7 @@ const Navbar = () => {
                       >
                         <Icon className="w-5 h-5" />
                         <span>{link.label}</span>
-                      </Link>
+                      </button>
                     </li>
                   )
                 })}

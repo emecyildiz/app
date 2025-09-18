@@ -11,11 +11,13 @@
 
   html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-gray-950 text-gray-100 font-sans antialiased;
     min-height: 100vh;
+    overflow-x: hidden;
   }
 
   /* Dynamic viewport height for mobile browsers */
