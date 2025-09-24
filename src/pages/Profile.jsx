@@ -137,8 +137,57 @@ const Profile = () => {
       try {
         setRatingsLoading(true)
         const data = await movieService.getMyRatings(ratingsPage)
+
+        // Enrich movies with TMDB details if poster/backdrop missing
+        const ratingsArr = Array.isArray(data?.ratings) ? data.ratings : []
+        const idsToFetch = Array.from(new Set(
+          ratingsArr
+            .filter(r => r && r.movie && !r.movie.poster_path)
+            .map(r => Number(r.movie.id || r.movie_id))
+            .filter(Boolean)
+        ))
+
+        let detailsMap = {}
+        if (idsToFetch.length > 0) {
+          try {
+            const details = await Promise.all(idsToFetch.map(id => tmdbService.getMovieDetails(id).catch(() => null)))
+            details.forEach(d => {
+              if (d && d.id) {
+                detailsMap[d.id] = {
+                  title: d.title || d.original_title || null,
+                  poster_path: d.poster_path || null,
+                  backdrop_path: d.backdrop_path || null,
+                  release_date: d.release_date || null,
+                  vote_average: typeof d.vote_average === 'number' ? d.vote_average : null,
+                  overview: d.overview || null,
+                  runtime: d.runtime || null,
+                }
+              }
+            })
+          } catch (_) {}
+        }
+
+        const enriched = ratingsArr.map(r => {
+          const mid = Number(r?.movie?.id || r?.movie_id)
+          const extra = mid ? detailsMap[mid] : null
+          if (!extra) return r
+          return {
+            ...r,
+            movie: {
+              ...r.movie,
+              title: r.movie?.title || extra.title || `#${mid}`,
+              poster_path: r.movie?.poster_path ?? extra.poster_path ?? null,
+              backdrop_path: r.movie?.backdrop_path ?? extra.backdrop_path ?? null,
+              release_date: r.movie?.release_date ?? extra.release_date ?? null,
+              vote_average: r.movie?.vote_average ?? extra.vote_average ?? 0,
+              overview: r.movie?.overview ?? extra.overview ?? '',
+              runtime: r.movie?.runtime ?? extra.runtime ?? null,
+            }
+          }
+        })
+
         if (mounted) {
-          setRatedMovies(prev => ratingsPage === 1 ? data.ratings : [...prev, ...data.ratings])
+          setRatedMovies(prev => ratingsPage === 1 ? enriched : [...prev, ...enriched])
           setRatingsTotalPages(data.totalPages)
         }
       } catch (error) {
