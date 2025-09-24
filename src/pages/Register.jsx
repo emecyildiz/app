@@ -26,7 +26,7 @@ const Register = () => {
       username: data.username
     })
     if (result.success) {
-      navigate('/login', { replace: true, state: { message: 'E‑posta doğrulama bağlantısı gönderildi. Lütfen e‑postanızı kontrol edin.' } })
+      navigate('/', { replace: true })
     }
   }
 

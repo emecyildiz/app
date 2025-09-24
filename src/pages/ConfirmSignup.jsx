@@ -1,23 +1,33 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CheckCircle, XCircle } from 'lucide-react'
-import { useAuthStore } from '../store/newAuthStore'
+import { supabase } from '../config/supabase'
 
 const ConfirmSignup = () => {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const {} = useAuthStore()
   const [status, setStatus] = useState('loading')
 
   useEffect(() => {
     const run = async () => {
       try {
-        const type = searchParams.get('type')
-        const accessToken = searchParams.get('access_token')
+        const params = new URLSearchParams((window.location.hash || '').replace(/^#/, ''))
+        const type = params.get('type')
+        const accessToken = params.get('access_token')
+        const refreshToken = params.get('refresh_token')
+
         if (type === 'signup' && accessToken) {
-          // auth already bootstrapped centrally
+          try {
+            if (refreshToken) {
+              await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+            }
+          } catch {}
+
           setStatus('success')
+          try {
+            window.history.replaceState({}, document.title, window.location.pathname + window.location.search)
+          } catch {}
+
           setTimeout(() => navigate('/login', { state: { message: 'E‑posta doğrulandı. Giriş yapabilirsiniz.' } }), 2500)
         } else {
           setStatus('error')
@@ -27,7 +37,7 @@ const ConfirmSignup = () => {
       }
     }
     run()
-  }, [searchParams, initializeAuth, navigate])
+  }, [navigate])
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12">

@@ -1,8 +1,12 @@
 import axios from 'axios';
+import { supabase } from '../config/supabase';
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://app-production-c295.up.railway.app';
 
 class UserService {
+  constructor() {
+    this.supabase = supabase;
+  }
   // Get auth token from sessionStorage
   getAuthToken() {
     const token = sessionStorage.getItem('auth-token');

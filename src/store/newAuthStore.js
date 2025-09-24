@@ -279,7 +279,7 @@ const useAuthStore = create((set, get) => ({
       }
 
       set({ isLoading: false })
-      toast.success('Kayıt başarılı! E-posta adresinizi kontrol edin.')
+      toast.success('E‑posta doğrulama bağlantısı gönderdik. Lütfen e‑postanızı kontrol edin.')
       return { success: true }
     } catch (error) {
       console.error('Sign up error:', error)

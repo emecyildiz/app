@@ -351,6 +351,10 @@ const Profile = () => {
   // Favorites tab: genres and filtering
   const [genreOptions, setGenreOptions] = useState([])
   const [selectedGenreId, setSelectedGenreId] = useState('')
+  const [favoriteMovies, setFavoriteMovies] = useState([])
+  const [favoritePage, setFavoritePage] = useState(1)
+  const [favoriteTotalPages, setFavoriteTotalPages] = useState(1)
+  const [favoriteLoading, setFavoriteLoading] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -365,7 +369,35 @@ const Profile = () => {
     return () => { mounted = false }
   }, [activeTab])
 
-  const filteredFavorites = favorites.filter((m) => {
+  // Load favorite movies from backend when favorites tab is active
+  useEffect(() => {
+    let mounted = true
+    const loadFavoriteMovies = async () => {
+      if (activeTab !== 'favorites') return
+      try {
+        setFavoriteLoading(true)
+        const { items = [], totalPages = 1 } = await userService.getMyFavoriteIds(favoritePage, 24)
+        const uniqueIds = Array.from(new Set((items || []).map(id => Number(id)).filter(Boolean)))
+        const details = await Promise.all(uniqueIds.map(id => tmdbService.getMovieDetails(id).catch(() => null)))
+        const movies = details.filter(Boolean)
+        if (mounted) {
+          setFavoriteMovies(prev => favoritePage === 1 ? movies : [...prev, ...movies])
+          setFavoriteTotalPages(totalPages || 1)
+        }
+      } catch (_) {
+        if (mounted) {
+          setFavoriteMovies([])
+          setFavoriteTotalPages(1)
+        }
+      } finally {
+        if (mounted) setFavoriteLoading(false)
+      }
+    }
+    loadFavoriteMovies()
+    return () => { mounted = false }
+  }, [activeTab, favoritePage])
+
+  const filteredFavorites = favoriteMovies.filter((m) => {
     if (!selectedGenreId) return true
     const gid = Number(selectedGenreId)
     if (Array.isArray(m?.genre_ids)) {
@@ -647,7 +679,7 @@ const Profile = () => {
             {activeTab === 'favorites' && (
               <div>
                 <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
-                  <h2 className="text-2xl font-bold text-white">Favori Filmlerim ({filteredFavorites.length}/{favorites.length})</h2>
+                  <h2 className="text-2xl font-bold text-white">Favori Filmlerim ({filteredFavorites.length}/{favoriteMovies.length})</h2>
                   <div className="flex items-center gap-3">
                     <select
                       value={selectedGenreId}
@@ -674,13 +706,22 @@ const Profile = () => {
                   </div>
                 </div>
                 
-                {filteredFavorites.length > 0 ? (
+                {favoriteLoading && filteredFavorites.length === 0 ? (
+                  <div className="glass rounded-xl p-12 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-4"></div>
+                    <p className="text-gray-400">Favoriler yükleniyor...</p>
+                  </div>
+                ) : filteredFavorites.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
                     {filteredFavorites.map((movie, index) => (
                       <div key={movie.id} className="relative group">
                         <MovieCard movie={movie} index={index} />
                         <button
-                          onClick={() => removeFromFavorites(movie.id)}
+                          onClick={async () => {
+                            try { await userService.removeFavorite(movie.id) } catch {}
+                            removeFromFavorites(movie.id)
+                            setFavoriteMovies(prev => prev.filter(m => m.id !== movie.id))
+                          }}
                           className="absolute top-2 right-2 p-2 bg-black/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <Heart className="w-4 h-4 text-red-500 fill-current" />
@@ -693,6 +734,17 @@ const Profile = () => {
                     <Heart className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                     <p className="text-gray-400 text-lg">Henüz favori film eklemediniz</p>
                     <p className="text-gray-500 text-sm mt-2">Film detay sayfalarından favorilere ekleyebilirsiniz</p>
+                  </div>
+                )}
+                {favoritePage < favoriteTotalPages && (
+                  <div className="flex justify-center mt-8">
+                    <button
+                      onClick={() => setFavoritePage(p => p + 1)}
+                      disabled={favoriteLoading}
+                      className="btn btn-primary"
+                    >
+                      {favoriteLoading ? 'Yükleniyor...' : 'Daha Fazla Göster'}
+                    </button>
                   </div>
                 )}
               </div>
