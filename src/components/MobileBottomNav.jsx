@@ -9,6 +9,12 @@ const MobileBottomNav = () => {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuthStore()
   const [pendingRecCount, setPendingRecCount] = useState(0)
+  const [hasNewRec, setHasNewRec] = useState(false)
+
+  // Helpers for last-viewed marker
+  const getLastViewedAt = () => {
+    try { return Number(localStorage.getItem('recs-last-viewed-at') || 0) || 0 } catch { return 0 }
+  }
 
   useEffect(() => {
     let mounted = true
@@ -19,15 +25,35 @@ const MobileBottomNav = () => {
         if (mounted) {
           const next = Array.isArray(recs) ? recs.length : 0
           setPendingRecCount((prev) => prev !== next ? next : prev)
+          const lastViewed = getLastViewedAt()
+          let latest = 0
+          if (Array.isArray(recs)) {
+            for (const r of recs) {
+              const t = r?.created_at ? Date.parse(r.created_at) : 0
+              if (Number.isFinite(t) && t > latest) latest = t
+            }
+          }
+          const nextHasNew = latest > 0 && latest > lastViewed
+          setHasNewRec((prev) => prev !== nextHasNew ? nextHasNew : prev)
         }
       } catch (_) {
-        if (mounted) setPendingRecCount(0)
+        if (mounted) { setPendingRecCount(0); setHasNewRec(false) }
       }
     }
     loadPending()
     const id = setInterval(loadPending, 60000)
     return () => { mounted = false; clearInterval(id) }
   }, [isAuthenticated])
+
+  // Clear dot when viewing recommendations page
+  useEffect(() => {
+    if (!isAuthenticated) return
+    const isRecsPage = location.pathname.startsWith('/profile/recommendations')
+    if (isRecsPage) {
+      setHasNewRec(false)
+      try { localStorage.setItem('recs-last-viewed-at', String(Date.now())) } catch {}
+    }
+  }, [location.pathname, isAuthenticated])
 
   const items = [
     { path: '/', label: 'Ana', icon: Home },
@@ -56,10 +82,8 @@ const MobileBottomNav = () => {
               <Icon className={`w-6 h-6 ${isActive ? 'stroke-[2.5]' : ''}`} />
               <span className="text-[11px] leading-none relative">
                 {item.label}
-                {item.path === '/profile/recommendations' && pendingRecCount > 0 && (
-                  <span className="absolute -top-3 -right-4 bg-red-600 text-white text-[10px] leading-none px-1.5 py-0.5 rounded-full">
-                    {pendingRecCount > 99 ? '99+' : pendingRecCount}
-                  </span>
+                {item.path === '/profile/recommendations' && hasNewRec && (
+                  <span className="absolute -top-2 -right-3 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-black/40"></span>
                 )}
               </span>
             </button>

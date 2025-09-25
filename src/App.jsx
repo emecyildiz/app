@@ -27,6 +27,7 @@ const InviteUserAccepted = lazy(() => import('./pages/InviteUserAccepted'))
 const MagicLink = lazy(() => import('./pages/MagicLink'))
 const ChangeEmailConfirmed = lazy(() => import('./pages/ChangeEmailConfirmed'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 const Reauthenticate = lazy(() => import('./pages/Reauthenticate'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const AdminUserEdit = lazy(() => import('./pages/AdminUserEdit'))
@@ -178,6 +179,7 @@ function App() {
         <Route path="/magic-link" element={<Suspense fallback={<LoadingSpinner fullScreen />}><MagicLink /></Suspense>} />
         <Route path="/change-email" element={<Suspense fallback={<LoadingSpinner fullScreen />}><ChangeEmailConfirmed /></Suspense>} />
         <Route path="/reset-password" element={<Suspense fallback={<LoadingSpinner fullScreen />}><ResetPassword /></Suspense>} />
+        <Route path="/forgot-password" element={<Suspense fallback={<LoadingSpinner fullScreen />}><ForgotPassword /></Suspense>} />
         <Route path="/reauthenticate" element={<Suspense fallback={<LoadingSpinner fullScreen />}><Reauthenticate /></Suspense>} />
       </Routes>
     </Router>

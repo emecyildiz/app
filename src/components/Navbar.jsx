@@ -18,7 +18,7 @@ const Navbar = () => {
   const [results, setResults] = useState([])
   const [isSearching, setIsSearching] = useState(false)
   const searchTimeout = useRef(null)
-  const [pendingRecCount, setPendingRecCount] = useState(0)
+  const [hasNewRec, setHasNewRec] = useState(false)
 
   // Guard: if auth store hasn't hydrated yet, avoid rendering actions that rely on it
   const safeIsAuthenticated = Boolean(isAuthenticated && profile && user)
@@ -58,7 +58,15 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Load pending received recommendations count for badge
+  // Helper to persist last viewed time for recommendations
+  const getLastViewedAt = () => {
+    try { return Number(localStorage.getItem('recs-last-viewed-at') || 0) || 0 } catch { return 0 }
+  }
+  const setLastViewedAt = (ts) => {
+    try { localStorage.setItem('recs-last-viewed-at', String(ts)) } catch {}
+  }
+
+  // Load and check for new pending recommendations (dot indicator)
   useEffect(() => {
     let mounted = true
     const loadPending = async () => {
@@ -66,16 +74,34 @@ const Navbar = () => {
         if (!safeIsAuthenticated) { setPendingRecCount(0); return }
         const recs = await recommendationService.getRecommendations('received', 'pending')
         if (!mounted) return
-        const next = Array.isArray(recs) ? recs.length : 0
-        setPendingRecCount((prev) => prev !== next ? next : prev)
+        const lastViewed = getLastViewedAt()
+        let latest = 0
+        if (Array.isArray(recs)) {
+          for (const r of recs) {
+            const t = r?.created_at ? Date.parse(r.created_at) : 0
+            if (Number.isFinite(t) && t > latest) latest = t
+          }
+        }
+        const nextHasNew = latest > 0 && latest > lastViewed
+        setHasNewRec((prev) => prev !== nextHasNew ? nextHasNew : prev)
       } catch (_) {
-        if (mounted) setPendingRecCount(0)
+        if (mounted) setHasNewRec(false)
       }
     }
     loadPending()
     const id = setInterval(loadPending, 60000)
     return () => { mounted = false; clearInterval(id) }
   }, [safeIsAuthenticated])
+
+  // When user opens recommendations page, mark as viewed and clear dot
+  useEffect(() => {
+    if (!safeIsAuthenticated) return
+    const isRecsPage = location.pathname.startsWith('/profile/recommendations')
+    if (isRecsPage) {
+      setHasNewRec(false)
+      try { localStorage.setItem('recs-last-viewed-at', String(Date.now())) } catch {}
+    }
+  }, [location.pathname, safeIsAuthenticated])
 
   const navLinks = [
     { path: '/', label: 'Ana Sayfa', icon: Home },
@@ -178,7 +204,7 @@ const Navbar = () => {
               )}
             </div>
 
-            {/* Auth Buttons + Pending Badge */}
+            {/* Auth Buttons + New Recommendation Dot */}
             <div className="flex items-center gap-3">
               {safeIsAuthenticated ? (
                 <>
@@ -190,10 +216,8 @@ const Navbar = () => {
                     >
                       <Share2 className="w-5 h-5" />
                     </Link>
-                    {pendingRecCount > 0 && (
-                      <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] leading-none px-1.5 py-0.5 rounded-full">
-                        {pendingRecCount > 99 ? '99+' : pendingRecCount}
-                      </span>
+                    {hasNewRec && (
+                      <span className="absolute -top-1.5 -right-1.5 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-black/40"></span>
                     )}
                   </div>
                   <Link
