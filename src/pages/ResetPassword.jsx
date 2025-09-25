@@ -13,19 +13,34 @@ const ResetPassword = () => {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    // Ensure Supabase initializes session from URL (hash/query params)
+    try { supabase.auth.getSession() } catch {}
+  }, [])
+
+  useEffect(() => {
     // Supabase sends recovery info in the URL hash (e.g. #access_token=...&type=recovery)
     // but can also arrive via query. Check both.
     const queryType = new URLSearchParams(location.search).get('type')
     const hash = (location.hash || '').startsWith('#') ? location.hash.slice(1) : (location.hash || '')
     const hashParams = new URLSearchParams(hash)
     const hashType = hashParams.get('type')
+    const accessToken = hashParams.get('access_token') || new URLSearchParams(location.search).get('access_token')
     const type = queryType || hashType
-    if (type === 'recovery') {
+    if (type === 'recovery' || accessToken) {
       setStatus('form')
     } else {
       setStatus('error')
     }
   }, [location.search, location.hash])
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setStatus('form')
+      }
+    })
+    return () => { try { subscription?.unsubscribe() } catch {} }
+  }, [])
 
   const onSubmit = async (data) => {
     try {
