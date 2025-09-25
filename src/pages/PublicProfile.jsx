@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Calendar, Film, Heart, Star, MapPin, ArrowLeft, UserPlus, UserMinus, Check, X } from 'lucide-react'
+import { Calendar, Film, Heart, Star, MapPin, ArrowLeft, UserPlus, UserMinus, Check, X, Share2 } from 'lucide-react'
 import { userService } from '../services/userService'
 import { useAuthStore } from '../store/newAuthStore'
+import RecommendationModal from '../components/RecommendationModal'
+import toast from 'react-hot-toast'
 
 export default function PublicProfile() {
   const { username } = useParams()
@@ -13,6 +15,7 @@ export default function PublicProfile() {
   const [friendStatus, setFriendStatus] = useState('none')
   const [busy, setBusy] = useState(false)
   const { isAuthenticated, user } = useAuthStore()
+  const [showRecommendModal, setShowRecommendModal] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -165,10 +168,16 @@ export default function PublicProfile() {
                     </div>
                   )}
                   {friendStatus === 'friends' && (
-                    <button onClick={handleUnfriend} disabled={busy} className="btn btn-secondary">
-                      <UserMinus className="w-4 h-4" />
-                      Arkadaşlıktan Çıkar
-                    </button>
+                    <div className="flex gap-2">
+                      <button onClick={() => setShowRecommendModal(true)} disabled={busy} className="btn btn-primary">
+                        <Share2 className="w-4 h-4" />
+                        Öneri Gönder
+                      </button>
+                      <button onClick={handleUnfriend} disabled={busy} className="btn btn-secondary">
+                        <UserMinus className="w-4 h-4" />
+                        Arkadaşlıktan Çıkar
+                      </button>
+                    </div>
                   )}
                 </div>
               )}
@@ -205,6 +214,20 @@ export default function PublicProfile() {
 
         {/* In a future step: if privacyPublic || friendStatus === 'friends' || friendStatus === 'self', render detailed favorites/ratings/comments sections here */}
       </div>
+
+      {/* Recommendation Modal */}
+      {profile && (
+        <RecommendationModal
+          isOpen={showRecommendModal}
+          onClose={() => setShowRecommendModal(false)}
+          toUserId={profile.id}
+          toUser={{ avatar: profile.avatar, name: profile.name, username: profile.username }}
+          onSuccess={() => {
+            setShowRecommendModal(false)
+            toast.success('Öneri gönderildi')
+          }}
+        />
+      )}
     </div>
   )
 }

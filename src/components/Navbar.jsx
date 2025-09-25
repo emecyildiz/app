@@ -6,6 +6,7 @@ import { useRef } from 'react'
 import { userService } from '../services/userService'
 import { APP_NAME, APP_LOGO_URL } from '../config/appConfig'
 import { useAuthStore } from '../store/newAuthStore'
+import recommendationService from '../services/recommendationService'
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -17,19 +18,10 @@ const Navbar = () => {
   const [results, setResults] = useState([])
   const [isSearching, setIsSearching] = useState(false)
   const searchTimeout = useRef(null)
+  const [pendingRecCount, setPendingRecCount] = useState(0)
 
   // Guard: if auth store hasn't hydrated yet, avoid rendering actions that rely on it
   const safeIsAuthenticated = Boolean(isAuthenticated && profile && user)
-  
-  // Debug auth state
-  console.log('Navbar Auth State:', {
-    isAuthenticated,
-    hasUser: !!user,
-    hasProfile: !!profile,
-    safeIsAuthenticated,
-    userEmail: user?.email,
-    profileName: profile?.name
-  })
 
   const handleSearchChange = (e) => {
     setQuery(e.target.value)
@@ -65,6 +57,25 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  // Load pending received recommendations count for badge
+  useEffect(() => {
+    let mounted = true
+    const loadPending = async () => {
+      try {
+        if (!safeIsAuthenticated) { setPendingRecCount(0); return }
+        const recs = await recommendationService.getRecommendations('received', 'pending')
+        if (!mounted) return
+        const next = Array.isArray(recs) ? recs.length : 0
+        setPendingRecCount((prev) => prev !== next ? next : prev)
+      } catch (_) {
+        if (mounted) setPendingRecCount(0)
+      }
+    }
+    loadPending()
+    const id = setInterval(loadPending, 60000)
+    return () => { mounted = false; clearInterval(id) }
+  }, [safeIsAuthenticated])
 
   const navLinks = [
     { path: '/', label: 'Ana Sayfa', icon: Home },
@@ -167,10 +178,24 @@ const Navbar = () => {
               )}
             </div>
 
-            {/* Auth Buttons */}
+            {/* Auth Buttons + Pending Badge */}
             <div className="flex items-center gap-3">
               {safeIsAuthenticated ? (
                 <>
+                  <div className="relative">
+                    <Link
+                      to="/profile/recommendations"
+                      className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
+                      title="Öneriler"
+                    >
+                      <Share2 className="w-5 h-5" />
+                    </Link>
+                    {pendingRecCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] leading-none px-1.5 py-0.5 rounded-full">
+                        {pendingRecCount > 99 ? '99+' : pendingRecCount}
+                      </span>
+                    )}
+                  </div>
                   <Link
                     to="/profile"
                     className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"

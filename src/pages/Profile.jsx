@@ -106,28 +106,25 @@ const Profile = () => {
     return () => { mounted = false }
   }, [user])
 
-  // Sync tab with URL query param on mount and when it changes
+  // Sync state from URL once and validate section; avoid navigate loops
   useEffect(() => {
     try {
       const candidate = section || 'overview'
-      if (tabs.some(x => x.id === candidate)) setActiveTab(candidate)
-    } catch {}
-  }, [section])
-
-  useEffect(() => {
-    try {
-      const expectedPath = `/profile/${activeTab}`
-      if (location.pathname !== expectedPath) {
-        navigate(expectedPath, { replace: true })
+      if (!tabs.some(x => x.id === candidate)) {
+        // Invalid section -> normalize URL once
+        navigate('/profile/overview', { replace: true })
+        setActiveTab('overview')
+        return
       }
-      // Ensure scroll to top on section change
+      setActiveTab(candidate)
+      // Scroll to top on section change
       try {
         window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
       } catch {
         window.scrollTo(0, 0)
       }
     } catch {}
-  }, [activeTab])
+  }, [section])
 
   // Film puanlarını yükle
   useEffect(() => {
@@ -952,6 +949,7 @@ const Profile = () => {
                                   </div>
                                   <div className="flex-1">
                                     <div className="text-white text-sm font-medium">{item.movie_title || rec.title}</div>
+                                <div className="text-xs text-gray-400 mt-1">Kimden: {rec.from_user?.name || rec.from_user?.username || `@${rec.from_user_id}`}</div>
                                     {rec.note && <div className="text-xs text-gray-400 mt-1">{rec.note}</div>}
                                     <div className="text-[11px] text-gray-500 mt-1">{new Date(rec.created_at).toLocaleString('tr-TR')}</div>
                                   </div>
@@ -1000,6 +998,7 @@ const Profile = () => {
                                   </div>
                                   <div className="flex-1">
                                     <div className="text-white text-sm font-medium">{item.movie_title || rec.title}</div>
+                                    <div className="text-xs text-gray-400 mt-1">Kimden: {rec.from_user?.name || rec.from_user?.username || `@${rec.from_user_id}`}</div>
                                     {rec.note && <div className="text-xs text-gray-400 mt-1">{rec.note}</div>}
                                     <div className="text-[11px] text-gray-500 mt-1">{new Date(rec.created_at).toLocaleString('tr-TR')}</div>
                                   </div>
@@ -1054,6 +1053,7 @@ const Profile = () => {
                                 </div>
                                 <div className="flex-1">
                                   <div className="text-white text-sm font-medium">{item.movie_title || rec.title}</div>
+                                  <div className="text-xs text-gray-400 mt-1">Kime: {rec.to_user?.name || rec.to_user?.username || `@${rec.to_user_id}`}</div>
                                   {rec.note && <div className="text-xs text-gray-400 mt-1">{rec.note}</div>}
                                   <div className="text-[11px] text-gray-500 mt-1">{new Date(rec.created_at).toLocaleString('tr-TR')}</div>
                                 </div>

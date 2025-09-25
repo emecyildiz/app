@@ -1,17 +1,42 @@
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Home, Film, Info, User } from 'lucide-react'
+import { Home, Film, Info, User, Share2 } from 'lucide-react'
 import { useAuthStore } from '../store/newAuthStore'
+import { useEffect, useState } from 'react'
+import recommendationService from '../services/recommendationService'
 
 const MobileBottomNav = () => {
   const location = useLocation()
   const navigate = useNavigate()
   const { isAuthenticated } = useAuthStore()
+  const [pendingRecCount, setPendingRecCount] = useState(0)
+
+  useEffect(() => {
+    let mounted = true
+    const loadPending = async () => {
+      try {
+        if (!isAuthenticated) { setPendingRecCount(0); return }
+        const recs = await recommendationService.getRecommendations('received', 'pending')
+        if (mounted) {
+          const next = Array.isArray(recs) ? recs.length : 0
+          setPendingRecCount((prev) => prev !== next ? next : prev)
+        }
+      } catch (_) {
+        if (mounted) setPendingRecCount(0)
+      }
+    }
+    loadPending()
+    const id = setInterval(loadPending, 60000)
+    return () => { mounted = false; clearInterval(id) }
+  }, [isAuthenticated])
 
   const items = [
     { path: '/', label: 'Ana', icon: Home },
     { path: '/movies', label: 'Filmler', icon: Film },
     { path: '/about', label: 'Hakkında', icon: Info },
-    ...(isAuthenticated ? [{ path: '/profile', label: 'Profil', icon: User }] : []),
+    ...(isAuthenticated ? [
+      { path: '/profile/recommendations', label: 'Öneriler', icon: Share2 },
+      { path: '/profile', label: 'Profil', icon: User },
+    ] : []),
   ]
 
   return (
@@ -29,7 +54,14 @@ const MobileBottomNav = () => {
               }`}
             >
               <Icon className={`w-6 h-6 ${isActive ? 'stroke-[2.5]' : ''}`} />
-              <span className="text-[11px] leading-none">{item.label}</span>
+              <span className="text-[11px] leading-none relative">
+                {item.label}
+                {item.path === '/profile/recommendations' && pendingRecCount > 0 && (
+                  <span className="absolute -top-3 -right-4 bg-red-600 text-white text-[10px] leading-none px-1.5 py-0.5 rounded-full">
+                    {pendingRecCount > 99 ? '99+' : pendingRecCount}
+                  </span>
+                )}
+              </span>
             </button>
           )
         })}
