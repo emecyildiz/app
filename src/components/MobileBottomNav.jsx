@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Home, Film, Info, User, Share2 } from 'lucide-react'
+import { Home, Film, Info, User } from 'lucide-react'
 import { useAuthStore } from '../store/newAuthStore'
 import { useEffect, useState } from 'react'
 import recommendationService from '../services/recommendationService'
@@ -60,7 +60,6 @@ const MobileBottomNav = () => {
     { path: '/movies', label: 'Filmler', icon: Film },
     { path: '/about', label: 'Hakkında', icon: Info },
     ...(isAuthenticated ? [
-      { path: '/profile/recommendations', label: 'Öneriler', icon: Share2 },
       { path: '/profile', label: 'Profil', icon: User },
     ] : []),
   ]
@@ -80,12 +79,7 @@ const MobileBottomNav = () => {
               }`}
             >
               <Icon className={`w-6 h-6 ${isActive ? 'stroke-[2.5]' : ''}`} />
-              <span className="text-[11px] leading-none relative">
-                {item.label}
-                {item.path === '/profile/recommendations' && hasNewRec && (
-                  <span className="absolute -top-2 -right-3 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-black/40"></span>
-                )}
-              </span>
+              <span className="text-[11px] leading-none">{item.label}</span>
             </button>
           )
         })}

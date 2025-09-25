@@ -118,7 +118,7 @@ const Navbar = () => {
     { id: 'favorites', label: 'Favorilerim', icon: Heart },
     { id: 'ratings', label: 'Puanlar', icon: Star },
     { id: 'comments', label: 'Yorumlar', icon: MessageSquare },
-    { id: 'recommendations', label: 'Öneriler', icon: Share2 },
+    { id: 'recommendations', label: 'Öneriler', icon: Share2, dot: hasNewRec },
     { id: 'friends', label: 'Arkadaşlar', icon: Users },
     { id: 'settings', label: 'Ayarlar', icon: Settings },
   ]
@@ -314,7 +314,12 @@ const Navbar = () => {
                             : 'text-gray-300 hover:text-white hover:bg-white/10'
                         }`}
                       >
-                        <Icon className="w-5 h-5" />
+                        <div className="relative">
+                          <Icon className="w-5 h-5" />
+                          {link.id === 'recommendations' && link.dot && (
+                            <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-black/40"></span>
+                          )}
+                        </div>
                         <span>{link.label}</span>
                       </button>
                     </li>
