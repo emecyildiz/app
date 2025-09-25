@@ -25,8 +25,9 @@ const ResetPassword = () => {
     const hashParams = new URLSearchParams(hash)
     const hashType = hashParams.get('type')
     const accessToken = hashParams.get('access_token') || new URLSearchParams(location.search).get('access_token')
+    const code = hashParams.get('code') || new URLSearchParams(location.search).get('code') || hashParams.get('token') || new URLSearchParams(location.search).get('token')
     const type = queryType || hashType
-    if (type === 'recovery' || accessToken) {
+    if (type === 'recovery' || accessToken || code) {
       setStatus('form')
     } else {
       setStatus('error')
@@ -35,12 +36,40 @@ const ResetPassword = () => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') {
         setStatus('form')
       }
     })
     return () => { try { subscription?.unsubscribe() } catch {} }
   }, [])
+
+  useEffect(() => {
+    // Fallback: if a session exists on this route, enable form
+    const ensure = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session) setStatus('form')
+      } catch {}
+    }
+    ensure()
+  }, [])
+
+  useEffect(() => {
+    // PKCE/magic-link style: exchange code for session when present
+    const hash = (location.hash || '').startsWith('#') ? location.hash.slice(1) : (location.hash || '')
+    const hashParams = new URLSearchParams(hash)
+    const code = hashParams.get('code') || new URLSearchParams(location.search).get('code')
+    if (!code) return
+    ;(async () => {
+      try {
+        await supabase.auth.exchangeCodeForSession(code)
+        setStatus('form')
+      } catch (e) {
+        setError(e?.message || 'Oturum kurulamadı')
+        setStatus('error')
+      }
+    })()
+  }, [location.search, location.hash])
 
   const onSubmit = async (data) => {
     try {
