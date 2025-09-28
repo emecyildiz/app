@@ -482,98 +482,115 @@ const Profile = () => {
       <div className="container mx-auto px-4 py-8">
         {activeTab === 'overview' ? (
           <>
-            {/* Profile Header */}
+            {/* Profile Header - Modern Hero */}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="glass rounded-2xl p-8 mb-8"
+              className="relative glass rounded-3xl overflow-hidden mb-8 shadow-xl"
             >
-              <div className="flex flex-col md:flex-row items-center gap-8">
-                {/* Avatar */}
-                <AvatarUpload
-                  currentAvatar={profile?.avatar || `https://ui-avatars.com/api/?name=${profile?.name}&background=ef4444&color=fff&size=200`}
-                  onUpload={updateAvatar}
-                  size="large"
-                />
+              {/* Decorative gradients */}
+              <div className="pointer-events-none absolute inset-0">
+                <div className="absolute -top-24 -right-24 h-64 w-64 bg-primary-500/20 rounded-full blur-3xl" />
+                <div className="absolute -bottom-24 -left-24 h-64 w-64 bg-pink-500/10 rounded-full blur-3xl" />
+              </div>
 
-                {/* User Info */}
-                <div className="flex-1 text-center md:text-left">
-                  <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">
-                    {profile?.name}
-                  </h1>
-                  <p className="text-xl text-gray-400 mb-3">@{profile?.username}</p>
-                  
-                  {profile?.bio && (
-                    <p className="text-gray-300 mb-4 max-w-2xl">{profile?.bio}</p>
-                  )}
-                  
-                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm">
-                    {profile?.location && (
-                      <div className="flex items-center gap-2 text-gray-300">
-                        <MapPin className="w-4 h-4" />
-                        <span>{profile.location}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2 text-gray-300">
-                      <Calendar className="w-4 h-4" />
-                      <span>Üyelik: {stats.memberSince ? new Date(stats.memberSince).toLocaleDateString('tr-TR') : 'Bilinmiyor'}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-gray-300">
-                      <Film className="w-4 h-4" />
-                      <span>{stats.watchedMovies} film izlendi</span>
+              {/* Subtle cover strip */}
+              <div className="w-full h-28 sm:h-36 bg-gradient-to-r from-white/10 via-white/5 to-transparent" />
+
+              <div className="p-6 sm:p-8">
+                <div className="flex flex-col md:flex-row items-center gap-8">
+                  {/* Avatar with gradient ring */}
+                  <div className="p-1 rounded-full bg-gradient-to-tr from-primary-500 to-pink-500">
+                    <div className="rounded-full bg-dark-200 p-1">
+                      <AvatarUpload
+                        currentAvatar={profile?.avatar || `https://ui-avatars.com/api/?name=${profile?.name}&background=ef4444&color=fff&size=200`}
+                        onUpload={updateAvatar}
+                        size="large"
+                      />
                     </div>
                   </div>
 
-                  {/* Social Links */}
-                  {(profile?.social_links?.twitter || profile?.social_links?.instagram || profile?.social_links?.letterboxd) && (
-                    <div className="flex items-center justify-center md:justify-start gap-4 mt-4">
-                      {profile.social_links.twitter && (
-                        <a
-                          href={`https://twitter.com/${profile.social_links.twitter}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-400 hover:text-white transition-colors"
-                        >
-                          <Twitter className="w-5 h-5" />
-                        </a>
-                      )}
-                      {profile.social_links.instagram && (
-                        <a
-                          href={`https://instagram.com/${profile.social_links.instagram}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-400 hover:text-white transition-colors"
-                        >
-                          <Instagram className="w-5 h-5" />
-                        </a>
-                      )}
-                      {profile.social_links.letterboxd && (
-                        <a
-                          href={`https://letterboxd.com/${profile.social_links.letterboxd}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-400 hover:text-white transition-colors"
-                        >
-                          <Link className="w-5 h-5" />
-                        </a>
-                      )}
-                    </div>
-                  )}
-                </div>
+                  {/* User Info */}
+                  <div className="flex-1 text-center md:text-left">
+                    <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
+                      {profile?.name}
+                    </h1>
+                    <p className="text-base md:text-lg text-gray-400 mt-1">@{profile?.username}</p>
 
-                {/* Actions */}
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setIsEditModalOpen(true)}
-                    className="btn btn-primary"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                    Profili Düzenle
-                  </button>
-                  <button onClick={signOut} className="btn btn-secondary">
-                    <LogOut className="w-4 h-4" />
-                  </button>
+                    {profile?.bio && (
+                      <p className="text-gray-300 mt-3 mb-2 max-w-2xl mx-auto md:mx-0">
+                        {profile?.bio}
+                      </p>
+                    )}
+
+                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-6 text-sm mt-3">
+                      {profile?.location && (
+                        <div className="flex items-center gap-2 text-gray-300">
+                          <MapPin className="w-4 h-4" />
+                          <span>{profile.location}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 text-gray-300">
+                        <Calendar className="w-4 h-4" />
+                        <span>Üyelik: {stats.memberSince ? new Date(stats.memberSince).toLocaleDateString('tr-TR') : 'Bilinmiyor'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-300">
+                        <Film className="w-4 h-4" />
+                        <span>{stats.watchedMovies} film izlendi</span>
+                      </div>
+                    </div>
+
+                    {/* Social Links */}
+                    {(profile?.social_links?.twitter || profile?.social_links?.instagram || profile?.social_links?.letterboxd) && (
+                      <div className="flex items-center justify-center md:justify-start gap-4 mt-4">
+                        {profile.social_links.twitter && (
+                          <a
+                            href={`https://twitter.com/${profile.social_links.twitter}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-gray-400 hover:text-white transition-colors"
+                          >
+                            <Twitter className="w-5 h-5" />
+                          </a>
+                        )}
+                        {profile.social_links.instagram && (
+                          <a
+                            href={`https://instagram.com/${profile.social_links.instagram}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-gray-400 hover:text-white transition-colors"
+                          >
+                            <Instagram className="w-5 h-5" />
+                          </a>
+                        )}
+                        {profile.social_links.letterboxd && (
+                          <a
+                            href={`https://letterboxd.com/${profile.social_links.letterboxd}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-gray-400 hover:text-white transition-colors"
+                          >
+                            <Link className="w-5 h-5" />
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setIsEditModalOpen(true)}
+                      className="btn btn-primary"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      Profili Düzenle
+                    </button>
+                    <button onClick={signOut} className="btn btn-secondary">
+                      <LogOut className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -583,34 +600,34 @@ const Profile = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="flex flex-wrap items-center gap-3 mb-6"
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-6"
             >
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                 <Film className="w-4 h-4 text-primary-400" />
                 <span className="text-white font-semibold">{stats.watchedMovies}</span>
                 <span className="text-gray-400 text-sm">İzlendi</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                 <Star className="w-4 h-4 text-yellow-400" />
                 <span className="text-white font-semibold">{stats.ratings}</span>
                 <span className="text-gray-400 text-sm">Puan</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                 <MessageSquare className="w-4 h-4 text-blue-400" />
                 <span className="text-white font-semibold">{stats.comments}</span>
                 <span className="text-gray-400 text-sm">Yorum</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                 <Heart className="w-4 h-4 text-red-400" />
                 <span className="text-white font-semibold">{stats.favorites}</span>
                 <span className="text-gray-400 text-sm">Favori</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                 <Calendar className="w-4 h-4 text-blue-400" />
                 <span className="text-white font-semibold">{stats.memberSinceDays}</span>
                 <span className="text-gray-400 text-sm">Gün</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                 <User className="w-4 h-4 text-green-400" />
                 <span className="text-white font-semibold">{friends.length}</span>
                 <span className="text-gray-400 text-sm">Arkadaş</span>
@@ -634,8 +651,8 @@ const Profile = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          {/* Tab Navigation (hidden on mobile; replaced by profile hamburger) */}
-          <div className="mb-8 overflow-x-auto hidden sm:block">
+          {/* Tab Navigation (sticky on desktop; hidden on mobile) */}
+          <div className="sticky top-16 z-30 mb-8 overflow-x-auto hidden sm:block backdrop-blur supports-[backdrop-filter]:bg-black/20 rounded-xl">
             <div className="inline-flex items-center bg-white/5 rounded-xl p-1 gap-1">
               {tabs.map((tab) => {
                 const Icon = tab.icon

@@ -114,76 +114,90 @@ export default function PublicProfile() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="glass rounded-2xl p-8 mb-8"
+          className="relative glass rounded-3xl overflow-hidden mb-8 shadow-xl"
         >
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            <img
-              src={profile.avatar || `https://ui-avatars.com/api/?name=${profile.name || profile.username}&background=ef4444&color=fff&size=200`}
-              alt={profile.name}
-              className="w-32 h-32 rounded-full"
-            />
-            <div className="flex-1 text-center md:text-left">
-              <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">{profile.name || profile.username}</h1>
-              <p className="text-xl text-gray-400 mb-3">@{profile.username}</p>
-              {profile.bio && <p className="text-gray-300 max-w-2xl">{profile.bio}</p>}
-              <div className="flex flex-wrap items-center gap-6 text-sm mt-4">
-                {profile.location && (
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <MapPin className="w-4 h-4" />
-                    <span>{profile.location}</span>
-                  </div>
-                )}
-                {profile.memberSince && (
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <Calendar className="w-4 h-4" />
-                    <span>Üyelik: {new Date(profile.memberSince).toLocaleDateString('tr-TR')}</span>
-                  </div>
-                )}
+          {/* Decorative gradients */}
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute -top-24 -right-24 h-64 w-64 bg-primary-500/20 rounded-full blur-3xl" />
+            <div className="absolute -bottom-24 -left-24 h-64 w-64 bg-pink-500/10 rounded-full blur-3xl" />
+          </div>
+          {/* Subtle cover strip */}
+          <div className="w-full h-28 sm:h-36 bg-gradient-to-r from-white/10 via-white/5 to-transparent" />
+
+          <div className="p-6 sm:p-8">
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              <div className="p-1 rounded-full bg-gradient-to-tr from-primary-500 to-pink-500">
+                <div className="rounded-full bg-dark-200 p-1">
+                  <img
+                    src={profile.avatar || `https://ui-avatars.com/api/?name=${profile.name || profile.username}&background=ef4444&color=fff&size=200`}
+                    alt={profile.name}
+                    className="w-32 h-32 rounded-full object-cover"
+                  />
+                </div>
               </div>
-            </div>
-            <div className="w-full md:w-auto flex justify-center md:justify-end">
-              {isAuthenticated && friendStatus !== 'self' && (
-                <div className="flex gap-2">
-                  {friendStatus === 'none' && (
-                    <button onClick={handleSendRequest} disabled={busy} className="btn btn-primary">
-                      <UserPlus className="w-4 h-4" />
-                      Arkadaş Ekle
-                    </button>
-                  )}
-                  {friendStatus === 'pending_outgoing' && (
-                    <button disabled className="btn btn-secondary opacity-70 cursor-not-allowed">
-                      İstek Gönderildi
-                    </button>
-                  )}
-                  {friendStatus === 'pending_incoming' && (
-                    <div className="flex gap-2">
-                      <button onClick={() => handleRespond('accept')} disabled={busy} className="btn btn-primary">
-                        <Check className="w-4 h-4" />
-                        Kabul Et
-                      </button>
-                      <button onClick={() => handleRespond('reject')} disabled={busy} className="btn btn-secondary">
-                        <X className="w-4 h-4" />
-                        Reddet
-                      </button>
+              <div className="flex-1 text-center md:text-left">
+                <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">{profile.name || profile.username}</h1>
+                <p className="text-base md:text-lg text-gray-400 mt-1">@{profile.username}</p>
+                {profile.bio && <p className="text-gray-300 mt-3 max-w-2xl">{profile.bio}</p>}
+                <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm mt-3">
+                  {profile.location && (
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <MapPin className="w-4 h-4" />
+                      <span>{profile.location}</span>
                     </div>
                   )}
-                  {friendStatus === 'friends' && (
-                    <div className="flex gap-2">
-                      <button onClick={() => setShowRecommendModal(true)} disabled={busy} className="btn btn-primary">
-                        <Share2 className="w-4 h-4" />
-                        Öneri Gönder
-                      </button>
-                      <button onClick={handleUnfriend} disabled={busy} className="btn btn-secondary">
-                        <UserMinus className="w-4 h-4" />
-                        Arkadaşlıktan Çıkar
-                      </button>
+                  {profile.memberSince && (
+                    <div className="flex items-center gap-2 text-gray-300">
+                      <Calendar className="w-4 h-4" />
+                      <span>Üyelik: {new Date(profile.memberSince).toLocaleDateString('tr-TR')}</span>
                     </div>
                   )}
                 </div>
-              )}
-              {!isAuthenticated && (
-                <Link to="/login" className="btn btn-primary">Giriş yap</Link>
-              )}
+              </div>
+              <div className="w-full md:w-auto flex justify-center md:justify-end">
+                {isAuthenticated && friendStatus !== 'self' && (
+                  <div className="flex gap-2">
+                    {friendStatus === 'none' && (
+                      <button onClick={handleSendRequest} disabled={busy} className="btn btn-primary">
+                        <UserPlus className="w-4 h-4" />
+                        Arkadaş Ekle
+                      </button>
+                    )}
+                    {friendStatus === 'pending_outgoing' && (
+                      <button disabled className="btn btn-secondary opacity-70 cursor-not-allowed">
+                        İstek Gönderildi
+                      </button>
+                    )}
+                    {friendStatus === 'pending_incoming' && (
+                      <div className="flex gap-2">
+                        <button onClick={() => handleRespond('accept')} disabled={busy} className="btn btn-primary">
+                          <Check className="w-4 h-4" />
+                          Kabul Et
+                        </button>
+                        <button onClick={() => handleRespond('reject')} disabled={busy} className="btn btn-secondary">
+                          <X className="w-4 h-4" />
+                          Reddet
+                        </button>
+                      </div>
+                    )}
+                    {friendStatus === 'friends' && (
+                      <div className="flex gap-2">
+                        <button onClick={() => setShowRecommendModal(true)} disabled={busy} className="btn btn-primary">
+                          <Share2 className="w-4 h-4" />
+                          Öneri Gönder
+                        </button>
+                        <button onClick={handleUnfriend} disabled={busy} className="btn btn-secondary">
+                          <UserMinus className="w-4 h-4" />
+                          Arkadaşlıktan Çıkar
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+                {!isAuthenticated && (
+                  <Link to="/login" className="btn btn-primary">Giriş yap</Link>
+                )}
+              </div>
             </div>
           </div>
         </motion.div>
