@@ -37,17 +37,20 @@ const MovieDetail = () => {
   const [showRatingModal, setShowRatingModal] = useState(false)
   const [showRecommendModal, setShowRecommendModal] = useState(false)
   const [ratingLoading, setRatingLoading] = useState(false)
+  const [existingUserRating, setExistingUserRating] = useState(null)
 
   useEffect(() => {
     if (id) {
       loadMovieDetails(id)
       loadSimilarMovies(id)
+      loadUserRating(id)
       // Sayfanın en üstüne scroll et
       window.scrollTo(0, 0)
     }
 
     return () => {
       clearCurrentMovie()
+      setExistingUserRating(null)
     }
   }, [id])
 
@@ -60,6 +63,20 @@ const MovieDetail = () => {
       console.error('Benzer filmler yüklenemedi:', error)
     } finally {
       setLoadingSimilar(false)
+    }
+  }
+
+  const loadUserRating = async (movieId) => {
+    if (!isAuthenticated) return
+    try {
+      const rating = await movieService.getUserRating(movieId)
+      setExistingUserRating(rating)
+      if (rating) {
+        setUserRating(rating.rating || 0)
+        setUserComment(rating.comment || '')
+      }
+    } catch (error) {
+      console.error('Kullanıcı puanı yüklenemedi:', error)
     }
   }
 
@@ -114,10 +131,14 @@ const MovieDetail = () => {
         if (userComment && userComment.trim().length > 0) {
           try { await userService.upsertComment(id, userComment.trim()) } catch {}
         }
+        // Mevcut kullanıcı puanını güncelle
+        setExistingUserRating({
+          rating: userRating,
+          comment: userComment,
+          movie_id: id
+        })
         toast.success('Film puanınız kaydedildi!')
         setShowRatingModal(false)
-        setUserRating(0)
-        setUserComment('')
       } else {
         toast.error(result.error || 'Puan kaydedilemedi')
       }
@@ -300,10 +321,14 @@ const MovieDetail = () => {
                       }
                       setShowRatingModal(true)
                     }}
-                    className="btn btn-secondary inline-flex items-center gap-2"
+                    className={`btn inline-flex items-center gap-2 ${
+                      existingUserRating 
+                        ? 'btn-secondary border-yellow-500 text-yellow-400 hover:bg-yellow-500 hover:text-white' 
+                        : 'btn-secondary'
+                    }`}
                   >
-                    <Star className="w-4 h-4" />
-                    Puanla
+                    <Star className={`w-4 h-4 ${existingUserRating ? 'fill-current' : ''}`} />
+                    {existingUserRating ? `Puanlandı (${existingUserRating.rating}/10)` : 'Puanla'}
                   </button>
 
                   {/* Favorite Button */}
@@ -331,7 +356,7 @@ const MovieDetail = () => {
                     }`}
                   >
                     <Heart className={`w-4 h-4 ${isFavorite(id) ? 'fill-current' : ''}`} />
-                    {isFavorite(id) ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+                    {isFavorite(id) ? 'Film Favorilerde' : 'Favorilere Ekle'}
                   </button>
 
                   {/* Recommend Button */}

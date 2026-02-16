@@ -1,14 +1,45 @@
+const path = require('path');
+const fs = require('fs');
+const dotenv = require('dotenv');
+
+// Load .env file manually to avoid encoding issues
+const envPath = path.resolve(__dirname, '../.env');
+try {
+  const envConfig = dotenv.parse(fs.readFileSync(envPath, 'utf8'));
+  Object.keys(envConfig).forEach(key => {
+    if (!process.env[key]) {
+      process.env[key] = envConfig[key];
+    }
+  });
+  console.log('DEBUG: Loaded env variables:', Object.keys(envConfig));
+} catch (err) {
+  console.error('DEBUG: Failed to load .env:', err.message);
+}
+
+console.log('DEBUG env in server.js:', {
+  cwd: process.cwd(),
+  SUPABASE_URL: process.env.SUPABASE_URL,
+  HAS_SERVICE_ROLE: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+});
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
 const recommendationsRouter = require('./routes/recommendations');
-require('dotenv').config();
 
 const app = express();
 app.use(express.json());
 
 // Basic CORS setup (allow multiple origins via env)
-const allowedOrigins = (process.env.ALLOWED_ORIGIN || 'http://localhost:3001,http://localhost:3002,https://app-eta-five-56.vercel.app').split(',');
+const rawOrigins = [
+  process.env.ALLOWED_ORIGIN,
+  process.env.CORS_ORIGIN,
+]
+  .filter(Boolean)
+  .join(',');
+
+const allowedOrigins = (rawOrigins || 'http://localhost:3001,http://localhost:3002,https://app-eta-five-56.vercel.app')
+  .split(',')
+  .map((o) => o.trim());
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (origin && allowedOrigins.includes(origin)) {

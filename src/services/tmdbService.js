@@ -1,6 +1,6 @@
 class TMDBService {
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_URL || 'https://app-production-c295.up.railway.app'
+    this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
     this.imageBaseURL = 'https://image.tmdb.org/t/p'
     this.timeoutMs = parseInt(import.meta.env.VITE_HTTP_TIMEOUT_MS || '10000', 10)
     this.tmdbDirectEnabled = (import.meta.env.VITE_TMDB_DIRECT_FALLBACK || 'true') === 'true'

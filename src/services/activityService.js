@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://app-production-c295.up.railway.app'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 const ENABLED = import.meta.env.VITE_ACTIVITY_TRACKING_ENABLED === 'true'
 
 export const activityService = {

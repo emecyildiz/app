@@ -10,7 +10,7 @@ class MovieService {
     try {
       if (!movie || !movie.id) return
       // Prefer backend endpoint to bypass RLS
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'https://app-production-c295.up.railway.app'}/api/movies/ensure`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/movies/ensure`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -264,6 +264,27 @@ class MovieService {
     } catch (e) {
       console.error('Watched ids fetch error:', e)
       return new Set()
+    }
+  }
+
+  // Kullanıcının belirli bir filme verdiği puanı getir
+  async getUserRating(movieId) {
+    try {
+      const { data: { user } } = await this.supabase.auth.getUser()
+      if (!user) return null
+
+      const { data, error } = await this.supabase
+        .from('ratings')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('movie_id', movieId)
+        .maybeSingle()
+
+      if (error) throw error
+      return data
+    } catch (error) {
+      console.error('Kullanıcı puanı getirilirken hata:', error)
+      return null
     }
   }
 }
