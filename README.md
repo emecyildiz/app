@@ -1,78 +1,162 @@
-# ratemet
+# Ratemet
 
-A social movie rating and discovery app. Users can rate movies, manage favorites, share recommendations with friends, and explore popular, latest, and top-rated titles fetched from the TMDB API.
+Film puanlama ve keşif platformu. Kullanıcılar film puanlayabilir, favori listelerini yönetebilir, arkadaşlarına film önerebilir ve TMDB API'den popüler, yeni ve en iyi filmleri keşfedebilir.
 
-## Features
-- User authentication via Supabase (email/password, OTP flows)
-- Browse popular/latest/top-rated movies
-- Movie details with cast, videos, and images
-- Favorites, ratings, comments
-- Friendships and recommendations between users
-- Admin/operator views (basic)
+## Özellikler
+- Supabase ile kullanıcı kimlik doğrulama (email/şifre, OTP)
+- Popüler/yeni/en iyi filmleri görüntüleme
+- Oyuncu kadrosu, video ve görseller ile detaylı film bilgileri
+- Favoriler, puanlama ve yorum sistemi
+- Arkadaşlık ve film öneri sistemi
+- Admin/operatör yönetim paneli
 
-## Tech Stack
-- Frontend: React, Vite, Tailwind CSS, Zustand
-- Backend: Node.js (Express), Supabase (Postgres + Auth)
-- External API: TMDB
+## Teknoloji Stack
+- **Frontend:** React, Vite, Tailwind CSS, Zustand
+- **Backend:** Node.js (Express), Supabase (PostgreSQL + Auth)
+- **Harici API:** TMDB (The Movie Database)
 
-## Monorepo Layout
-- `src/`: Frontend app
-- `backend/`: Express API server
+## Proje Yapısı
+```
+app/
+├── src/              # Frontend React uygulaması
+├── backend/          # Express API sunucusu
+├── public/           # Statik dosyalar
+└── templates/        # Email şablonları
+```
 
-## Prerequisites
+## Gereksinimler
 - Node.js 18+
-- Supabase project (URL, keys)
-- TMDB API key
+- Supabase projesi (URL ve anahtarlar)
+- TMDB API anahtarı
 
-## Environment Variables
-Create two files with the following placeholders and fill your own values.
+## Kurulum
 
-Frontend (`.env` at repo root or Vercel project envs):
-```env
-VITE_API_URL=https://your-backend.example.com
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-VITE_TMDB_API_KEY=your-tmdb-api-key
-VITE_TMDB_API_BASE_URL=https://api.themoviedb.org/3
-VITE_TMDB_LANGUAGE=tr-TR
-VITE_HTTP_TIMEOUT_MS=10000
-```
+### 1. Bağımlılıkları Yükleyin
 
-Backend (`backend/.env` or Railway project envs):
-```env
-NODE_ENV=production
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-TMDB_API_KEY=your-tmdb-api-key
-# Example pooler connection string (replace placeholders)
-DATABASE_URL=postgresql://<user>:<password>@<host>:6543/postgres
-ALLOWED_ORIGIN=https://your-frontend.example.com
-PORT=8080
-```
-
-Do NOT commit real secrets. Use project settings in Vercel/Railway to store env vars securely.
-
-## Install & Run
-Frontend:
+**Frontend:**
 ```bash
 npm install
-npm run dev
 ```
 
-Backend:
+**Backend:**
 ```bash
 cd backend
 npm install
+```
+
+### 2. Environment Değişkenlerini Ayarlayın
+
+**Frontend (.env)** - Proje kök dizininde:
+```env
+# Uygulama Bilgileri
+VITE_APP_NAME=Ratemet
+VITE_APP_LOGO_URL=/brand/ratemet-logo.png
+
+# Supabase Ayarları
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+
+# Backend API
+VITE_API_URL=http://localhost:5000
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# Activity Tracking
+VITE_ACTIVITY_TRACKING_ENABLED=true
+```
+
+**Backend (backend/.env):**
+```env
+# Server Ayarları
+PORT=5000
+ALLOWED_ORIGIN=http://localhost:3001,http://localhost:3002
+NODE_ENV=development
+
+# Supabase Ayarları
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_JWT_SECRET=your-jwt-secret
+
+# Database
+DATABASE_URL=postgresql://user:password@host:5432/postgres
+
+# TMDB API
+TMDB_API_KEY=your-tmdb-api-key
+TMDB_V4_TOKEN=your-v4-token
+API_BASE_URL=https://api.themoviedb.org/3
+```
+
+> **Not:** `.env.example` ve `backend/.env.example` dosyalarını referans alabilirsiniz.
+
+## Çalıştırma
+
+### Development Modu
+
+**Frontend (Port 3001):**
+```bash
+npm run dev
+```
+
+**Backend (Port 5000):**
+```bash
+cd backend
+npm run dev
+```
+
+veya ayrı terminal'de:
+```bash
+npm run backend
+```
+
+### Production Modu
+
+**Frontend Build:**
+```bash
+npm run build
+npm run preview
+```
+
+**Backend Start:**
+```bash
+cd backend
 npm start
 ```
 
-## Deployment
-- Frontend: Vercel (see `vercel.json`)
-- Backend: Railway (see `railway.json`)
+## API Endpoints
 
-Set all environment variables in each platform’s dashboard before deploying.
+Backend varsayılan olarak `http://localhost:5000` adresinde çalışır:
 
-## Notes
-- All film data comes from TMDB; no mock data is shipped.
-- Ensure RLS policies in Supabase are configured appropriately.
-- Rotate keys immediately if any secret is ever exposed in git history.
+- `POST /api/auth/login` - Kullanıcı girişi
+- `POST /api/auth/register` - Kayıt
+- `GET /api/movies` - Film listesi
+- `POST /api/ratings` - Film puanlama
+- `GET /api/recommendations` - Öneriler
+- Ve daha fazlası...
+
+## Veritabanı Kurulumu
+
+1. Supabase Dashboard'a gidin
+2. SQL Editor'da `templates/` klasöründeki SQL şemalarını çalıştırın
+3. RLS (Row Level Security) politikalarının aktif olduğundan emin olun
+
+## Önemli Notlar
+
+⚠️ **Güvenlik:**
+- Gerçek API anahtarlarını asla commit etmeyin
+- `.env` dosyaları `.gitignore`'da olmalı
+- Production'da güçlü şifreler kullanın
+
+📚 **Veri Kaynağı:**
+- Tüm film verileri TMDB API'den gelir
+- TMDB API anahtarı ücretsiz olarak edinilebilir: https://www.themoviedb.org/settings/api
+
+🔧 **Development:**
+- Frontend otomatik olarak yeniden yüklenir (Hot Reload)
+- Backend nodemon ile değişiklikleri izler
+- Her iki servisi de aynı anda çalıştırın
+
+## Lisans
+MIT
