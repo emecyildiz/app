@@ -9,9 +9,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "vercel-build": "vite build",
-    "start": "node backend/src/server.js",
-    "postinstall": "echo 'Dependencies installed successfully'"
+    "backend": "cd backend && npm run dev",
+    "backend:start": "cd backend && npm start"
   },
   "dependencies": {
     "@headlessui/react": "1.7.17",

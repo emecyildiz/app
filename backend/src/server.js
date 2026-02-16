@@ -37,7 +37,7 @@ const rawOrigins = [
   .filter(Boolean)
   .join(',');
 
-const allowedOrigins = (rawOrigins || 'http://localhost:3001,http://localhost:3002,https://app-eta-five-56.vercel.app')
+const allowedOrigins = (rawOrigins || 'http://localhost:3001,http://localhost:3002')
   .split(',')
   .map((o) => o.trim());
 app.use((req, res, next) => {
