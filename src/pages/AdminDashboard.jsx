@@ -14,10 +14,10 @@ import {
 import toast from 'react-hot-toast'
 
 export default function AdminDashboard() {
-  const { user, profile, getAllUsers, getAllOperators, addOperator, removeOperator, deleteUser, updateUserProfile, getDashboardStats, get } = useAuthStore()
+  const { user, profile, getAllUsers, getAllModerators, addModerator, removeModerator, deleteUser, updateUserProfile, getDashboardStats, get } = useAuthStore()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('overview')
-  const [showAddOperator, setShowAddOperator] = useState(false)
+  const [showAddModerator, setShowAddModerator] = useState(false)
   const [showEditUser, setShowEditUser] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
   const [editForm, setEditForm] = useState({
@@ -27,14 +27,14 @@ export default function AdminDashboard() {
     bio: '',
     location: ''
   })
-  const [operatorForm, setOperatorForm] = useState({
+  const [moderatorForm, setModeratorForm] = useState({
     email: '',
     password: '',
     name: '',
     username: ''
   })
   const [users, setUsers] = useState([])
-  const [operators, setOperators] = useState([])
+  const [moderators, setModerators] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshingStats, setRefreshingStats] = useState(false)
   const [dashboardStats, setDashboardStats] = useState({
@@ -62,23 +62,23 @@ export default function AdminDashboard() {
         setDashboardStats(prev => ({
           ...prev,
           totalUsers: stats.totalUsers || 0,
-          totalOperators: stats.totalOperators || 0,
+          totalModerators: stats.totalModerators || 0,
           activeUsers: stats.activeUsers || 0,
           realTimeActiveUsers: stats.realTimeActiveUsers || 0
         }));
 
-        // Get detailed user and operator data
-        const [usersData, operatorsData] = await Promise.all([
+        // Get detailed user and moderator data
+        const [usersData, moderatorsData] = await Promise.all([
           userService.getAllUsers(),
-          userService.getAllOperators()
+          userService.getAllModerators()
         ]);
 
         setUsers(usersData || []);
-        setOperators(operatorsData || []);
+        setModerators(moderatorsData || []);
 
         console.log('Admin Dashboard - Stats:', {
           totalUsers: stats.totalUsers,
-          totalOperators: stats.totalOperators,
+          totalModerators: stats.totalModerators,
           activeUsers: stats.activeUsers,
           realTimeActiveUsers: stats.realTimeActiveUsers
         });
@@ -113,41 +113,41 @@ export default function AdminDashboard() {
     }
   }
 
-  const handleAddOperator = async (e) => {
+  const handleAddModerator = async (e) => {
     e.preventDefault()
     
-    if (!operatorForm.email || !operatorForm.password || !operatorForm.name) {
+    if (!moderatorForm.email || !moderatorForm.password || !moderatorForm.name) {
       toast.error('Lütfen tüm alanları doldurun!')
       return
     }
 
-    const result = await addOperator(operatorForm)
+    const result = await addModerator(moderatorForm)
     if (result.success) {
-      setOperatorForm({ email: '', password: '', name: '', username: '' })
-      setShowAddOperator(false)
-      // Reload data after adding operator
-      const [usersData, operatorsData] = await Promise.all([
+      setModeratorForm({ email: '', password: '', name: '', username: '' })
+      setShowAddModerator(false)
+      // Reload data after adding moderator
+      const [usersData, moderatorsData] = await Promise.all([
         userService.getAllUsers(),
-        userService.getAllOperators()
+        userService.getAllModerators()
       ])
       setUsers(usersData)
-      setOperators(operatorsData)
-      toast.success('Operatör başarıyla eklendi!')
+      setModerators(moderatorsData)
+      toast.success('Moderatör başarıyla eklendi!')
     }
   }
 
-  const handleRemoveOperator = async (operatorId) => {
-    if (window.confirm('Bu operatörü kaldırmak istediğinizden emin misiniz?')) {
-      const result = await removeOperator(operatorId)
+  const handleRemoveModerator = async (moderatorId) => {
+    if (window.confirm('Bu moderatörü kaldırmak istediğinizden emin misiniz?')) {
+      const result = await removeModerator(moderatorId)
       if (result.success) {
-        // Reload data after removing operator
-        const [usersData, operatorsData] = await Promise.all([
+        // Reload data after removing moderator
+        const [usersData, moderatorsData] = await Promise.all([
           userService.getAllUsers(),
-          userService.getAllOperators()
+          userService.getAllModerators()
         ])
         setUsers(usersData)
-        setOperators(operatorsData)
-        toast.success('Operatör başarıyla kaldırıldı!')
+        setModerators(moderatorsData)
+        toast.success('Moderatör başarıyla kaldırıldı!')
       }
     }
   }
@@ -157,12 +157,12 @@ export default function AdminDashboard() {
       const result = await deleteUser(userId)
       if (result.success) {
         // Reload data after deleting user
-        const [usersData, operatorsData] = await Promise.all([
+        const [usersData, moderatorsData] = await Promise.all([
           userService.getAllUsers(),
-          userService.getAllOperators()
+          userService.getAllModerators()
         ])
         setUsers(usersData)
-        setOperators(operatorsData)
+        setModerators(moderatorsData)
         toast.success('Kullanıcı başarıyla silindi!')
       }
     }
@@ -193,12 +193,12 @@ export default function AdminDashboard() {
       setShowEditUser(false)
       setSelectedUser(null)
       // Reload data after updating user
-      const [usersData, operatorsData] = await Promise.all([
+      const [usersData, moderatorsData] = await Promise.all([
         userService.getAllUsers(),
-        userService.getAllOperators()
+        userService.getAllModerators()
       ])
       setUsers(usersData)
-      setOperators(operatorsData)
+      setModerators(moderatorsData)
       toast.success('Kullanıcı başarıyla güncellendi!')
     }
   }
@@ -233,8 +233,8 @@ export default function AdminDashboard() {
               <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm">Operatörler</p>
-                    <p className="text-3xl font-bold text-white mt-1">{dashboardStats.totalOperators}</p>
+                    <p className="text-gray-400 text-sm">Moderatörler</p>
+                    <p className="text-3xl font-bold text-white mt-1">{dashboardStats.totalModerators}</p>
                   </div>
                   <ShieldCheckIcon className="w-12 h-12 text-blue-600" />
                 </div>
@@ -243,8 +243,8 @@ export default function AdminDashboard() {
               <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm">Aktif Kullanıcılar</p>
-                    <p className="text-3xl font-bold text-white mt-1">{dashboardStats.realTimeActiveUsers}</p>
+                    <p className="text-gray-400 text-sm">Aktif Kullanıcılar (Son 24 Saat)</p>
+                    <p className="text-3xl font-bold text-white mt-1">{dashboardStats.activeUsers}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <button
                         onClick={refreshActiveUsers}
@@ -252,7 +252,7 @@ export default function AdminDashboard() {
                         className="flex items-center gap-2 px-3 py-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white text-xs rounded-lg transition-colors"
                       >
                         <ArrowPathIcon className={`w-3 h-3 ${refreshingStats ? 'animate-spin' : ''}`} />
-                        Aktif Kullanıcı Sayısını Gör
+                        Yenile
                       </button>
                     </div>
                   </div>
@@ -285,14 +285,14 @@ export default function AdminDashboard() {
                   Kullanıcılar
                 </button>
                 <button
-                  onClick={() => setActiveTab('operators')}
+                  onClick={() => setActiveTab('moderators')}
                   className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === 'operators'
+                    activeTab === 'moderators'
                       ? 'border-red-600 text-red-600'
                       : 'border-transparent text-gray-400 hover:text-white'
                   }`}
                 >
-                  Operatörler
+                  Moderatörler
                 </button>
                 <button
                   onClick={() => setActiveTab('settings')}
@@ -371,9 +371,17 @@ export default function AdminDashboard() {
                                       {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                                     </span>
                                   </div>
-                                  <div>
-                                    <p className="text-white font-medium">{user.name || 'İsimsiz Kullanıcı'}</p>
-                                    <p className="text-gray-400 text-sm">@{user.username || 'kullanici'}</p>
+                                  <div className="min-w-0">
+                                    <p className="text-white font-medium whitespace-nowrap">
+                                      {user.name 
+                                        ? user.name.split(' ').map(word => 
+                                            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                                          ).join(' ')
+                                        : 'İsimsiz Kullanıcı'}
+                                    </p>
+                                    <p className="text-gray-400 text-sm whitespace-nowrap">
+                                      @{user.username?.replace('@', '') || 'kullanici'}
+                                    </p>
                                   </div>
                                 </div>
                               </td>
@@ -412,23 +420,23 @@ export default function AdminDashboard() {
               </div>
             )}
 
-            {activeTab === 'operators' && (
+            {activeTab === 'moderators' && (
               <div className="space-y-6">
                 <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-semibold text-white">Operatör Yönetimi</h2>
+                  <h2 className="text-xl font-semibold text-white">Moderatör Yönetimi</h2>
                   <button
-                    onClick={() => setShowAddOperator(!showAddOperator)}
+                    onClick={() => setShowAddModerator(!showAddModerator)}
                     className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
                   >
                     <UserPlusIcon className="w-5 h-5" />
-                    Operatör Ekle
+                    Moderatör Ekle
                   </button>
                 </div>
 
-                {showAddOperator && (
+                {showAddModerator && (
                   <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-                    <h3 className="text-lg font-semibold text-white mb-4">Yeni Operatör Ekle</h3>
-                    <form onSubmit={handleAddOperator} className="space-y-4">
+                    <h3 className="text-lg font-semibold text-white mb-4">Yeni Moderatör Ekle</h3>
+                    <form onSubmit={handleAddModerator} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-400 mb-2">
@@ -436,8 +444,8 @@ export default function AdminDashboard() {
                           </label>
                           <input
                             type="text"
-                            value={operatorForm.name}
-                            onChange={(e) => setOperatorForm({ ...operatorForm, name: e.target.value })}
+                            value={moderatorForm.name}
+                            onChange={(e) => setModeratorForm({ ...moderatorForm, name: e.target.value })}
                             className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600"
                             required
                           />
@@ -448,8 +456,8 @@ export default function AdminDashboard() {
                           </label>
                           <input
                             type="text"
-                            value={operatorForm.username}
-                            onChange={(e) => setOperatorForm({ ...operatorForm, username: e.target.value })}
+                            value={moderatorForm.username}
+                            onChange={(e) => setModeratorForm({ ...moderatorForm, username: e.target.value })}
                             className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600"
                             required
                           />
@@ -460,8 +468,8 @@ export default function AdminDashboard() {
                           </label>
                           <input
                             type="email"
-                            value={operatorForm.email}
-                            onChange={(e) => setOperatorForm({ ...operatorForm, email: e.target.value })}
+                            value={moderatorForm.email}
+                            onChange={(e) => setModeratorForm({ ...moderatorForm, email: e.target.value })}
                             className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600"
                             required
                           />
@@ -472,8 +480,8 @@ export default function AdminDashboard() {
                           </label>
                           <input
                             type="password"
-                            value={operatorForm.password}
-                            onChange={(e) => setOperatorForm({ ...operatorForm, password: e.target.value })}
+                            value={moderatorForm.password}
+                            onChange={(e) => setModeratorForm({ ...moderatorForm, password: e.target.value })}
                             className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600"
                             required
                           />
@@ -482,7 +490,7 @@ export default function AdminDashboard() {
                       <div className="flex justify-end gap-3">
                         <button
                           type="button"
-                          onClick={() => setShowAddOperator(false)}
+                          onClick={() => setShowAddModerator(false)}
                           className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
                         >
                           İptal
@@ -503,49 +511,57 @@ export default function AdminDashboard() {
                     <table className="w-full">
                       <thead>
                         <tr className="border-b border-gray-800">
-                          <th className="text-left p-4 text-gray-400 font-medium">Operatör</th>
+                          <th className="text-left p-4 text-gray-400 font-medium">Moderatör</th>
                           <th className="text-left p-4 text-gray-400 font-medium">E-posta</th>
                           <th className="text-left p-4 text-gray-400 font-medium">Kayıt Tarihi</th>
                           <th className="text-left p-4 text-gray-400 font-medium">İşlemler</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {operators.length === 0 ? (
+                        {moderators.length === 0 ? (
                           <tr>
                             <td colSpan="4" className="p-8 text-center text-gray-400">
-                              Henüz operatör eklenmemiş
+                              Henüz moderatör eklenmemiş
                             </td>
                           </tr>
                         ) : (
-                          operators.map((operator) => (
-                            <tr key={operator.id} className="border-b border-gray-800 hover:bg-gray-800/50">
+                          moderators.map((moderator) => (
+                            <tr key={moderator.id} className="border-b border-gray-800 hover:bg-gray-800/50">
                               <td className="p-4">
                                 <div className="flex items-center gap-3">
                                   <div className="w-10 h-10 rounded-full bg-blue-700 flex items-center justify-center">
                                     <span className="text-white font-medium text-sm">
-                                      {operator.name ? operator.name.charAt(0).toUpperCase() : 'O'}
+                                      {moderator.name ? moderator.name.charAt(0).toUpperCase() : 'M'}
                                     </span>
                                   </div>
-                                  <div>
-                                    <p className="text-white font-medium">{operator.name || 'İsimsiz Operatör'}</p>
-                                    <p className="text-gray-400 text-sm">@{operator.username || 'operator'}</p>
+                                  <div className="min-w-0">
+                                    <p className="text-white font-medium whitespace-nowrap">
+                                      {moderator.name 
+                                        ? moderator.name.split(' ').map(word => 
+                                            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                                          ).join(' ')
+                                        : 'İsimsiz Moderatör'}
+                                    </p>
+                                    <p className="text-gray-400 text-sm whitespace-nowrap">
+                                      @{moderator.username?.replace('@', '') || 'moderator'}
+                                    </p>
                                   </div>
                                 </div>
                               </td>
-                              <td className="p-4 text-gray-300">{operator.email}</td>
+                              <td className="p-4 text-gray-300">{moderator.email}</td>
                               <td className="p-4 text-gray-300">
-                                {operator.created_at ? new Date(operator.created_at).toLocaleDateString('tr-TR') : 'Bilinmiyor'}
+                                {moderator.created_at ? new Date(moderator.created_at).toLocaleDateString('tr-TR') : 'Bilinmiyor'}
                               </td>
                               <td className="p-4">
                                 <div className="flex items-center gap-3">
                                   <button
-                                    onClick={() => handleEditUser(operator)}
+                                    onClick={() => handleEditUser(moderator)}
                                     className="text-blue-500 hover:text-blue-400 text-sm"
                                   >
                                     Düzenle
                                   </button>
                                   <button
-                                    onClick={() => handleRemoveOperator(operator.id)}
+                                    onClick={() => handleRemoveModerator(moderator.id)}
                                     className="text-red-500 hover:text-red-400 text-sm"
                                   >
                                     Kaldır

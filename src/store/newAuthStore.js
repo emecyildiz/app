@@ -613,10 +613,10 @@ const useAuthStore = create((set, get) => ({
     return get().hasRole('ADMIN')
   },
 
-  // Check if user is operator or admin
-  isOperatorOrAdmin: () => {
+  // Check if user is moderator or admin
+  isModeratorOrAdmin: () => {
     const profile = get().profile
-    return profile?.role === 'ADMIN' || profile?.role === 'OPERATOR'
+    return profile?.role === 'ADMIN' || profile?.role === 'MODERATOR'
   }
 }))
 

@@ -51,7 +51,7 @@ const EmailConfirmed = () => {
       >
         {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <img src={APP_LOGO_URL || '/favicon.ico'} alt={APP_NAME} className="w-10 h-10 rounded" />
+          <img src="/brand/ratemet-logo.svg" alt={APP_NAME} className="w-10 h-10 rounded" />
           <span className="text-2xl font-bold text-white">{APP_NAME}</span>
         </div>
 

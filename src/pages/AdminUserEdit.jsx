@@ -23,8 +23,8 @@ export default function AdminUserEdit() {
     }
   })
 
-  // Check if admin or operator (use uppercase roles)
-  if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.role !== 'OPERATOR')) {
+  // Check if admin or moderator (use uppercase roles)
+  if (!currentUser || (currentUser.role !== 'ADMIN' && currentUser.role !== 'MODERATOR')) {
     return <Navigate to="/" replace />
   }
 
@@ -118,21 +118,31 @@ export default function AdminUserEdit() {
           <div className="lg:col-span-1">
             <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
               <div className="text-center">
-                <img
-                  src={userData.avatar}
-                  alt={userData.name}
-                  className="w-32 h-32 rounded-full mx-auto mb-4"
-                />
-                <h2 className="text-xl font-semibold text-white mb-1">{userData.name}</h2>
-                <p className="text-gray-400 mb-2">@{userData.username}</p>
+                <div className="w-32 h-32 rounded-full mx-auto mb-4 flex items-center justify-center" style={{
+                  backgroundColor: userData.role === 'ADMIN' ? '#991b1b' : userData.role === 'MODERATOR' ? '#1e40af' : '#374151'
+                }}>
+                  <span className="text-white font-bold text-4xl">
+                    {userData.name ? userData.name.charAt(0).toUpperCase() : 'U'}
+                  </span>
+                </div>
+                <h2 className="text-xl font-semibold text-white mb-1 whitespace-nowrap">
+                  {userData.name 
+                    ? userData.name.split(' ').map(word => 
+                        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                      ).join(' ')
+                    : 'İsimsiz Kullanıcı'}
+                </h2>
+                <p className="text-gray-400 mb-2 whitespace-nowrap">
+                  @{userData.username?.replace('@', '') || 'kullanici'}
+                </p>
                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
                   userData.role === 'ADMIN' 
                     ? 'bg-red-900/50 text-red-400'
-                    : userData.role === 'OPERATOR'
+                    : userData.role === 'MODERATOR'
                     ? 'bg-blue-900/50 text-blue-400'
                     : 'bg-gray-800 text-gray-400'
                 }`}>
-                  {userData.role === 'ADMIN' ? 'Admin' : userData.role === 'OPERATOR' ? 'Operatör' : 'Kullanıcı'}
+                  {userData.role === 'ADMIN' ? 'Admin' : userData.role === 'MODERATOR' ? 'Moderatör' : 'Kullanıcı'}
                 </span>
               </div>
               <div className="mt-6 space-y-3">

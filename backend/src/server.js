@@ -11,20 +11,13 @@ try {
       process.env[key] = envConfig[key];
     }
   });
-  console.log('DEBUG: Loaded env variables:', Object.keys(envConfig));
 } catch (err) {
-  console.error('DEBUG: Failed to load .env:', err.message);
+  console.error('Failed to load .env:', err.message);
 }
 
-console.log('DEBUG env in server.js:', {
-  cwd: process.cwd(),
-  SUPABASE_URL: process.env.SUPABASE_URL,
-  HAS_SERVICE_ROLE: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-});
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
-const recommendationsRouter = require('./routes/recommendations');
 
 const app = express();
 app.use(express.json());
@@ -84,6 +77,17 @@ async function isAdmin(userId) {
   return data?.role === 'ADMIN';
 }
 
+async function isModerator(userId) {
+  if (!userId) return false;
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', userId)
+    .single();
+  if (error) return false;
+  return data?.role === 'MODERATOR' || data?.role === 'ADMIN';
+}
+
 async function requireUser(req, res, next) {
   try {
     const user = await getUserFromRequest(req);
@@ -100,6 +104,19 @@ async function requireAdmin(req, res, next) {
     const user = await getUserFromRequest(req);
     if (!user) return res.status(401).json({ error: 'unauthorized' });
     const ok = await isAdmin(user.id);
+    if (!ok) return res.status(403).json({ error: 'forbidden' });
+    req.user = user;
+    next();
+  } catch (e) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+}
+
+async function requireAdminOrModerator(req, res, next) {
+  try {
+    const user = await getUserFromRequest(req);
+    if (!user) return res.status(401).json({ error: 'unauthorized' });
+    const ok = await isModerator(user.id);
     if (!ok) return res.status(403).json({ error: 'forbidden' });
     req.user = user;
     next();
@@ -626,80 +643,95 @@ app.get('/api/users/:userId/favorites', requireUser, async (req, res) => {
 // Send friend request
 app.post('/api/friends/request', requireUser, async (req, res) => {
   try {
-    const me = req.user.id;
-    const toUserId = req.body?.toUserId;
-    if (!toUserId) return res.status(400).json({ error: 'toUserId required' });
-    if (toUserId === me) return res.status(400).json({ error: 'cannot_add_self' });
+    const fromUserId = req.user.id;
+    const { toUserId } = req.body;
 
-    // Check existing relationship
-    const { data: existing, error: exErr } = await supabase
-      .from('friendships')
-      .select('id, from_user_id, to_user_id, status')
-      .or(`and(from_user_id.eq.${me},to_user_id.eq.${toUserId}),and(from_user_id.eq.${toUserId},to_user_id.eq.${me})`)
-      .order('created_at', { ascending: false })
-      .limit(1);
-    if (exErr) throw exErr;
-    const ex = (existing && existing[0]) || null;
-    if (ex) {
-      if (ex.status === 'accepted') return res.json({ success: true, status: 'friends' });
-      if (ex.status === 'pending') {
-        const status = ex.from_user_id === me ? 'pending_outgoing' : 'pending_incoming';
-        return res.json({ success: true, status });
-      }
+    // Validation
+    if (!toUserId) {
+      return res.status(400).json({ error: 'toUserId is required' });
+    }
+    if (fromUserId === toUserId) {
+      return res.status(400).json({ error: 'Cannot send friend request to yourself' });
     }
 
+    // Check for existing friendship/request (Bi-directional check)
+    const { data: existing, error: existErr } = await supabase
+      .from('friendships')
+      .select('id, status')
+      .or(`and(from_user_id.eq.${fromUserId},to_user_id.eq.${toUserId}),and(from_user_id.eq.${toUserId},to_user_id.eq.${fromUserId})`)
+      .maybeSingle();
+
+    if (existErr) throw existErr;
+    
+    if (existing) {
+      // If request already exists, just return success to Frontend
+      return res.json({ success: true, status: existing.status, message: 'Request already exists' });
+    }
+
+    // Insert into Database
     const { data, error } = await supabase
       .from('friendships')
-      .insert({ from_user_id: me, to_user_id: toUserId, status: 'pending' })
-      .select('id')
+      .insert([
+        {
+          from_user_id: fromUserId,
+          to_user_id: toUserId,
+          status: 'pending'
+        }
+      ])
+      .select()
       .single();
+
     if (error) throw error;
-    res.json({ success: true, status: 'pending_outgoing', requestId: data.id });
-  } catch (e) {
-    console.error('friends/request error:', e);
-    res.status(500).json({ success: false, error: e?.message || 'internal_error' });
+
+    return res.json({ success: true, status: 'pending', data });
+
+  } catch (error) {
+    console.error('Error in /api/friends/request:', error);
+    res.status(500).json({ error: 'Internal Server Error', message: error?.message });
   }
 });
 
-// Respond to friend request (accept or reject)
+// ========== RESPOND TO FRIEND REQUEST (Accept/Reject) ==========
 app.post('/api/friends/respond', requireUser, async (req, res) => {
   try {
-    const me = req.user.id;
-    const fromUserId = req.body?.fromUserId;
-    const action = (req.body?.action || '').toString();
-    if (!fromUserId || !action) return res.status(400).json({ error: 'invalid_payload' });
+    const userId = req.user.id; // Logged-in user (The Receiver)
+    const { requestId, action } = req.body; // action: 'accept' or 'reject'
 
-    // Find the pending request to me
-    const { data: reqRow, error: findErr } = await supabase
+    if (!requestId || !action) {
+      return res.status(400).json({ error: 'requestId and action are required' });
+    }
+
+    // 1. Determine new status
+    let newStatus;
+    if (action === 'accept') newStatus = 'accepted';
+    else if (action === 'reject') newStatus = 'rejected';
+    else return res.status(400).json({ error: 'Invalid action' });
+
+    // 2. Update the friendship status
+    // CRITICAL: We must ensure the logged-in user is the 'to_user_id' (Receiver)
+    // We update based on the unique 'id' of the friendship row (requestId)
+    const { data, error } = await supabase
       .from('friendships')
-      .select('id, status')
-      .eq('from_user_id', fromUserId)
-      .eq('to_user_id', me)
-      .order('created_at', { ascending: false })
-      .limit(1)
+      .update({ 
+        status: newStatus,
+        updated_at: new Date()
+      })
+      .eq('id', requestId)       // Find by Row ID
+      .eq('to_user_id', userId)  // Security check: Only receiver can respond
+      .select()
       .single();
-    if (findErr || !reqRow) return res.json({ success: false, status: 'none' });
 
-    if (action === 'accept') {
-      const { error: updErr } = await supabase
-        .from('friendships')
-        .update({ status: 'accepted', responded_at: new Date().toISOString() })
-        .eq('id', reqRow.id);
-      if (updErr) throw updErr;
-      return res.json({ success: true, status: 'friends' });
+    if (error) throw error;
+
+    if (!data) {
+        return res.status(404).json({ error: 'Friend request not found or you are not authorized' });
     }
-    if (action === 'reject') {
-      const { error: delErr } = await supabase
-        .from('friendships')
-        .delete()
-        .eq('id', reqRow.id);
-      if (delErr) throw delErr;
-      return res.json({ success: true, status: 'none' });
-    }
-    return res.status(400).json({ error: 'invalid_action' });
-  } catch (e) {
-    console.error('friends/respond error:', e);
-    res.status(500).json({ success: false, error: e?.message || 'internal_error' });
+
+    return res.json({ success: true, status: newStatus, data });
+
+  } catch (error) {
+    console.error('Error in /api/friends/respond:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
 
@@ -750,31 +782,53 @@ app.get('/api/friends/list/:userId?', requireUser, async (req, res) => {
   }
 });
 
-// List incoming friend requests
+// ========== LIST INCOMING REQUESTS (Gelen İstekler) ==========
 app.get('/api/friends/requests', requireUser, async (req, res) => {
   try {
-    const me = req.user.id;
-    const { data: reqs, error } = await supabase
+    const userId = req.user.id; // Logged-in user
+
+    // 1. Get all pending requests where I am the receiver (to_user_id)
+    const { data: requests, error } = await supabase
       .from('friendships')
-      .select('id, from_user_id, created_at, profiles:from_user_id(id, name, username, avatar_url)')
-      .eq('to_user_id', me)
+      .select('id, from_user_id, created_at, status') // Select only necessary fields
+      .eq('to_user_id', userId)
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
+
     if (error) throw error;
-    const shaped = (reqs || []).map(r => ({
-      id: r.id,
-      fromUser: {
-        id: r.profiles?.id || r.from_user_id,
-        name: r.profiles?.name || null,
-        username: r.profiles?.username || null,
-        avatar: r.profiles?.avatar_url || null,
-      },
-      createdAt: r.created_at,
-    }));
-    res.json(shaped);
-  } catch (e) {
-    console.error('friends/requests error:', e);
-    res.status(500).json({ error: e?.message || 'internal_error' });
+    if (!requests || requests.length === 0) return res.json([]);
+
+    // 2. Extract sender IDs
+    const senderIds = requests.map(r => r.from_user_id);
+
+    // 3. Fetch sender profiles manually (Safer than Join)
+    const { data: profiles, error: profileError } = await supabase
+      .from('profiles')
+      .select('id, name, username, avatar_url')
+      .in('id', senderIds);
+
+    if (profileError) throw profileError;
+
+    // 4. Combine Request + Profile Data with frontend-compatible structure
+    const result = requests.map(req => {
+      const senderProfile = profiles.find(p => p.id === req.from_user_id);
+      return {
+        id: req.id,
+        fromUser: {
+          id: req.from_user_id,
+          name: senderProfile?.name || 'Unknown User',
+          username: senderProfile?.username || 'unknown',
+          avatar: senderProfile?.avatar_url || null,
+        },
+        createdAt: req.created_at,
+      };
+    });
+
+    return res.json(result);
+
+  } catch (error) {
+    console.error('Error in /api/friends/requests:', error);
+    res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 });
 
@@ -786,18 +840,61 @@ app.get('/api/admin/dashboard', requireAdmin, async (req, res) => {
       .select('id, role');
     if (error) throw error;
     const totalUsers = profiles?.length || 0;
-    const totalOperators = (profiles || []).filter(p => p.role === 'OPERATOR').length;
-    res.json({ totalUsers, totalOperators, activeUsers: 0, realTimeActiveUsers: 0 });
+    const totalModerators = (profiles || []).filter(p => p.role === 'MODERATOR').length;
+    
+    // Calculate active users (last 24 hours and last 15 minutes)
+    let activeUsers = 0;
+    let realTimeActiveUsers = 0;
+    try {
+      const authUsers = await listAllAuthUsers();
+      const now = new Date();
+      const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      const last15Minutes = new Date(now.getTime() - 15 * 60 * 1000);
+      
+      authUsers.forEach(user => {
+        if (user.last_sign_in_at) {
+          const lastSignIn = new Date(user.last_sign_in_at);
+          if (lastSignIn >= last24Hours) {
+            activeUsers++;
+          }
+          if (lastSignIn >= last15Minutes) {
+            realTimeActiveUsers++;
+          }
+        }
+      });
+    } catch (authErr) {
+      console.error('Error calculating active users:', authErr);
+      // Continue with 0 values if auth fetch fails
+    }
+    
+    res.json({ totalUsers, totalModerators, activeUsers, realTimeActiveUsers });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-app.get('/api/admin/users', requireAdmin, async (req, res) => {
+app.get('/api/admin/users', requireAdminOrModerator, async (req, res) => {
   try {
-    const { data: profiles, error } = await supabase
+    // Get current user's role
+    const currentUser = req.user;
+    const { data: currentProfile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', currentUser.id)
+      .single();
+    
+    const isAdmin = currentProfile?.role === 'ADMIN';
+    
+    let query = supabase
       .from('profiles')
       .select('id, name, username, role, created_at');
+    
+    // Moderators can only see USER role, not ADMIN or MODERATOR
+    if (!isAdmin) {
+      query = query.eq('role', 'USER');
+    }
+    
+    const { data: profiles, error } = await query;
     if (error) throw error;
 
     // Attach emails from auth store
@@ -822,12 +919,12 @@ app.get('/api/admin/users', requireAdmin, async (req, res) => {
   }
 });
 
-app.get('/api/admin/operators', requireAdmin, async (req, res) => {
+app.get('/api/admin/moderators', requireAdmin, async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('profiles')
       .select('id, name, username, role, created_at')
-      .eq('role', 'OPERATOR');
+      .eq('role', 'MODERATOR');
     if (error) throw error;
     res.json(data || []);
   } catch (e) {
@@ -835,10 +932,244 @@ app.get('/api/admin/operators', requireAdmin, async (req, res) => {
   }
 });
 
-// Health check
-// Recommendations routes
-app.use('/api/recommendations', recommendationsRouter);
+// Update user profile (Admin or Moderator can update)
+app.put('/api/admin/users/:userId', requireAdminOrModerator, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Check if moderator is trying to edit admin/moderator
+    const currentUser = req.user;
+    const { data: currentProfile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', currentUser.id)
+      .single();
+    
+    const { data: targetProfile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .single();
+    
+    // Moderators can only edit USER role
+    if (currentProfile?.role === 'MODERATOR' && targetProfile?.role !== 'USER') {
+      return res.status(403).json({ success: false, error: 'Moderators can only edit users, not admins or moderators' });
+    }
+    
+    const { name, username, bio, location } = req.body;
+    
+    // Update profile in database
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (username !== undefined) updateData.username = username;
+    if (bio !== undefined) updateData.bio = bio;
+    if (location !== undefined) updateData.location = location;
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updateData)
+      .eq('id', userId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    res.json({ success: true, data });
+  } catch (e) {
+    console.error('Error updating user:', e);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
 
+// Delete user (Admin only)
+app.delete('/api/admin/users/:userId', requireAdmin, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Delete user from auth
+    const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+    if (authError) throw authError;
+    
+    // Profile will be deleted automatically via CASCADE if FK is set
+    // Otherwise, manually delete profile
+    await supabase.from('profiles').delete().eq('id', userId);
+    
+    res.json({ success: true });
+  } catch (e) {
+    console.error('Error deleting user:', e);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// ==========================================
+// ========== RECOMMENDATIONS APIs ==========
+// ==========================================
+
+// 1. SEND RECOMMENDATION (Fixed for Array Payload)
+app.post('/api/recommendations', requireUser, async (req, res) => {
+  try {
+    const fromUserId = req.user.id;
+    // Extract data from the new frontend payload structure
+    const { toUserId, movieIds, note } = req.body;
+
+    // Validation
+    if (!toUserId) {
+        return res.status(400).json({ error: 'Receiver (toUserId) is missing' });
+    }
+    if (!movieIds || !Array.isArray(movieIds) || movieIds.length === 0) {
+        return res.status(400).json({ error: 'No movies selected (movieIds array missing or empty)' });
+    }
+    if (fromUserId === toUserId) {
+        return res.status(400).json({ error: 'Cannot recommend to self' });
+    }
+
+    const results = [];
+    const errors = [];
+
+    // Loop through each Movie ID in the array
+    for (const movieId of movieIds) {
+        try {
+            // A. Insert into Main Table
+            const { data: recData, error: recError } = await supabase
+                .from('recommendations')
+                .insert([{
+                    from_user_id: fromUserId,
+                    to_user_id: toUserId,
+                    movie_id: movieId,
+                    status: 'pending'
+                    // Note: If you have a 'content' or 'note' column, add: content: note
+                }])
+                .select()
+                .single();
+
+            if (recError) throw recError;
+
+            // B. Insert into Items Table
+            // Since frontend only sends IDs now, we use a placeholder title or fetch it if possible.
+            // For now, we save it to prevent crashes.
+            if (recData) {
+                await supabase.from('recommendation_items').insert([{
+                    recommendation_id: recData.id,
+                    movie_id: movieId,
+                    movie_title: 'Movie ID ' + movieId, // Placeholder until fetched
+                    poster_path: null
+                }]);
+                results.push(recData);
+            }
+        } catch (innerErr) {
+            console.error(`Failed to recommend movie ${movieId}:`, innerErr);
+            errors.push({ movieId, error: innerErr.message });
+        }
+    }
+
+    // Return success if at least one movie was recommended
+    if (results.length > 0) {
+        res.json({ success: true, count: results.length, data: results, errors });
+    } else {
+        res.status(500).json({ error: 'Failed to save recommendations', details: errors });
+    }
+
+  } catch (error) {
+    console.error('POST recommendations error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 2. LIST RECOMMENDATIONS (Önerileri Listele - 404 Fix)
+app.get('/api/recommendations', requireUser, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { type, status } = req.query; // type: 'received' | 'sent'
+
+    // A. Build Query for Main Table
+    let query = supabase.from('recommendations')
+        .select('id, from_user_id, to_user_id, movie_id, status, created_at')
+        .order('created_at', { ascending: false });
+
+    if (type === 'sent') query = query.eq('from_user_id', userId);
+    else query = query.eq('to_user_id', userId); // default: received
+
+    if (status) query = query.eq('status', status);
+
+    const { data: recs, error: recError } = await query;
+    if (recError) throw recError;
+    if (!recs || recs.length === 0) return res.json([]);
+
+    // B. Fetch Related Data Manually (Safer than Joins)
+    const recIds = recs.map(r => r.id);
+    const userIds = new Set();
+    recs.forEach(r => { userIds.add(r.from_user_id); userIds.add(r.to_user_id); });
+
+    // Fetch Items (Movie Details)
+    const { data: items } = await supabase
+        .from('recommendation_items')
+        .select('recommendation_id, movie_id, movie_title, poster_path')
+        .in('recommendation_id', recIds);
+
+    // Fetch Profiles (Users)
+    const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, name, username, avatar_url')
+        .in('id', Array.from(userIds));
+
+    // C. Merge Data for Frontend
+    const result = recs.map(r => {
+        // Get ALL items for this recommendation (not just the first one)
+        const recItems = (items || []).filter(i => i.recommendation_id === r.id);
+        const fromUser = profiles?.find(p => p.id === r.from_user_id);
+        const toUser = profiles?.find(p => p.id === r.to_user_id);
+
+        return {
+            id: r.id,
+            status: r.status,
+            createdAt: r.created_at,
+            fromUser: {
+                id: r.from_user_id,
+                name: fromUser?.name || 'Unknown',
+                username: fromUser?.username || 'unknown',
+                avatar: fromUser?.avatar_url || null
+            },
+            toUser: {
+                id: r.to_user_id,
+                name: toUser?.name || 'Unknown',
+                username: toUser?.username || 'unknown',
+                avatar: toUser?.avatar_url || null
+            },
+            items: recItems.map(item => ({
+                movie_id: item.movie_id,
+                movie_title: item.movie_title || 'Unknown Movie',
+                poster_path: item.poster_path || null
+            }))
+        };
+    });
+
+    res.json(result);
+
+  } catch (error) {
+    console.error('GET recommendations error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 3. UPDATE STATUS (Opsiyonel - Okundu/İzlendi yapmak için)
+app.put('/api/recommendations/:id', requireUser, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        const { error } = await supabase
+            .from('recommendations')
+            .update({ status })
+            .eq('id', id)
+            .eq('to_user_id', req.user.id); // Only receiver can update
+            
+        if (error) throw error;
+        res.json({ success: true });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Health check
 app.get('/health', async (req, res) => {
   try {
     // Test Supabase connection

@@ -46,14 +46,14 @@ class UserService {
     }
   }
 
-  async getAllOperators() {
+  async getAllModerators() {
     try {
-      const response = await axios.get(`${API_URL}/api/admin/operators`, {
+      const response = await axios.get(`${API_URL}/api/admin/moderators`, {
         headers: this.getAuthHeaders()
       });
       return response.data;
     } catch (error) {
-      console.error('Error fetching operators:', error);
+      console.error('Error fetching moderators:', error);
       throw error;
     }
   }

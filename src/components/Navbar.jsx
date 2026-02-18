@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Home, Film, Info, User, LogIn, UserPlus, Menu, X, LogOut, Shield, Users, Search, Heart, Star, MessageSquare, Share2, Settings } from 'lucide-react'
 import { useRef } from 'react'
 import { userService } from '../services/userService'
-import { APP_NAME, APP_LOGO_URL } from '../config/appConfig'
+import { APP_NAME } from '../config/appConfig'
 import { useAuthStore } from '../store/newAuthStore'
 import recommendationService from '../services/recommendationService'
 
@@ -109,7 +109,7 @@ const Navbar = () => {
     { path: '/about', label: 'Hakkında', icon: Info },
     ...(safeIsAuthenticated ? [{ path: '/profile', label: 'Profil', icon: User }] : []),
     ...(safeIsAuthenticated && profile?.role === 'ADMIN' ? [{ path: '/admin', label: 'Admin Panel', icon: Shield }] : []),
-    ...(safeIsAuthenticated && profile?.role === 'OPERATOR' ? [{ path: '/operator', label: 'Operatör Paneli', icon: Shield }] : []),
+    ...(safeIsAuthenticated && profile?.role === 'MODERATOR' ? [{ path: '/moderator', label: 'Moderatör Paneli', icon: Shield }] : []),
   ]
 
   const isProfileRoute = location.pathname.startsWith('/profile')
@@ -136,7 +136,7 @@ const Navbar = () => {
             to="/"
             className="flex items-center gap-2 text-xl font-bold text-white hover:text-primary-400 transition-colors"
           >
-            <img src={APP_LOGO_URL} alt={APP_NAME} className="h-10 w-auto" />
+            <img src="/brand/ratemet-logo.svg" alt={APP_NAME} className="h-10 w-auto" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -233,8 +233,8 @@ const Navbar = () => {
                     {profile?.role === 'ADMIN' && (
                       <span className="px-2 py-0.5 text-xs bg-red-600 text-white rounded-full">Admin</span>
                     )}
-                    {profile?.role === 'OPERATOR' && (
-                      <span className="px-2 py-0.5 text-xs bg-blue-600 text-white rounded-full">Operatör</span>
+                    {profile?.role === 'MODERATOR' && (
+                      <span className="px-2 py-0.5 text-xs bg-blue-600 text-white rounded-full">Moderatör</span>
                     )}
                   </Link>
                   <button

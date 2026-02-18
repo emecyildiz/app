@@ -262,14 +262,22 @@ export default function ModeratorDashboard() {
                         <tr key={userItem.id} className="border-b border-gray-800 hover:bg-gray-800/50">
                           <td className="p-4">
                             <div className="flex items-center gap-3">
-                              <img
-                                src={userItem.avatar}
-                                alt={userItem.name}
-                                className="w-10 h-10 rounded-full"
-                              />
-                              <div>
-                                <p className="text-white font-medium">{userItem.name}</p>
-                                <p className="text-gray-400 text-sm">@{userItem.username}</p>
+                              <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
+                                <span className="text-white font-medium text-sm">
+                                  {userItem.name ? userItem.name.charAt(0).toUpperCase() : 'U'}
+                                </span>
+                              </div>
+                              <div className="min-w-0">
+                                <p className="text-white font-medium whitespace-nowrap">
+                                  {userItem.name 
+                                    ? userItem.name.split(' ').map(word => 
+                                        word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                                      ).join(' ')
+                                    : 'İsimsiz Kullanıcı'}
+                                </p>
+                                <p className="text-gray-400 text-sm whitespace-nowrap">
+                                  @{userItem.username?.replace('@', '') || 'kullanici'}
+                                </p>
                               </div>
                             </div>
                           </td>
@@ -324,14 +332,14 @@ export default function ModeratorDashboard() {
               <h2 className="text-xl font-semibold text-white mb-4">Moderatör Profil Ayarları</h2>
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="w-20 h-20 rounded-full"
-                  />
+                  <div className="w-20 h-20 rounded-full bg-blue-700 flex items-center justify-center">
+                    <span className="text-white font-bold text-2xl">
+                      {profile?.name ? profile.name.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase() || 'M'}
+                    </span>
+                  </div>
                   <div>
-                    <h3 className="text-lg font-medium text-white">{user.name}</h3>
-                    <p className="text-gray-400">{user.email}</p>
+                    <h3 className="text-lg font-medium text-white">{profile?.name || user?.email?.split('@')[0]}</h3>
+                    <p className="text-gray-400">{user?.email}</p>
                     <p className="text-blue-500 text-sm">Moderatör</p>
                   </div>
                 </div>
@@ -416,13 +424,19 @@ export default function ModeratorDashboard() {
               
               <form onSubmit={handleUpdateUser} className="space-y-4">
                 <div className="flex items-center gap-4 mb-6">
-                  <img
-                    src={selectedUser.avatar}
-                    alt={selectedUser.name}
-                    className="w-16 h-16 rounded-full"
-                  />
+                  <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center">
+                    <span className="text-white font-bold text-xl">
+                      {selectedUser.name ? selectedUser.name.charAt(0).toUpperCase() : 'U'}
+                    </span>
+                  </div>
                   <div>
-                    <h4 className="text-lg font-medium text-white">{selectedUser.name}</h4>
+                    <h4 className="text-lg font-medium text-white">
+                      {selectedUser.name 
+                        ? selectedUser.name.split(' ').map(word => 
+                            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+                          ).join(' ')
+                        : 'İsimsiz Kullanıcı'}
+                    </h4>
                     <p className="text-gray-400">{selectedUser.email}</p>
                   </div>
                 </div>

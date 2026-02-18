@@ -8,7 +8,7 @@ import { activityService } from './services/activityService'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminRoute from './components/AdminRoute'
-import OperatorRoute from './components/OperatorRoute'
+import ModeratorRoute from './components/ModeratorRoute'
 import LoadingSpinner from './components/LoadingSpinner'
 import ScrollToTop from './components/ScrollToTop'
 
@@ -31,7 +31,7 @@ const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 const Reauthenticate = lazy(() => import('./pages/Reauthenticate'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const AdminUserEdit = lazy(() => import('./pages/AdminUserEdit'))
-const OperatorDashboard = lazy(() => import('./pages/OperatorDashboard'))
+const ModeratorDashboard = lazy(() => import('./pages/ModeratorDashboard'))
 
 
 function App() {
@@ -136,13 +136,13 @@ function App() {
             }
           />
           <Route
-            path="operator"
+            path="moderator"
             element={
-              <OperatorRoute>
+              <ModeratorRoute>
                 <Suspense fallback={<LoadingSpinner fullScreen />}>
-                  <OperatorDashboard />
+                  <ModeratorDashboard />
                 </Suspense>
-              </OperatorRoute>
+              </ModeratorRoute>
             }
           />
 

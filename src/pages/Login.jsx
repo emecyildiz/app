@@ -45,7 +45,7 @@ const Login = () => {
       >
         {/* Logo */}
         <Link to="/" className="flex items-center justify-center gap-2 mb-8">
-          <img src={APP_LOGO_URL} alt={APP_NAME} className="h-10 w-auto" />
+          <img src="/brand/ratemet-logo.svg" alt={APP_NAME} className="h-10 w-auto" />
         </Link>
 
         {/* Form Card */}

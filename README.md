@@ -8,7 +8,7 @@ Film puanlama ve keşif platformu. Kullanıcılar film puanlayabilir, favori lis
 - Oyuncu kadrosu, video ve görseller ile detaylı film bilgileri
 - Favoriler, puanlama ve yorum sistemi
 - Arkadaşlık ve film öneri sistemi
-- Admin/operatör yönetim paneli
+- Admin/moderatör yönetim paneli
 
 ## Teknoloji Stack
 - **Frontend:** React, Vite, Tailwind CSS, Zustand
@@ -20,8 +20,7 @@ Film puanlama ve keşif platformu. Kullanıcılar film puanlayabilir, favori lis
 app/
 ├── src/              # Frontend React uygulaması
 ├── backend/          # Express API sunucusu
-├── public/           # Statik dosyalar
-└── templates/        # Email şablonları
+└── public/           # Statik dosyalar
 ```
 
 ## Gereksinimler
