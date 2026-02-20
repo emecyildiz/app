@@ -454,6 +454,39 @@ const useAuthStore = create((set, get) => ({
     }
   },
 
+  // Sign in with Google OAuth
+  signInWithGoogle: async () => {
+    set({ isLoading: true })
+    
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+        }
+      })
+
+      if (error) {
+        const message = error.message || 'Google ile giriş başarısız!'
+        toast.error(message)
+        set({ isLoading: false })
+        return { success: false, error: message }
+      }
+
+      // OAuth redirects automatically, loading state will be handled by callback
+      return { success: true, data }
+    } catch (error) {
+      console.error('Google sign in error:', error)
+      toast.error('Google ile giriş sırasında bir hata oluştu')
+      set({ isLoading: false })
+      return { success: false, error: error.message }
+    }
+  },
+
   resendSignupConfirmation: async (email) => {
     try {
       if (typeof supabase.auth.resend === 'function') {

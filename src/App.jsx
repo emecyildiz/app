@@ -21,6 +21,7 @@ import Profile from './pages/Profile'
 const PublicProfile = lazy(() => import('./pages/PublicProfile'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
+const AuthCallback = lazy(() => import('./pages/AuthCallback'))
 const EmailConfirmed = lazy(() => import('./pages/EmailConfirmed'))
 const ConfirmSignup = lazy(() => import('./pages/ConfirmSignup'))
 const InviteUserAccepted = lazy(() => import('./pages/InviteUserAccepted'))
@@ -169,6 +170,14 @@ function App() {
             <Register />
           </Suspense>
         } />
+        
+        {/* OAuth Callback */}
+        <Route path="/auth/callback" element={
+          <Suspense fallback={<LoadingSpinner fullScreen />}>
+            <AuthCallback />
+          </Suspense>
+        } />
+        
         <Route path="/email-confirmed" element={
           <Suspense fallback={<LoadingSpinner fullScreen />}>
             <EmailConfirmed />
