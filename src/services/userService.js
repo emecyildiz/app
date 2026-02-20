@@ -171,9 +171,14 @@ class UserService {
   }
 
   // ===== Comments =====
-  async upsertComment(movieId, content) {
+  async upsertComment(movieId, content, movieTitle = null, posterPath = null) {
     try {
-      const response = await axios.post(`${API_URL}/api/comments`, { movieId, content }, {
+      const response = await axios.post(`${API_URL}/api/comments`, { 
+        movieId, 
+        content,
+        movieTitle: movieTitle || `Film #${movieId}`,
+        posterPath 
+      }, {
         headers: this.getAuthHeaders()
       });
       return response.data?.success === true;

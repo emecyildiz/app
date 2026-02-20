@@ -129,7 +129,14 @@ const MovieDetail = () => {
       const result = await movieService.rateMovie(id, userRating, userComment, currentMovie)
       if (result.success) {
         if (userComment && userComment.trim().length > 0) {
-          try { await userService.upsertComment(id, userComment.trim()) } catch {}
+          try { 
+            await userService.upsertComment(
+              id, 
+              userComment.trim(), 
+              currentMovie?.title || currentMovie?.original_title,
+              currentMovie?.poster_path
+            ) 
+          } catch {}
         }
         // Mevcut kullanıcı puanını güncelle
         setExistingUserRating({

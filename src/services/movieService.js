@@ -16,7 +16,11 @@ class MovieService {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${sessionStorage.getItem('auth-token') || ''}`
         },
-        body: JSON.stringify({ id: movie.id, title: movie.title })
+        body: JSON.stringify({ 
+          id: movie.id, 
+          title: movie.title || movie.original_title || `Film #${movie.id}`,
+          posterPath: movie.poster_path || null 
+        })
       })
       if (!response.ok) {
         const t = await response.text().catch(() => '')

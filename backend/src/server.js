@@ -454,7 +454,7 @@ app.get('/api/movies/:id/similar', async (req, res) => {
 app.post('/api/comments', requireUser, async (req, res) => {
   try {
     const uid = req.user.id;
-    const { movieId, content } = req.body || {};
+    const { movieId, content, movieTitle, posterPath } = req.body || {};
     const mid = parseInt(movieId, 10);
     if (!mid || Number.isNaN(mid)) return res.status(400).json({ success: false, error: 'invalid_movieId' });
     const text = (typeof content === 'string' ? content : '').trim();
@@ -465,7 +465,11 @@ app.post('/api/comments', requireUser, async (req, res) => {
     try {
       const { error: movieErr } = await supabase
         .from('movies')
-        .upsert({ id: mid }, { onConflict: 'id' });
+        .upsert({ 
+          id: mid, 
+          title: movieTitle || `Film #${mid}`,
+          poster_path: posterPath || null 
+        }, { onConflict: 'id' });
       if (movieErr) throw movieErr;
     } catch (ensureErr) {
       console.error('comments ensure movie error:', ensureErr);
@@ -542,12 +546,13 @@ app.delete('/api/comments/:movieId', requireUser, async (req, res) => {
 // Ensure a movie row exists (service role upsert)
 app.post('/api/movies/ensure', requireUser, async (req, res) => {
   try {
-    const { id, title } = req.body || {}
+    const { id, title, posterPath } = req.body || {}
     const movieId = parseInt(id, 10)
     if (!movieId || Number.isNaN(movieId)) return res.status(400).json({ success: false, error: 'invalid_id' })
     const payload = {
       id: movieId,
-      title: title || null
+      title: title || `Film #${movieId}`,
+      poster_path: posterPath || null
     }
     const { error } = await supabase
       .from('movies')
