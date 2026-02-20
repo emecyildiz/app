@@ -287,6 +287,24 @@ app.get('/api/users/stats', requireUser, async (req, res) => {
   }
 });
 
+// Activity tracking (best-effort)
+app.post('/api/users/activity', requireUser, async (req, res) => {
+  try {
+    const uid = req.user.id;
+    const { error } = await supabase
+      .from('profiles')
+      .update({ last_active_at: new Date().toISOString() })
+      .eq('id', uid);
+    if (error) {
+      // If the column doesn't exist or update fails, ignore and still respond OK
+      return res.json({ success: true });
+    }
+    return res.json({ success: true });
+  } catch (e) {
+    return res.json({ success: true });
+  }
+});
+
 app.get('/test', (req, res) => {
   res.json({ message: 'Backend is working!' });
 });

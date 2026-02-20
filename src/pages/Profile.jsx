@@ -139,8 +139,8 @@ const Profile = () => {
         const ratingsArr = Array.isArray(data?.ratings) ? data.ratings : []
         const idsToFetch = Array.from(new Set(
           ratingsArr
-            .filter(r => r && r.movie && !r.movie.poster_path)
-            .map(r => Number(r.movie.id || r.movie_id))
+            .filter(r => r && (!r.movie || !r.movie.poster_path))
+            .map(r => Number(r?.movie?.id || r?.movie_id))
             .filter(Boolean)
         ))
 
@@ -167,18 +167,20 @@ const Profile = () => {
         const enriched = ratingsArr.map(r => {
           const mid = Number(r?.movie?.id || r?.movie_id)
           const extra = mid ? detailsMap[mid] : null
-          if (!extra) return r
+          if (!extra && r?.movie) return r
+          const fallbackTitle = r?.movie?.title || extra?.title || (mid ? `#${mid}` : 'Unknown')
           return {
             ...r,
             movie: {
-              ...r.movie,
-              title: r.movie?.title || extra.title || `#${mid}`,
-              poster_path: r.movie?.poster_path ?? extra.poster_path ?? null,
-              backdrop_path: r.movie?.backdrop_path ?? extra.backdrop_path ?? null,
-              release_date: r.movie?.release_date ?? extra.release_date ?? null,
-              vote_average: r.movie?.vote_average ?? extra.vote_average ?? 0,
-              overview: r.movie?.overview ?? extra.overview ?? '',
-              runtime: r.movie?.runtime ?? extra.runtime ?? null,
+              ...(r.movie || {}),
+              id: r?.movie?.id || mid || r?.movie_id,
+              title: fallbackTitle,
+              poster_path: r?.movie?.poster_path ?? extra?.poster_path ?? null,
+              backdrop_path: r?.movie?.backdrop_path ?? extra?.backdrop_path ?? null,
+              release_date: r?.movie?.release_date ?? extra?.release_date ?? null,
+              vote_average: r?.movie?.vote_average ?? extra?.vote_average ?? 0,
+              overview: r?.movie?.overview ?? extra?.overview ?? '',
+              runtime: r?.movie?.runtime ?? extra?.runtime ?? null,
             }
           }
         })
