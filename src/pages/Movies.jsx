@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Search, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useMovieStore } from '../store/movieStore'
@@ -6,6 +7,8 @@ import MovieCard from '../components/MovieCard'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 const Movies = () => {
+  const [searchParams] = useSearchParams()
+  
   const {
     movies,
     genres,
@@ -28,9 +31,40 @@ const Movies = () => {
   const [showFilters, setShowFilters] = useState(false)
   const [activeTab, setActiveTab] = useState('popular')
 
+  // Genre name to TMDB ID mapping
+  const genreNameToId = {
+    'action': 28,
+    'adventure': 12,
+    'animation': 16,
+    'comedy': 35,
+    'crime': 80,
+    'documentary': 99,
+    'drama': 18,
+    'family': 10751,
+    'fantasy': 14,
+    'history': 36,
+    'horror': 27,
+    'music': 10402,
+    'mystery': 9648,
+    'romance': 10749,
+    'science-fiction': 878,
+    'thriller': 53,
+    'tv-movie': 10770,
+    'war': 10752,
+    'western': 37
+  }
+
   useEffect(() => {
-    loadMovies('popular')
     loadGenres()
+    
+    // Check URL for genre parameter
+    const genreParam = searchParams.get('genre')
+    if (genreParam && genreNameToId[genreParam.toLowerCase()]) {
+      const genreId = genreNameToId[genreParam.toLowerCase()]
+      loadMoviesByGenre(genreId)
+    } else {
+      loadMovies('popular')
+    }
   }, [])
 
   useEffect(() => {

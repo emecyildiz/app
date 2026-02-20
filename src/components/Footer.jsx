@@ -1,4 +1,4 @@
-import { Film, Heart, Github, Twitter, Mail } from 'lucide-react'
+import { Film, Heart, Github, Mail } from 'lucide-react'
 import { APP_NAME, APP_LOGO_URL } from '../config/appConfig'
 import { Link } from 'react-router-dom'
 
@@ -67,6 +67,11 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/movies?genre=horror" className="text-gray-400 hover:text-primary-400 transition-colors">
+                  Korku
+                </Link>
+              </li>
+              <li>
                 <Link to="/movies?genre=thriller" className="text-gray-400 hover:text-primary-400 transition-colors">
                   Gerilim
                 </Link>
@@ -76,27 +81,21 @@ const Footer = () => {
 
           {/* Social Links */}
           <div>
-            <h3 className="text-white font-semibold mb-4">Bizi Takip Edin</h3>
+            <h3 className="text-white font-semibold mb-4">İletişim</h3>
             <div className="flex gap-4">
               <a
-                href="https://github.com"
+                href="https://github.com/emecyildiz"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-lg bg-dark-300 flex items-center justify-center text-gray-400 hover:bg-primary-500 hover:text-white transition-all"
+                aria-label="GitHub"
               >
                 <Github className="w-5 h-5" />
               </a>
               <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="mailto:emecyildiz@gmail.com"
                 className="w-10 h-10 rounded-lg bg-dark-300 flex items-center justify-center text-gray-400 hover:bg-primary-500 hover:text-white transition-all"
-              >
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a
-                                 href="mailto:info@ratemet.com"
-                className="w-10 h-10 rounded-lg bg-dark-300 flex items-center justify-center text-gray-400 hover:bg-primary-500 hover:text-white transition-all"
+                aria-label="Email"
               >
                 <Mail className="w-5 h-5" />
               </a>
