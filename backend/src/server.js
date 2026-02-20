@@ -16,11 +16,30 @@ try {
 }
 
 const express = require('express');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
 
 const app = express();
 app.use(express.json());
+app.set('trust proxy', 1);
+
+// Basic security headers
+app.use(helmet({ crossOriginResourcePolicy: false }));
+
+// Global rate limiting (DDoS/abuse protection)
+const rateLimitWindowMs = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10);
+const rateLimitMax = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10);
+app.use(
+  rateLimit({
+    windowMs: rateLimitWindowMs,
+    max: rateLimitMax,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: { error: 'too_many_requests' },
+  })
+);
 
 // Basic CORS setup (allow multiple origins via env)
 const rawOrigins = [
