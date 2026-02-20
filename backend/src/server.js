@@ -1237,6 +1237,54 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// === N8N LOG YAKALAYICI (Global Error Handler) ===
+// Tüm API endpointlerinden sonra, app.listen'dan önce olmalı
+app.use(async (err, req, res, next) => {
+  // Hata logunu console'a yaz
+  console.error("🔥 KRİTİK HATA YAKALANDI:", err.message);
+  console.error("Stack:", err.stack);
+
+  // n8n Webhook URL (environment variable'dan oku)
+  const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
+
+  // Eğer n8n URL tanımlıysa, log gönder
+  if (N8N_WEBHOOK_URL) {
+    try {
+      await axios.post(
+        N8N_WEBHOOK_URL,
+        {
+          source: 'RATEMET_BACKEND',
+          environment: process.env.NODE_ENV || 'production',
+          error_message: err.message,
+          error_stack: err.stack,
+          error_name: err.name,
+          route: req.originalUrl,
+          method: req.method,
+          ip_address: req.ip,
+          user_agent: req.get('user-agent'),
+          timestamp: new Date().toISOString(),
+          // Ek bilgiler (opsiyonel)
+          body: req.body ? JSON.stringify(req.body).substring(0, 500) : null, // İlk 500 karakter
+          query: req.query,
+        },
+        {
+          timeout: 3000, // 3 saniye timeout
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+      console.log("✅ Hata logu n8n'e gönderildi");
+    } catch (n8nError) {
+      console.error("❌ n8n'e log gönderilemedi:", n8nError.message);
+    }
+  }
+
+  // Kullanıcıya standart hata dön (sistem detaylarını sızdırma!)
+  res.status(err.status || 500).json({
+    error: 'Sunucu tarafında beklenmeyen bir hata oluştu.',
+    message: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
+});
+
 const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

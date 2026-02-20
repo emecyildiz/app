@@ -184,7 +184,12 @@ TMDB_V4_TOKEN=your-v4-token
 TMDB_API_BASE_URL=https://api.themoviedb.org/3
 RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100
+
+# n8n Webhook (Hata Logları İçin - Opsiyonel)
+N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/backend-log
 ```
+
+> **n8n Entegrasyonu:** Backend'de oluşan kritik hatalar otomatik olarak n8n webhook'una gönderilir. n8n'de bu logları işleyebilir, bildirim gönderebilir veya veritabanına kaydedebilirsiniz. URL'yi boş bırakırsanız sadece console'a log yazdırılır.
 
 📚 **Veri Kaynağı:**
 - Tüm film verileri TMDB API'den gelir
