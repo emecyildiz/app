@@ -521,17 +521,17 @@ const MovieDetail = () => {
               {/* Rating Stars */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-3">
-                  Puanınız
+                  Puanınız (10 üzerinden)
                 </label>
-                <div className="flex gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
+                <div className="flex gap-1.5 flex-wrap">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
                     <button
                       key={star}
                       onClick={() => setUserRating(star)}
                       className="text-2xl hover:scale-110 transition-transform"
                     >
                       <Star 
-                        className={`w-8 h-8 ${
+                        className={`w-7 h-7 ${
                           star <= userRating 
                             ? 'text-yellow-500 fill-current' 
                             : 'text-gray-400'

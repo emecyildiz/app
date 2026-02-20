@@ -36,7 +36,24 @@ if (!supabaseKeyToUse) {
   supabaseKeyToUse = anonKey;
 }
 
-const supabase = createClient(supabaseUrl, supabaseKeyToUse);
+const supabase = createClient(supabaseUrl, supabaseKeyToUse, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: false, // Backend doesn't need session persistence
+  },
+  db: {
+    schema: 'public',
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'ratemet-backend',
+    },
+  },
+  // Set realistic timeout to avoid hanging requests
+  realtime: {
+    timeout: 10000,
+  },
+});
 
 module.exports = supabase;
 

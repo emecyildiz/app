@@ -31,7 +31,11 @@ class RecommendationService {
   async getRecommendations(type = 'received', status = null) {
     const params = { type };
     if (status) params.status = status;
-    const response = await axios.get(this.baseURL, { params, headers: this.getAuthHeaders() });
+    const response = await axios.get(this.baseURL, { 
+      params, 
+      headers: this.getAuthHeaders(),
+      timeout: 15000, // 15s timeout
+    });
     return response.data;
   }
 

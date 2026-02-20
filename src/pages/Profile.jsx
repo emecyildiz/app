@@ -328,6 +328,25 @@ const Profile = () => {
     return () => { mounted = false }
   }, [activeTab])
 
+  // Refetch data when tab becomes visible (after switching tabs/browsers)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Trigger refetch for active tab
+        if (activeTab === 'recommendations') {
+          setRecommendationsLoading(true)
+        } else if (activeTab === 'ratings') {
+          setRatingsLoading(true)
+        } else if (activeTab === 'comments') {
+          setCommentsLoading(true)
+        }
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [activeTab])
+
   useEffect(() => {
     let mounted = true
     const loadFriendsData = async () => {

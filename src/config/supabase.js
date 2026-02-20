@@ -15,6 +15,19 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
   },
+  db: {
+    schema: 'public',
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'ratemet-frontend',
+    },
+  },
+  // Realtime connection keepalive
+  realtime: {
+    timeout: 10000,
+    heartbeatIntervalMs: 30000,
+  },
 });
 
 export { supabase }; 
