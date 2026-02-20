@@ -194,7 +194,7 @@ class MovieService {
           movie:movies(*)
         `, { count: 'exact' })
         .eq('user_id', user.id)
-        .order('watched_date', { ascending: false })
+        .order('created_at', { ascending: false })
         .range(from, to)
 
       if (error) throw error
@@ -211,7 +211,7 @@ class MovieService {
   }
 
   // Film izlendi olarak işaretle
-  async markAsWatched(movieId, watchedDate = new Date().toISOString()) {
+  async markAsWatched(movieId) {
     try {
       const { data: { user } } = await this.supabase.auth.getUser()
       if (!user) throw new Error('Kullanıcı girişi yapılmamış')
@@ -220,8 +220,8 @@ class MovieService {
         .from('watched_movies')
         .upsert({
           user_id: user.id,
-          movie_id: movieId,
-          watched_date: watchedDate
+          movie_id: movieId
+          // created_at otomatik eklenir
         })
         .select()
         .single()

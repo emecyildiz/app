@@ -1211,6 +1211,90 @@ app.put('/api/recommendations/:id', requireUser, async (req, res) => {
     }
 });
 
+// 4. DELETE RECOMMENDATION (Soft Delete)
+app.delete('/api/recommendations/:id', requireUser, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    
+    // Öneriyi bul
+    const { data: rec, error: findErr } = await supabase
+      .from('recommendations')
+      .select('id, from_user_id, to_user_id, deleted_by_sender, deleted_by_recipient')
+      .eq('id', id)
+      .single();
+      
+    if (findErr || !rec) {
+      return res.status(404).json({ error: 'Öneri bulunamadı' });
+    }
+    
+    // Kullanıcının silme yetkisi var mı kontrol et
+    let updates = {};
+    if (rec.from_user_id === userId) {
+      updates.deleted_by_sender = true;
+    } else if (rec.to_user_id === userId) {
+      updates.deleted_by_recipient = true;
+    } else {
+      return res.status(403).json({ error: 'Bu öneriyi silme yetkiniz yok' });
+    }
+    
+    // Soft delete yap
+    const { error: updErr } = await supabase
+      .from('recommendations')
+      .update(updates)
+      .eq('id', id);
+      
+    if (updErr) throw updErr;
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('DELETE recommendation error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 5. DELETE RECOMMENDATION (POST alternative - bazı ortamlar DELETE'i engeller)
+app.post('/api/recommendations/:id/delete', requireUser, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+    
+    // Öneriyi bul
+    const { data: rec, error: findErr } = await supabase
+      .from('recommendations')
+      .select('id, from_user_id, to_user_id, deleted_by_sender, deleted_by_recipient')
+      .eq('id', id)
+      .single();
+      
+    if (findErr || !rec) {
+      return res.status(404).json({ error: 'Öneri bulunamadı' });
+    }
+    
+    // Kullanıcının silme yetkisi var mı kontrol et
+    let updates = {};
+    if (rec.from_user_id === userId) {
+      updates.deleted_by_sender = true;
+    } else if (rec.to_user_id === userId) {
+      updates.deleted_by_recipient = true;
+    } else {
+      return res.status(403).json({ error: 'Bu öneriyi silme yetkiniz yok' });
+    }
+    
+    // Soft delete yap
+    const { error: updErr } = await supabase
+      .from('recommendations')
+      .update(updates)
+      .eq('id', id);
+      
+    if (updErr) throw updErr;
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('POST delete recommendation error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Health check
 app.get('/health', async (req, res) => {
   try {
