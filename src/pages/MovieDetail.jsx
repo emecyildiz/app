@@ -410,11 +410,12 @@ const MovieDetail = () => {
                   {credits.cast.slice(0, 8).map(actor => (
                     <div key={actor.id} className="text-center">
                       <img
-                        src={tmdbService.getImageURL(actor.profile_path, 'w185') || '/placeholder-actor.jpg'}
+                        src={tmdbService.getImageURL(actor.profile_path, 'w185') || '/placeholder-actor.svg'}
                         alt={actor.name}
                         className="w-16 h-16 rounded-full mx-auto mb-2 object-cover"
                         onError={(e) => {
-                          e.target.src = '/placeholder-actor.jpg'
+                          e.target.onerror = null
+                          e.target.src = '/placeholder-actor.svg'
                         }}
                       />
                       <p className="text-white text-sm font-medium">{actor.name}</p>
