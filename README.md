@@ -56,11 +56,7 @@ VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 
 # Backend API
-VITE_API_URL=http://localhost:5000
-
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
+VITE_API_URL=http://localhost:8080
 
 # Activity Tracking
 VITE_ACTIVITY_TRACKING_ENABLED=true
@@ -69,7 +65,7 @@ VITE_ACTIVITY_TRACKING_ENABLED=true
 **Backend (backend/.env):**
 ```env
 # Server Ayarları
-PORT=5000
+PORT=8080
 ALLOWED_ORIGIN=http://localhost:3001,http://localhost:3002
 NODE_ENV=development
 
@@ -85,7 +81,11 @@ DATABASE_URL=postgresql://user:password@host:5432/postgres
 # TMDB API
 TMDB_API_KEY=your-tmdb-api-key
 TMDB_V4_TOKEN=your-v4-token
-API_BASE_URL=https://api.themoviedb.org/3
+TMDB_API_BASE_URL=https://api.themoviedb.org/3
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
 ```
 
 > **Not:** `.env.example` ve `backend/.env.example` dosyalarını referans alabilirsiniz.
@@ -99,7 +99,7 @@ API_BASE_URL=https://api.themoviedb.org/3
 npm run dev
 ```
 
-**Backend (Port 5000):**
+**Backend (Port 8080):**
 ```bash
 cd backend
 npm run dev
@@ -126,7 +126,7 @@ npm start
 
 ## API Endpoints
 
-Backend varsayılan olarak `http://localhost:5000` adresinde çalışır:
+Backend varsayılan olarak `http://localhost:8080` adresinde çalışır:
 
 - `POST /api/auth/login` - Kullanıcı girişi
 - `POST /api/auth/register` - Kayıt
@@ -147,6 +147,44 @@ Backend varsayılan olarak `http://localhost:5000` adresinde çalışır:
 - Gerçek API anahtarlarını asla commit etmeyin
 - `.env` dosyaları `.gitignore`'da olmalı
 - Production'da güçlü şifreler kullanın
+
+## Canli (Production) Ortam
+
+### Vercel (Frontend)
+
+**Environment Variables:**
+```env
+VITE_API_URL=https://<render-servis-adi>.onrender.com
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_APP_NAME=Ratemet
+VITE_APP_LOGO_URL=/brand/ratemet-logo.svg
+VITE_TMDB_API_BASE_URL=https://api.themoviedb.org/3
+VITE_TMDB_LANGUAGE=tr-TR
+VITE_HTTP_TIMEOUT_MS=10000
+VITE_ACTIVITY_TRACKING_ENABLED=true
+```
+
+> Not: Rate limit ayarlari frontend icin degil, backend icindir.
+
+### Render (Backend)
+
+**Environment Variables:**
+```env
+NODE_ENV=production
+PORT=8080
+ALLOWED_ORIGIN=https://<vercel-proje-adi>.vercel.app
+DATABASE_URL=postgresql://user:password@host:5432/postgres
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_JWT_SECRET=your-jwt-secret
+TMDB_API_KEY=your-tmdb-api-key
+TMDB_V4_TOKEN=your-v4-token
+TMDB_API_BASE_URL=https://api.themoviedb.org/3
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+```
 
 📚 **Veri Kaynağı:**
 - Tüm film verileri TMDB API'den gelir
