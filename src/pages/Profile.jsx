@@ -55,7 +55,6 @@ const Profile = () => {
       username: profile?.username || '',
       email: user?.email || '',
       bio: profile?.bio || '',
-      location: profile?.location || '',
       twitter: profile?.social_links?.twitter || '',
       instagram: profile?.social_links?.instagram || '',
       letterboxd: profile?.social_links?.letterboxd || '',
@@ -69,7 +68,6 @@ const Profile = () => {
       username: data.username,
       email: data.email,
       bio: data.bio,
-      location: data.location,
       isPublic: data.isPublic,
       socialLinks: {
         twitter: data.twitter,
@@ -553,19 +551,9 @@ const Profile = () => {
                     )}
 
                     <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-6 text-sm mt-3">
-                      {profile?.location && (
-                        <div className="flex items-center gap-2 text-gray-300">
-                          <MapPin className="w-4 h-4" />
-                          <span>{profile.location}</span>
-                        </div>
-                      )}
                       <div className="flex items-center gap-2 text-gray-300">
                         <Calendar className="w-4 h-4" />
                         <span>Üyelik: {stats.memberSince ? new Date(stats.memberSince).toLocaleDateString('tr-TR') : 'Bilinmiyor'}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-gray-300">
-                        <Film className="w-4 h-4" />
-                        <span>{stats.watchedMovies} film izlendi</span>
                       </div>
                     </div>
 
@@ -1317,18 +1305,6 @@ const Profile = () => {
                 {errors.bio && (
                   <p className="mt-1 text-sm text-red-400">{errors.bio.message}</p>
                 )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Konum
-                </label>
-                <input
-                  type="text"
-                  {...register('location')}
-                  className="input"
-                  placeholder="İstanbul, Türkiye"
-                />
               </div>
 
               <div className="space-y-4">
