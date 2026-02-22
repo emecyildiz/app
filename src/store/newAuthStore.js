@@ -143,12 +143,16 @@ const useAuthStore = create((set, get) => ({
               return
             }
 
-            const finalProfile = data || {
+            const finalProfile = data ? {
+              ...data,
+              avatar: data.avatar_url || data.avatar || null
+            } : {
               id: user.id,
               name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
               username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
               role: 'USER',
-              social_links: {}
+              social_links: {},
+              avatar: null
             }
 
             console.log('Setting complete auth state with profile:', finalProfile.name)
@@ -169,7 +173,8 @@ const useAuthStore = create((set, get) => ({
               id: user.id,
               name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
               username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
-              role: 'USER'
+              role: 'USER',
+              avatar: null
             }
             console.log('Using fallback profile:', fallback.name)
             set({ 
@@ -243,12 +248,16 @@ const useAuthStore = create((set, get) => ({
                 })
               }
 
-              const finalProfile = data || {
+              const finalProfile = data ? {
+                ...data,
+                avatar: data.avatar_url || data.avatar || null
+              } : {
                 id: user.id,
                 name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
                 username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
                 role: 'USER',
-                social_links: {}
+                social_links: {},
+                avatar: null
               }
 
               console.log('Setting complete auth state with profile:', finalProfile.name)
@@ -269,7 +278,8 @@ const useAuthStore = create((set, get) => ({
                 id: user.id,
                 name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
                 username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
-                role: 'USER'
+                role: 'USER',
+                avatar: null
               }
               console.log('Using fallback profile:', fallback.name)
               set({ 
@@ -753,6 +763,10 @@ const useAuthStore = create((set, get) => ({
         updated_at: new Date().toISOString()
       }
 
+      if (updates.avatar !== undefined) {
+        payload.avatar_url = updates.avatar
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .update(payload)
@@ -768,7 +782,10 @@ const useAuthStore = create((set, get) => ({
       }
 
       set({
-        profile: data,
+        profile: {
+          ...data,
+          avatar: data.avatar_url || data.avatar || null
+        },
         isLoading: false
       })
 
