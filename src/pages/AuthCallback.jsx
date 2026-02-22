@@ -59,5 +59,3 @@ const AuthCallback = () => {
 }
 
 export default AuthCallback
-
-export default AuthCallback
