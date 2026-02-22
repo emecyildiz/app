@@ -1067,6 +1067,43 @@ app.delete('/api/admin/users/:userId', requireAdmin, async (req, res) => {
   }
 });
 
+// Delete own account (User can delete their own account)
+app.delete('/api/users/delete-account', requireUser, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID not found' });
+    }
+    
+    // Delete user from Supabase Auth
+    const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+    if (authError) {
+      console.error('Error deleting user from auth:', authError);
+      throw authError;
+    }
+    
+    // Delete profile (will cascade delete related data if FK constraints are set)
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', userId);
+    
+    if (profileError) {
+      console.error('Error deleting profile:', profileError);
+      // Don't fail if profile deletion fails, auth is already deleted
+    }
+    
+    res.json({ success: true, message: 'Account deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message || 'Hesap silinirken bir hata oluştu' 
+    });
+  }
+});
+
 // ==========================================
 // ========== RECOMMENDATIONS APIs ==========
 // ==========================================

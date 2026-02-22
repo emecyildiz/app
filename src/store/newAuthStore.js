@@ -588,6 +588,72 @@ const useAuthStore = create((set, get) => ({
     } catch {}
   },
 
+  // Delete account permanently
+  deleteAccount: async () => {
+    set({ isLoading: true })
+
+    try {
+      const user = get().user
+      if (!user) {
+        toast.error('Kullanıcı oturumu bulunamadı')
+        set({ isLoading: false })
+        return { success: false }
+      }
+
+      // Call backend to delete account
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+      const response = await fetch(`${apiUrl}/api/users/delete-account`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sessionStorage.getItem('auth-token') || ''}`
+        }
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Hesap silinirken hata oluştu')
+      }
+
+      // Clear all auth data
+      try { 
+        sessionStorage.removeItem('auth-token') 
+      } catch {}
+
+      try {
+        Object.keys(localStorage).forEach(key => {
+          if (key.includes('supabase')) {
+            localStorage.removeItem(key)
+          }
+        })
+      } catch {}
+
+      // Reset state
+      set({
+        user: null,
+        profile: null,
+        session: null,
+        isAuthenticated: false,
+        isLoading: false,
+        isInitialized: false
+      })
+
+      toast.success('Hesabınız başarıyla silindi')
+
+      // Redirect to home
+      try { 
+        window.location.replace('/') 
+      } catch {}
+
+      return { success: true }
+    } catch (error) {
+      console.error('Delete account error:', error)
+      toast.error(translateError(error.message))
+      set({ isLoading: false })
+      return { success: false, error: error.message }
+    }
+  },
+
   // Update profile
   updateProfile: async (updates) => {
     set({ isLoading: true })

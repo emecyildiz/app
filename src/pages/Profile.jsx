@@ -15,13 +15,14 @@ import AvatarUpload from '../components/AvatarUpload'
 import MovieCard from '../components/MovieCard'
 
 const Profile = () => {
-  const { user, profile, updateProfile, updateAvatar, signOut, isLoading } = useAuthStore()
+  const { user, profile, updateProfile, updateAvatar, signOut, deleteAccount, isLoading } = useAuthStore()
   const location = useLocation()
   const navigate = useNavigate()
   const { section } = useParams()
   const { favorites, removeFromFavorites, getFavoritesCount, clearFavorites } = useFavoritesStore()
   const [activeTab, setActiveTab] = useState('overview')
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   
   // Friends state
   const [friends, setFriends] = useState([])
@@ -493,6 +494,13 @@ const Profile = () => {
       }
     } finally {
       setFriendsBusy(false)
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    const result = await deleteAccount()
+    if (result.success) {
+      setShowDeleteConfirm(false)
     }
   }
 
@@ -1148,7 +1156,11 @@ const Profile = () => {
 
                   <div className="glass rounded-xl p-6">
                     <h3 className="text-lg font-semibold text-red-400 mb-4">Tehlikeli Bölge</h3>
-                    <button className="btn btn-secondary border-red-500 text-red-400 hover:bg-red-500 hover:text-white">
+                    <button 
+                      onClick={() => setShowDeleteConfirm(true)}
+                      disabled={isLoading}
+                      className="btn btn-secondary border-red-500 text-red-400 hover:bg-red-500 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
                       Hesabı Sil
                     </button>
                   </div>
@@ -1162,6 +1174,46 @@ const Profile = () => {
       </div>
 
       {/* Mobile Bottom Nav removed; Profile uses top hamburger for sections */}
+
+      {/* Delete Account Confirmation Modal */}
+      {showDeleteConfirm && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowDeleteConfirm(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-gray-900 rounded-lg p-6 max-w-sm mx-auto border border-red-900/50"
+          >
+            <h2 className="text-2xl font-bold text-red-400 mb-2">Hesabı Sil</h2>
+            <p className="text-gray-300 mb-6">
+              Bu işlem geri alınamaz. Hesabınızın tüm verileri silinecektir. Emin misiniz?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isLoading}
+                className="flex-1 btn btn-secondary disabled:opacity-50"
+              >
+                İptal
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={isLoading}
+                className="flex-1 btn bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'Siliniyor...' : 'Evet, Sil'}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
 
       {/* Edit Profile Modal */}
       {isEditModalOpen && (
