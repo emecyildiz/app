@@ -1360,7 +1360,7 @@ app.use(async (err, req, res, next) => {
           error_name: err.name,
           route: req.originalUrl,
           method: req.method,
-          ip_address: req.ip,
+          ip_address: req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0] : req.ip,
           user_agent: req.get('user-agent'),
           timestamp: new Date().toISOString(),
           // Ek bilgiler (opsiyonel)
