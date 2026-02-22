@@ -36,7 +36,23 @@ const ModeratorDashboard = lazy(() => import('./pages/ModeratorDashboard'))
 
 
 function App() {
-  const { isAuthenticated, user, isLoading } = useAuthStore()
+  const { isAuthenticated, user, isLoading, initializeAuth, setupAuthListener } = useAuthStore()
+
+  // Initialize auth and setup listener on app mount
+  useEffect(() => {
+    // Initialize auth from stored session
+    initializeAuth()
+    
+    // Setup auth state change listener
+    const subscription = setupAuthListener()
+    
+    return () => {
+      // Cleanup listener on unmount
+      if (subscription?.unsubscribe) {
+        subscription.unsubscribe()
+      }
+    }
+  }, [])
 
   // Start activity tracking when user is authenticated
   useEffect(() => {

@@ -459,29 +459,35 @@ const useAuthStore = create((set, get) => ({
     set({ isLoading: true })
     
     try {
+      const redirectUrl = `${window.location.origin}/auth/callback`
+      console.log('Redirecting to:', redirectUrl)
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUrl,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
           },
+          skipBrowserRedirect: false, // Supabase otomatik redirect etsin
         }
       })
 
       if (error) {
         const message = error.message || 'Google ile giriş başarısız!'
+        console.error('OAuth error:', error)
         toast.error(message)
         set({ isLoading: false })
         return { success: false, error: message }
       }
 
+      console.log('OAuth initiated, user will be redirected to Google...')
       // OAuth redirects automatically, loading state will be handled by callback
       return { success: true, data }
     } catch (error) {
       console.error('Google sign in error:', error)
-      toast.error('Google ile giriş sırasında bir hata oluştu')
+      toast.error('Google ile giriş sırasında bir hata oluştu: ' + error.message)
       set({ isLoading: false })
       return { success: false, error: error.message }
     }
