@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Home, Film, Info, User } from 'lucide-react'
+import { Home, Film, Info, User, LogIn, UserPlus } from 'lucide-react'
 import { useAuthStore } from '../store/newAuthStore'
 import { useEffect, useState } from 'react'
 import recommendationService from '../services/recommendationService'
@@ -61,12 +61,15 @@ const MobileBottomNav = () => {
     { path: '/about', label: 'Hakkında', icon: Info },
     ...(isAuthenticated ? [
       { path: '/profile', label: 'Profil', icon: User },
-    ] : []),
+    ] : [
+      { path: '/login', label: 'Giris', icon: LogIn },
+      { path: '/register', label: 'Kayit Ol', icon: UserPlus },
+    ]),
   ]
 
   return (
     <nav className="fixed inset-x-0 bottom-0 sm:hidden glass-dark border-t border-white/10 backdrop-blur-md pb-safe z-[60] h-16 w-full will-change-transform">
-      <div className={`grid ${items.length === 4 ? 'grid-cols-4' : items.length === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-1 h-16 items-center w-full`}>
+      <div className={`grid ${items.length >= 5 ? 'grid-cols-5' : items.length === 4 ? 'grid-cols-4' : items.length === 3 ? 'grid-cols-3' : 'grid-cols-2'} gap-1 h-16 items-center w-full`}>
         {items.map((item) => {
           const Icon = item.icon
           const isActive = location.pathname === item.path
