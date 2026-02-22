@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../config/supabase'
 import toast from 'react-hot-toast'
+import { translateError } from '../utils/errorTranslate'
 
 // Ensure only one initialization runs at a time across the app
 let inFlightAuthInit = null
@@ -253,7 +254,7 @@ const useAuthStore = create((set, get) => ({
       })
 
       if (error) {
-        toast.error(error.message)
+        toast.error(translateError(error.message))
         set({ isLoading: false })
         return { success: false, error: error.message }
       }
@@ -302,7 +303,7 @@ const useAuthStore = create((set, get) => ({
       })
 
       if (verifyError) {
-        toast.error(verifyError.message)
+        toast.error(translateError(verifyError.message))
         set({ isLoading: false })
         return { success: false, error: verifyError.message }
       }
@@ -384,7 +385,7 @@ const useAuthStore = create((set, get) => ({
       const message =
         error?.message?.includes('Missing one of these types')
           ? 'Kod yeniden gönderilemedi. Lütfen tekrar deneyin.'
-          : (error?.message || 'Kod gönderilemedi')
+          : translateError(error?.message || 'Kod gönderilemedi')
       toast.error(message)
       return { success: false, error: message }
     }
@@ -406,11 +407,11 @@ const useAuthStore = create((set, get) => ({
       })
 
       if (error) {
-        const message = error.message || 'Giriş başarısız!'
+        const message = translateError(error.message)
         toast.error(message)
         set({ isLoading: false })
         const normalized = message.toLowerCase()
-        const errorCode = normalized.includes('confirm') ? 'email_not_confirmed' : 'invalid_credentials'
+        const errorCode = normalized.includes('doğrula') ? 'email_not_confirmed' : 'invalid_credentials'
         return { success: false, error: message, errorCode }
       }
 
@@ -475,7 +476,7 @@ const useAuthStore = create((set, get) => ({
       })
 
       if (error) {
-        const message = error.message || 'Google ile giriş başarısız!'
+        const message = translateError(error.message)
         console.error('OAuth error:', error)
         toast.error(message)
         set({ isLoading: false })
@@ -487,7 +488,7 @@ const useAuthStore = create((set, get) => ({
       return { success: true, data }
     } catch (error) {
       console.error('Google sign in error:', error)
-      toast.error('Google ile giriş sırasında bir hata oluştu: ' + error.message)
+      toast.error(translateError(error.message))
       set({ isLoading: false })
       return { success: false, error: error.message }
     }
@@ -524,8 +525,8 @@ const useAuthStore = create((set, get) => ({
     set({ isLoading: true })
 
     try {
-      // Sign out from Supabase (this will clear persisted session)
-      const { error } = await supabase.auth.signOut()
+      // Sign out from Supabase with local scope (works for both regular & OAuth)
+      const { error } = await supabase.auth.signOut({ scope: 'local' })
       
       if (error) {
         console.error('Supabase sign out error:', error)
@@ -534,6 +535,16 @@ const useAuthStore = create((set, get) => ({
       // Clear sessionStorage token
       try { 
         sessionStorage.removeItem('auth-token') 
+      } catch {}
+
+      // Also clear localStorage auth keys
+      try {
+        localStorage.removeItem('supabase.auth.token')
+        Object.keys(localStorage).forEach(key => {
+          if (key.includes('supabase')) {
+            localStorage.removeItem(key)
+          }
+        })
       } catch {}
 
       // Reset state completely

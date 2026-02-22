@@ -23,6 +23,7 @@ import { useAuthStore } from '../store/newAuthStore'
 import MovieCard from '../components/MovieCard'
 import LoadingSpinner from '../components/LoadingSpinner'
 import toast from 'react-hot-toast'
+import { translateError } from '../utils/errorTranslate'
 
 const MovieDetail = () => {
   const { id } = useParams()
@@ -147,7 +148,7 @@ const MovieDetail = () => {
         toast.success('Film puanınız kaydedildi!')
         setShowRatingModal(false)
       } else {
-        toast.error(result.error || 'Puan kaydedilemedi')
+        toast.error(translateError(result.error) || 'Puan kaydedilemedi')
       }
     } catch (error) {
       toast.error('Bir hata oluştu')
@@ -584,7 +585,7 @@ const MovieDetail = () => {
                           setUserComment('')
                           setShowRatingModal(false)
                         } else {
-                          toast.error(result.error || 'Yorum kaydedilemedi')
+                          toast.error(translateError(result.error) || 'Yorum kaydedilemedi')
                         }
                       } finally {
                         setRatingLoading(false)
