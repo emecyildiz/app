@@ -2,6 +2,7 @@
   "name": "cinemahub",
   "version": "1.0.0",
   "description": "ratemet - Full Stack Application",
+  "type": "module",
   "engines": {
     "node": ">=18.0.0"
   },
