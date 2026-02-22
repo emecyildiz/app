@@ -6,6 +6,22 @@ import { translateError } from '../utils/errorTranslate'
 // Ensure only one initialization runs at a time across the app
 let inFlightAuthInit = null
 
+const fireAndForgetLocationUpdate = async (userId, currentLocation) => {
+  if (!userId || currentLocation) return
+
+  try {
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+    await fetch(`${apiUrl}/api/update-location`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${sessionStorage.getItem('auth-token') || ''}`
+      },
+      body: JSON.stringify({ userId })
+    })
+  } catch {}
+}
+
 const useAuthStore = create((set, get) => ({
   user: null,
   profile: null,
@@ -145,6 +161,8 @@ const useAuthStore = create((set, get) => ({
               isLoading: false,
               isInitialized: true 
             })
+
+            void fireAndForgetLocationUpdate(user.id, finalProfile.location)
           } catch (error) {
             console.error('Profile fetch error:', error)
             const fallback = {
@@ -162,6 +180,8 @@ const useAuthStore = create((set, get) => ({
               isLoading: false,
               isInitialized: true 
             })
+
+            void fireAndForgetLocationUpdate(user.id, fallback.location)
           }
         } else {
           // No valid session
@@ -241,6 +261,8 @@ const useAuthStore = create((set, get) => ({
                 isLoading: false,
                 isInitialized: true
               })
+
+              void fireAndForgetLocationUpdate(user.id, finalProfile.location)
             } catch (error) {
               console.error('Listener profile fetch error:', error)
               const fallback = {
@@ -258,6 +280,8 @@ const useAuthStore = create((set, get) => ({
                 isLoading: false,
                 isInitialized: true
               })
+
+              void fireAndForgetLocationUpdate(user.id, fallback.location)
             }
           }
         } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {

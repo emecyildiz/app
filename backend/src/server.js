@@ -1104,6 +1104,73 @@ app.delete('/api/users/delete-account', requireUser, async (req, res) => {
   }
 });
 
+// Update location from IP (User only, fire-and-forget)
+app.post('/api/update-location', requireUser, async (req, res) => {
+  try {
+    const { userId } = req.body || {};
+    const authUserId = req.user?.id;
+
+    if (!authUserId) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+
+    if (userId && userId !== authUserId) {
+      return res.status(403).json({ success: false, error: 'Forbidden' });
+    }
+
+    // Skip if location already exists
+    const { data: existingProfile, error: existingError } = await supabase
+      .from('profiles')
+      .select('location')
+      .eq('id', authUserId)
+      .single();
+
+    if (!existingError && existingProfile?.location) {
+      return res.json({ success: true, skipped: true });
+    }
+
+    const ipHeader =
+      req.headers['cf-connecting-ip'] ||
+      req.headers['x-forwarded-for'] ||
+      req.headers['x-real-ip'] ||
+      req.ip;
+
+    let ip = Array.isArray(ipHeader) ? ipHeader[0] : ipHeader || '';
+    if (typeof ip === 'string' && ip.includes(',')) {
+      ip = ip.split(',')[0].trim();
+    }
+    if (typeof ip === 'string' && ip.startsWith('::ffff:')) {
+      ip = ip.replace('::ffff:', '');
+    }
+    if (!ip || ip === '::1' || ip === '127.0.0.1') {
+      ip = '8.8.8.8';
+    }
+
+    const { data } = await axios.get(`http://ip-api.com/json/${ip}`, { timeout: 4000 });
+    const city = data?.city || '';
+    const country = data?.country || '';
+    const location = [city, country].filter(Boolean).join(', ');
+
+    if (!location) {
+      return res.json({ success: false, skipped: true });
+    }
+
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ location })
+      .eq('id', authUserId);
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    res.json({ success: true, location });
+  } catch (error) {
+    console.error('Error updating location:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // ==========================================
 // ========== RECOMMENDATIONS APIs ==========
 // ==========================================
