@@ -46,6 +46,29 @@ const useAuthStore = create((set, get) => ({
           console.log('Found session for user:', user.email)
           console.log('Session expires at:', new Date(session.expires_at * 1000))
 
+          // Validate session to avoid stale auth after account deletion
+          const { data: userData, error: userError } = await supabase.auth.getUser()
+          if (userError || !userData?.user?.id) {
+            console.error('Session validation failed:', userError)
+            try { sessionStorage.removeItem('auth-token') } catch {}
+            try {
+              Object.keys(localStorage).forEach(key => {
+                if (key.includes('supabase') || key.startsWith('sb-')) {
+                  localStorage.removeItem(key)
+                }
+              })
+            } catch {}
+            set({ 
+              user: null, 
+              profile: null, 
+              session: null, 
+              isAuthenticated: false, 
+              isLoading: false,
+              isInitialized: true 
+            })
+            return
+          }
+
           // Store token in sessionStorage for backend compatibility
           try {
             sessionStorage.setItem('auth-token', session.access_token)
@@ -68,7 +91,7 @@ const useAuthStore = create((set, get) => ({
 
             const { data, error: profileError } = await Promise.race([profilePromise, timeoutPromise])
 
-            if (profileError && profileError.code === 'PGRST116') {
+            if (profileError && (profileError.code === 'PGRST116' || profileError.status === 406)) {
               console.log('Profile not found, creating new profile')
               const insertPromise = supabase.from('profiles').insert({
                 id: user.id,
@@ -83,6 +106,25 @@ const useAuthStore = create((set, get) => ({
               )
               
               await Promise.race([insertPromise, insertTimeout])
+            } else if (profileError && (profileError.status === 401 || profileError.status === 403)) {
+              console.error('Profile fetch unauthorized, signing out')
+              try { sessionStorage.removeItem('auth-token') } catch {}
+              try {
+                Object.keys(localStorage).forEach(key => {
+                  if (key.includes('supabase') || key.startsWith('sb-')) {
+                    localStorage.removeItem(key)
+                  }
+                })
+              } catch {}
+              set({ 
+                user: null, 
+                profile: null, 
+                session: null, 
+                isAuthenticated: false, 
+                isLoading: false,
+                isInitialized: true 
+              })
+              return
             }
 
             const finalProfile = data || {
@@ -539,9 +581,8 @@ const useAuthStore = create((set, get) => ({
 
       // Also clear localStorage auth keys
       try {
-        localStorage.removeItem('supabase.auth.token')
         Object.keys(localStorage).forEach(key => {
-          if (key.includes('supabase')) {
+          if (key.includes('supabase') || key.startsWith('sb-')) {
             localStorage.removeItem(key)
           }
         })
@@ -579,6 +620,14 @@ const useAuthStore = create((set, get) => ({
     // Clear Supabase persisted session
     try {
       supabase.auth.signOut({ scope: 'local' })
+    } catch {}
+
+    try {
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes('supabase') || key.startsWith('sb-')) {
+          localStorage.removeItem(key)
+        }
+      })
     } catch {}
 
     // Reset state
@@ -621,8 +670,10 @@ const useAuthStore = create((set, get) => ({
       } catch {}
 
       try {
+        // Try to sign out locally to clear Supabase client state
+        try { await supabase.auth.signOut({ scope: 'local' }) } catch {}
         Object.keys(localStorage).forEach(key => {
-          if (key.includes('supabase')) {
+          if (key.includes('supabase') || key.startsWith('sb-')) {
             localStorage.removeItem(key)
           }
         })
