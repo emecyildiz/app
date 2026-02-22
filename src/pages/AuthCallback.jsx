@@ -58,14 +58,6 @@ const AuthCallback = () => {
   )
 }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <LoadingSpinner />
-        <p className="text-gray-400 mt-4">Giriş yapılıyor...</p>
-      </div>
-    </div>
-  )
-}
+export default AuthCallback
 
 export default AuthCallback
