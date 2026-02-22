@@ -23,7 +23,23 @@ const axios = require('axios');
 
 const app = express();
 app.use(express.json());
-app.set('trust proxy', 1);
+// === ORIGIN BYPASS KALKANI ===
+// Sadece resmi domain üzerinden (Cloudflare'den) gelen isteklere izin ver
+app.use((req, res, next) => {
+  // Eğer lokalde (kendi bilgisayarında) çalışıyorsan engelleme
+  if (req.hostname === 'localhost' || req.hostname === '127.0.0.1') {
+    return next();
+  }
+
+  // Eğer gelen istek senin asıl domainin (findemo.me) değilse, kapıyı kapat!
+  if (req.hostname !== 'findemo.me') {
+    console.warn(`🚨 Doğrudan Render'a saldırı girişimi engellendi! Hedeflenen Host: ${req.hostname}`);
+    return res.status(403).json({ error: 'Erişim reddedildi. Lütfen resmi adres üzerinden giriş yapın.' });
+  }
+
+  next(); // Sorun yoksa uygulamaya devam et
+});
+app.set('trust proxy', 2);
 
 // Basic security headers
 app.use(helmet({ crossOriginResourcePolicy: false }));
@@ -1360,7 +1376,7 @@ app.use(async (err, req, res, next) => {
           error_name: err.name,
           route: req.originalUrl,
           method: req.method,
-          ip_address: req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0] : req.ip,
+          ip_address: req.headers['cf-connecting-ip'] || (req.headers['x-forwarded-for'] ? req.headers['x-forwarded-for'].split(',')[0].trim() : req.ip),
           user_agent: req.get('user-agent'),
           timestamp: new Date().toISOString(),
           // Ek bilgiler (opsiyonel)
