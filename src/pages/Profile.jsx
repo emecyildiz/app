@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Camera, User, Mail, Calendar, Film, Star, Heart, Settings, LogOut, MapPin, Edit2, Twitter, Instagram, Link, Users, UserMinus, Check, X, MessageSquare, Share2, ArrowLeft } from 'lucide-react'
+import { User, Mail, Calendar, Film, Star, Heart, Settings, LogOut, MapPin, Edit2, Twitter, Instagram, Link, Users, UserMinus, Check, X, MessageSquare, Share2, ArrowLeft } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 
@@ -11,11 +11,10 @@ import { userService } from '../services/userService'
 import { movieService } from '../services/movieService'
 import { tmdbService } from '../services/tmdbService'
 import recommendationService from '../services/recommendationService'
-import AvatarUpload from '../components/AvatarUpload'
 import MovieCard from '../components/MovieCard'
 
 const Profile = () => {
-  const { user, profile, updateProfile, updateAvatar, signOut, deleteAccount, isLoading } = useAuthStore()
+  const { user, profile, updateProfile, signOut, deleteAccount, isLoading } = useAuthStore()
   const location = useLocation()
   const navigate = useNavigate()
   const { section } = useParams()
@@ -532,10 +531,10 @@ const Profile = () => {
                   {/* Avatar with gradient ring */}
                   <div className="p-1 rounded-full bg-gradient-to-tr from-primary-500 to-pink-500">
                     <div className="rounded-full bg-dark-200 p-1">
-                      <AvatarUpload
-                        currentAvatar={profile?.avatar || `https://ui-avatars.com/api/?name=${profile?.name}&background=ef4444&color=fff&size=200`}
-                        onUpload={updateAvatar}
-                        size="large"
+                      <img
+                        src={profile?.avatar || `https://ui-avatars.com/api/?name=${profile?.name}&background=ef4444&color=fff&size=200`}
+                        alt="Profil"
+                        className="w-40 h-40 rounded-full object-cover border-4 border-dark-300"
                       />
                     </div>
                   </div>

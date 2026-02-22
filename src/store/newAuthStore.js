@@ -114,7 +114,8 @@ const useAuthStore = create((set, get) => ({
                 name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
                 username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
                 role: 'USER',
-                social_links: {}
+                social_links: {},
+                avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null
               })
               
               const insertTimeout = new Promise((_, reject) => 
@@ -174,7 +175,7 @@ const useAuthStore = create((set, get) => ({
               name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
               username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
               role: 'USER',
-              avatar: null
+              avatar: user.user_metadata?.avatar_url || user.user_metadata?.picture || null
             }
             console.log('Using fallback profile:', fallback.name)
             set({ 
@@ -244,7 +245,8 @@ const useAuthStore = create((set, get) => ({
                   name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
                   username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
                   role: 'USER',
-                  social_links: {}
+                  social_links: {},
+                  avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null
                 })
               }
 
@@ -279,7 +281,7 @@ const useAuthStore = create((set, get) => ({
                 name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
                 username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
                 role: 'USER',
-                avatar: null
+                avatar: user.user_metadata?.avatar_url || user.user_metadata?.picture || null
               }
               console.log('Using fallback profile:', fallback.name)
               set({ 
