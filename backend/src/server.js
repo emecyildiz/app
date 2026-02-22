@@ -1345,21 +1345,6 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// === N8N ve TELEGRAM TEST YOLLARI (Chaos Endpoints) ===
-
-// 1. Sistem Çöküşü Testi (500 Hatası simülasyonu)
-app.get('/api/test-hata', (req, res, next) => {
-  const fakeError = new Error("SİSTEM TESTİ: Bu bilerek oluşturulmuş bir veritabanı çöküş hatasıdır!");
-  fakeError.name = "DatabaseError"; // Switch düğümündeki kurala takılması için
-  next(fakeError); // Bu komut hatayı doğrudan n8n loglayıcıya fırlatır
-});
-
-// 2. Siber Saldırı Testi (403/Unauthorized simülasyonu)
-app.get('/api/test-saldiri', (req, res, next) => {
-  const hackError = new Error("SİSTEM TESTİ: Yönetici paneline yetkisiz giriş denemesi!");
-  hackError.name = "Unauthorized"; // Switch düğümündeki siber saldırı kuralına takılması için
-  next(hackError);
-});
 
 // === N8N LOG YAKALAYICI (Global Error Handler) ===
 // Tüm API endpointlerinden sonra, app.listen'dan önce olmalı
