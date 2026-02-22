@@ -23,21 +23,29 @@ const axios = require('axios');
 
 const app = express();
 app.use(express.json());
-// === ORIGIN BYPASS KALKANI ===
-// Sadece resmi domain üzerinden (Cloudflare'den) gelen isteklere izin ver
+// === AKILLI ORIGIN BYPASS KALKANI ===
 app.use((req, res, next) => {
-  // Eğer lokalde (kendi bilgisayarında) çalışıyorsan engelleme
-  if (req.hostname === 'localhost' || req.hostname === '127.0.0.1') {
-    return next();
+  const isLocal = req.hostname === 'localhost' || req.hostname === '127.0.0.1';
+  // İsteğin geldiği asıl kök adres (Sadece tarayıcı üzerinden gelen API isteklerinde bulunur)
+  const origin = req.headers.origin; 
+  
+  if (isLocal) return next();
+
+  // Geçerli adreslerimiz (Vercel ve Cloudflare)
+  const allowedOrigins = ['https://findemo.me', 'https://ratemet.vercel.app'];
+
+  // Eğer istek dışarıdan geliyorsa ama bizim resmi adreslerimizden kopup gelmediyse engelle!
+  if (origin && !allowedOrigins.includes(origin)) {
+     console.warn(`🚨 Sahte Origin tespit edildi: ${origin}`);
+     return res.status(403).json({ error: 'Korsan site tespit edildi. Lütfen resmi adresi kullanın.' });
   }
 
-  // Eğer gelen istek senin asıl domainin (findemo.me) değilse, kapıyı kapat!
-  if (req.hostname !== 'findemo.me') {
-    console.warn(`🚨 Doğrudan Render'a saldırı girişimi engellendi! Hedeflenen Host: ${req.hostname}`);
-    return res.status(403).json({ error: 'Erişim reddedildi. Lütfen resmi adres üzerinden giriş yapın.' });
+  // Tarayıcı dışı doğrudan URL ziyaretlerini (senin yaptığın test gibi) engelle
+  if (!origin && req.method !== 'GET') {
+     return res.status(403).json({ error: 'Doğrudan API erişimi yasaktır.' });
   }
 
-  next(); // Sorun yoksa uygulamaya devam et
+  next();
 });
 app.set('trust proxy', 2);
 
