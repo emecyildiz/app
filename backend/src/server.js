@@ -102,6 +102,37 @@ app.set('trust proxy', 2);
 // Basic security headers
 app.use(helmet({ crossOriginResourcePolicy: false }));
 
+// ===== CONTENT SECURITY POLICY (CSP) - XSS Koruması =====
+app.use((req, res, next) => {
+  // CSP: Inline script'leri engelle, sadece aynı originli resource'lara izin ver
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; " +
+    "script-src 'self' https://cdn.jsdelivr.net https://cdn.tailwindcss.com; " +
+    "style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://fonts.googleapis.com; " +
+    "img-src 'self' data: https:; " +
+    "font-src 'self' https://fonts.gstatic.com; " +
+    "connect-src 'self' https://api.supabase.co https://api.themoviedb.org; " +
+    "frame-ancestors 'none'; " + // Clickjacking saldırısını engelle
+    "base-uri 'self'; " + // Base tag URL'sini kontrol et
+    "form-action 'self';" // Form submission sadece same-origin'e
+  );
+
+  // X-Content-Type-Options: MIME sniffing saldırısını engelle
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+
+  // X-Frame-Options: Clickjacking saldırısını engelle
+  res.setHeader('X-Frame-Options', 'DENY');
+
+  // X-XSS-Protection: Tarayıcı XSS korumasını aktif et
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+
+  // Referrer-Policy: Referrer bilgisini kısıtla
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+  next();
+});
+
 // Global rate limiting (DDoS/abuse protection)
 const rateLimitWindowMs = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10);
 const rateLimitMax = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10);
