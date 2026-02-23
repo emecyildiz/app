@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Home, Film, Info, User, LogIn, UserPlus } from 'lucide-react'
+import { Home, Film, Info, User, LogIn, UserPlus, Shield, Eye } from 'lucide-react'
 import { useAuthStore } from '../store/newAuthStore'
 import { useEffect, useState } from 'react'
 import recommendationService from '../services/recommendationService'
@@ -7,7 +7,7 @@ import recommendationService from '../services/recommendationService'
 const MobileBottomNav = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, profile } = useAuthStore()
   const [pendingRecCount, setPendingRecCount] = useState(0)
   const [hasNewRec, setHasNewRec] = useState(false)
 
@@ -61,6 +61,8 @@ const MobileBottomNav = () => {
     { path: '/about', label: 'Hakkında', icon: Info },
     ...(isAuthenticated ? [
       { path: '/profile', label: 'Profil', icon: User },
+      ...(profile?.role === 'ADMIN' ? [{ path: '/admin', label: 'Yönetim', icon: Shield }] : []),
+      ...(profile?.role === 'MODERATOR' || profile?.role === 'ADMIN' ? [{ path: '/moderator', label: 'Kontrol', icon: Eye }] : []),
     ] : [
       { path: '/login', label: 'Giris', icon: LogIn },
       { path: '/register', label: 'Kayit Ol', icon: UserPlus },
