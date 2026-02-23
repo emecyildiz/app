@@ -15,8 +15,8 @@ const Footer = () => {
                                             <img src="/brand/ratemet-logo.svg" alt={APP_NAME} className="h-10 w-auto" />
             </Link>
             <p className="text-gray-400 text-sm">
-              Film tutkunları için modern bir değerlendirme platformu. 
-              En güncel filmler, yorumlar ve puanlamalar.
+              Film tutkunları için modern bir değerlendirme platformu.
+              Kataloğu keşfet, yorumları incele, favorilerini oluştur.
             </p>
           </div>
 

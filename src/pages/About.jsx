@@ -6,8 +6,8 @@ const About = () => {
   const features = [
     {
       icon: Film,
-      title: 'Milyonlarca Film',
-      description: 'TMDB entegrasyonu ile dünya genelinden milyonlarca film ve diziye anında erişim.',
+      title: 'Geniş Film Arşivi',
+      description: 'TMDB entegrasyonu ile dünya genelinden genişleyen film ve dizi kataloğu.',
       gradient: 'from-purple-500 to-pink-500',
     },
     {
@@ -45,25 +45,25 @@ const About = () => {
   const stats = [
     {
       icon: Film,
-      value: '1M+',
+      value: 'Geniş Arşiv',
       label: 'Film & Dizi',
       color: 'text-purple-400',
     },
     {
       icon: Users,
-      value: '50K+',
+      value: 'Büyüyen Topluluk',
       label: 'Kullanıcı',
       color: 'text-blue-400',
     },
     {
       icon: Star,
-      value: '500K+',
+      value: 'Topluluk Geri Bildirimi',
       label: 'Değerlendirme',
       color: 'text-yellow-400',
     },
     {
       icon: Clock,
-      value: '7/24',
+      value: 'Sürekli Erişim',
       label: 'Aktif Sistem',
       color: 'text-green-400',
     },
@@ -78,7 +78,7 @@ const About = () => {
     {
       step: '02',
       title: 'Film Keşfet & İzle',
-      description: 'Milyonlarca film arasından arama yapın veya önerilere göz atın.',
+      description: 'Geniş katalogda arama yapın veya önerilere göz atın.',
     },
     {
       step: '03',
@@ -138,7 +138,7 @@ const About = () => {
             >
               <Sparkles className="w-4 h-4 text-purple-400" />
               <span className="text-sm text-purple-300 font-medium">
-                Türkiye'nin En Modern Film Platformu
+                Yeni nesil film platformu
               </span>
             </motion.div>
 
@@ -151,7 +151,7 @@ const About = () => {
               Yeniden Keşfet
             </h1>
             <p className="text-xl md:text-2xl text-gray-300 mb-10 leading-relaxed">
-              {APP_NAME}, yapay zeka destekli öneriler ve milyonlarca film arşivi ile 
+              {APP_NAME}, yapay zeka destekli öneriler ve genişleyen film arşivi ile 
               sinema deneyiminizi bir üst seviyeye taşıyor.
             </p>
             
@@ -183,7 +183,7 @@ const About = () => {
               <div className="w-1 h-1 rounded-full bg-gray-600" />
               <div className="flex items-center gap-2 text-gray-400">
                 <Shield className="w-4 h-4 text-green-400" />
-                <span>%100 Güvenli</span>
+                <span>Güvenli Altyapı</span>
               </div>
               <div className="w-1 h-1 rounded-full bg-gray-600" />
               <div className="flex items-center gap-2 text-gray-400">
@@ -500,7 +500,7 @@ const About = () => {
                       <Star className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-white">4.9</div>
+                      <div className="text-2xl font-bold text-white">Yüksek Puan</div>
                       <div className="text-xs text-gray-400">Kullanıcı Puanı</div>
                     </div>
                   </div>
@@ -518,7 +518,7 @@ const About = () => {
                       <TrendingUp className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-white">+125%</div>
+                      <div className="text-2xl font-bold text-white">İstikrarlı</div>
                       <div className="text-xs text-gray-400">Büyüme</div>
                     </div>
                   </div>
@@ -571,7 +571,7 @@ const About = () => {
                   Hemen Keşfetmeye Başla!
                 </h2>
                 <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto">
-                  Milyonlarca film, kişiselleştirilmiş öneriler ve sosyal özellikler sizi bekliyor. 
+                  Geniş film arşivi, kişiselleştirilmiş öneriler ve sosyal özellikler sizi bekliyor. 
                   Ücretsiz hesap oluşturun, sinema dünyasına dalın.
                 </p>
                 
@@ -603,12 +603,12 @@ const About = () => {
                   <div className="w-1 h-1 rounded-full bg-white/50" />
                   <div className="flex items-center gap-2">
                     <Users className="w-4 h-4" />
-                    <span>50K+ Kullanıcı</span>
+                    <span>Büyüyen topluluk</span>
                   </div>
                   <div className="w-1 h-1 rounded-full bg-white/50" />
                   <div className="flex items-center gap-2">
                     <Star className="w-4 h-4" />
-                    <span>4.9/5 Puan</span>
+                    <span>Olumlu geri bildirim</span>
                   </div>
                 </div>
               </motion.div>

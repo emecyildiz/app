@@ -27,8 +27,8 @@ const Home = () => {
   const features = [
     {
       icon: Film,
-      title: '1M+ Film & Dizi',
-      description: 'TMDB entegrasyonu ile dünya çapında milyonlarca film',
+      title: 'Geniş Film ve Dizi Arşivi',
+      description: 'TMDB entegrasyonu ile genişleyen bir film ve dizi kataloğu',
       gradient: 'from-purple-500 to-pink-500',
     },
     {
@@ -64,10 +64,10 @@ const Home = () => {
   ]
 
   const stats = [
-    { icon: Film, value: '1M+', label: 'Film & Dizi', color: 'text-purple-400' },
-    { icon: Users, value: '50K+', label: 'Kullanıcı', color: 'text-blue-400' },
-    { icon: Star, value: '4.9', label: 'Ortalama Puan', color: 'text-yellow-400' },
-    { icon: Clock, value: '7/24', label: 'Erişim', color: 'text-green-400' },
+    { icon: Film, value: 'Geniş Arşiv', label: 'Film & Dizi', color: 'text-purple-400' },
+    { icon: Users, value: 'Büyüyen Topluluk', label: 'Kullanıcı', color: 'text-blue-400' },
+    { icon: Star, value: 'Yüksek Memnuniyet', label: 'Topluluk Puanları', color: 'text-yellow-400' },
+    { icon: Clock, value: 'Her Zaman Erişim', label: 'Erişim', color: 'text-green-400' },
   ]
 
   const categories = [
@@ -188,7 +188,7 @@ const Home = () => {
               >
                 <Award className="w-4 h-4 text-purple-400" />
                 <span className="text-sm text-purple-300 font-medium">
-                  Türkiye'nin #1 Film Platformu
+                  Yeni nesil film platformu
                 </span>
               </motion.div>
 
@@ -200,7 +200,7 @@ const Home = () => {
                 </span>
               </h1>
               <p className="text-xl md:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto leading-relaxed">
-                Milyonlarca film arasından favorilerini keşfet, yapay zeka destekli öneriler al 
+                Geniş bir katalogdan favorilerini keşfet, yapay zeka destekli öneriler al 
                 ve film tutkunlarıyla deneyimlerini paylaş.
               </p>
               
@@ -234,7 +234,7 @@ const Home = () => {
                 <div className="w-1 h-1 rounded-full bg-gray-600" />
                 <div className="flex items-center gap-2 text-gray-400">
                   <Shield className="w-4 h-4 text-green-400" />
-                  <span>%100 Güvenli</span>
+                  <span>Güvenli Altyapı</span>
                 </div>
                 <div className="w-1 h-1 rounded-full bg-gray-600" />
                 <div className="flex items-center gap-2 text-gray-400">
@@ -456,12 +456,12 @@ const Home = () => {
                     <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-white/80 text-sm">
                       <div className="flex items-center gap-2">
                         <Star className="w-4 h-4 fill-white" />
-                        <span>1M+ Film</span>
+                        <span>Geniş film arşivi</span>
                       </div>
                       <div className="w-1 h-1 rounded-full bg-white/50" />
                       <div className="flex items-center gap-2">
                         <Users className="w-4 h-4" />
-                        <span>50K+ Kullanıcı</span>
+                        <span>Büyüyen topluluk</span>
                       </div>
                       <div className="w-1 h-1 rounded-full bg-white/50" />
                       <div className="flex items-center gap-2">
@@ -502,7 +502,7 @@ const Home = () => {
                       Film Dünyasına Katıl!
                     </h2>
                     <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto">
-                      Milyonlarca film, kişiselleştirilmiş öneriler ve sosyal özellikler seni bekliyor. 
+                      Geniş film arşivi, kişiselleştirilmiş öneriler ve sosyal özellikler seni bekliyor. 
                       Hemen kayıt ol, keşfetmeye başla!
                     </p>
                     
@@ -536,12 +536,12 @@ const Home = () => {
                       <div className="w-1 h-1 rounded-full bg-white/50" />
                       <div className="flex items-center gap-2">
                         <Users className="w-4 h-4" />
-                        <span>50K+ Kullanıcı</span>
+                        <span>Büyüyen topluluk</span>
                       </div>
                       <div className="w-1 h-1 rounded-full bg-white/50" />
                       <div className="flex items-center gap-2">
                         <Star className="w-4 h-4" />
-                        <span>4.9/5 Puan</span>
+                        <span>Topluluk puanları</span>
                       </div>
                     </div>
                   </motion.div>
