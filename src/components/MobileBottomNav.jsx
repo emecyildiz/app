@@ -62,7 +62,7 @@ const MobileBottomNav = () => {
     ...(isAuthenticated ? [
       { path: '/profile', label: 'Profil', icon: User },
       ...(profile?.role === 'ADMIN' ? [{ path: '/admin', label: 'Yönetim', icon: Shield }] : []),
-      ...(profile?.role === 'MODERATOR' || profile?.role === 'ADMIN' ? [{ path: '/moderator', label: 'Kontrol', icon: Eye }] : []),
+      ...(profile?.role === 'MODERATOR' ? [{ path: '/moderator', label: 'Kontrol', icon: Eye }] : []),
     ] : [
       { path: '/login', label: 'Giris', icon: LogIn },
       { path: '/register', label: 'Kayit Ol', icon: UserPlus },
