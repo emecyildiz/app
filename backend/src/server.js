@@ -18,11 +18,61 @@ try {
 const express = require('express');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const xss = require('xss');
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
 
 const app = express();
 app.use(express.json());
+
+// ===== XSS SANITIZATION UTILITY =====
+const sanitizeInput = (input) => {
+  if (typeof input !== 'string') return input;
+  // XSS kütüphanesini kullanarak input'u temizle
+  const whiteListOptions = {
+    whiteList: {}, // HTML taglarına izin verme
+    stripIgnoredTag: true, // İzin verilmeyen tagları sil
+    stripLeadingAndTrailingWhitespace: false
+  };
+  return xss(input, whiteListOptions);
+};
+
+// ===== MASS ASSIGNMENT PREVENTION =====
+const ALLOWED_FIELDS = {
+  'profiles': ['name', 'username', 'bio', 'social_links', 'isPublic'], // Whilelisting: sadece bu alanlar
+  'admin_update': ['name', 'username', 'bio', 'location']  // Admin düzenleme için izin verilen
+};
+
+// Input validation function (Mass Assignment protection)
+const validateAndFilterFields = (input, allowedFields) => {
+  if (!input || typeof input !== 'object') return {};
+  
+  const filtered = {};
+  for (const key of allowedFields) {
+    if (key in input) {
+      filtered[key] = input[key];
+    }
+  }
+  return filtered;
+};
+
+// ===== PER-USER RATE LIMITING =====
+const createPerUserRateLimiter = (windowMs, maxRequests, keyPrefix = '') => {
+  return rateLimit({
+    keyGenerator: (req) => {
+      // User ID varsa kullan, yoksa IP adresi kullan
+      const userId = req.user?.id || req.ip;
+      return `${keyPrefix}${userId}`;
+    },
+    windowMs,
+    max: maxRequests,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: { error: 'rate_limit_exceeded' },
+    skip: (req) => !req.user?.id // Unauthenticated istekleri skip et (global limiter zaten takip ediyor)
+  });
+};
+
 // === AKILLI ORIGIN BYPASS KALKANI ===
 app.use((req, res, next) => {
   const isLocal = req.hostname === 'localhost' || req.hostname === '127.0.0.1';
@@ -474,24 +524,39 @@ app.get('/api/movies/:id/similar', async (req, res) => {
 });
 
 // ========== Comments ==========
+// Rate limiter: Per user - max 30 comments per hour
+const commentRateLimiter = createPerUserRateLimiter(60 * 60 * 1000, 30, 'comment:');
+
 // Add or update comment for a movie by current user (comment-only allowed)
-app.post('/api/comments', requireUser, async (req, res) => {
+app.post('/api/comments', requireUser, commentRateLimiter, async (req, res) => {
   try {
     const uid = req.user.id;
     const { movieId, content, movieTitle, posterPath } = req.body || {};
     const mid = parseInt(movieId, 10);
     if (!mid || Number.isNaN(mid)) return res.status(400).json({ success: false, error: 'invalid_movieId' });
-    const text = (typeof content === 'string' ? content : '').trim();
+    
+    // ===== SANITIZATION: XSS'ten koruya =====
+    let text = (typeof content === 'string' ? content : '').trim();
+    text = sanitizeInput(text); // XSS saldırılarını temizle
+    
     if (!text) {
       return res.status(400).json({ success: false, error: 'empty_comment' });
     }
+    
+    // Max comment length (XSS saldırılarına karşı ek koruma)
+    if (text.length > 2000) {
+      return res.status(400).json({ success: false, error: 'comment_too_long' });
+    }
+    
     // Ensure movie exists for potential FK
     try {
+      // Sanitize movie title too
+      const cleanTitle = sanitizeInput(movieTitle || `Film #${mid}`);
       const { error: movieErr } = await supabase
         .from('movies')
         .upsert({ 
           id: mid, 
-          title: movieTitle || `Film #${mid}`,
+          title: cleanTitle,
           poster_path: posterPath || null 
         }, { onConflict: 'id' });
       if (movieErr) throw movieErr;
@@ -573,9 +638,13 @@ app.post('/api/movies/ensure', requireUser, async (req, res) => {
     const { id, title, posterPath } = req.body || {}
     const movieId = parseInt(id, 10)
     if (!movieId || Number.isNaN(movieId)) return res.status(400).json({ success: false, error: 'invalid_id' })
+    
+    // ===== SANITIZATION: Title alanını temizle =====
+    const cleanTitle = sanitizeInput(title || `Film #${movieId}`);
+    
     const payload = {
       id: movieId,
-      title: title || `Film #${movieId}`,
+      title: cleanTitle,
       poster_path: posterPath || null
     }
     const { error } = await supabase
@@ -1022,14 +1091,15 @@ app.put('/api/admin/users/:userId', requireAdminOrModerator, async (req, res) =>
       return res.status(403).json({ success: false, error: 'Moderators can only edit users, not admins or moderators' });
     }
     
-    const { name, username, bio, location } = req.body;
+    // ===== MASS ASSIGNMENT PREVENTION: Sadece izin verilen alanları kabul et =====
+    const updateData = validateAndFilterFields(req.body, ALLOWED_FIELDS['admin_update']);
     
-    // Update profile in database
-    const updateData = {};
-    if (name !== undefined) updateData.name = name;
-    if (username !== undefined) updateData.username = username;
-    if (bio !== undefined) updateData.bio = bio;
-    if (location !== undefined) updateData.location = location;
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ success: false, error: 'No valid fields to update' });
+    }
+    
+    // Log the update for audit trail
+    console.log(`[AUDIT] Admin/Moderator ${currentUser.id} updated user ${userId}. Fields:`, Object.keys(updateData));
     
     const { data, error } = await supabase
       .from('profiles')
@@ -1175,8 +1245,11 @@ app.post('/api/update-location', requireUser, async (req, res) => {
 // ========== RECOMMENDATIONS APIs ==========
 // ==========================================
 
+// Rate limiter: Per user - max 20 recommendations per hour
+const recommendationRateLimiter = createPerUserRateLimiter(60 * 60 * 1000, 20, 'recommendation:');
+
 // 1. SEND RECOMMENDATION (Fixed for Array Payload)
-app.post('/api/recommendations', requireUser, async (req, res) => {
+app.post('/api/recommendations', requireUser, recommendationRateLimiter, async (req, res) => {
   try {
     const fromUserId = req.user.id;
     // Extract data from the new frontend payload structure
@@ -1189,8 +1262,23 @@ app.post('/api/recommendations', requireUser, async (req, res) => {
     if (!movieIds || !Array.isArray(movieIds) || movieIds.length === 0) {
         return res.status(400).json({ error: 'No movies selected (movieIds array missing or empty)' });
     }
+    
+    // ===== SECURITY: Limit max movies per recommendation (prevents mass recommend) =====
+    if (movieIds.length > 50) {
+        return res.status(400).json({ error: 'Çok fazla film seçildi (max 50)' });
+    }
+    
     if (fromUserId === toUserId) {
         return res.status(400).json({ error: 'Cannot recommend to self' });
+    }
+
+    // ===== SANITIZATION: Note field'ı temizle (varsa) =====
+    let cleanNote = '';
+    if (note && typeof note === 'string') {
+      cleanNote = sanitizeInput(note.trim());
+      if (cleanNote.length > 500) {
+        return res.status(400).json({ error: 'Note çok uzun (max 500 karakter)' });
+      }
     }
 
     const results = [];
@@ -1199,15 +1287,21 @@ app.post('/api/recommendations', requireUser, async (req, res) => {
     // Loop through each Movie ID in the array
     for (const movieId of movieIds) {
         try {
+            // Validate movie ID
+            const validMovieId = parseInt(movieId, 10);
+            if (Number.isNaN(validMovieId)) {
+              continue; // Skip invalid IDs
+            }
+            
             // A. Insert into Main Table
             const { data: recData, error: recError } = await supabase
                 .from('recommendations')
                 .insert([{
                     from_user_id: fromUserId,
                     to_user_id: toUserId,
-                    movie_id: movieId,
-                    status: 'pending'
-                    // Note: If you have a 'content' or 'note' column, add: content: note
+                    movie_id: validMovieId,
+                    status: 'pending',
+                    content: cleanNote || null // İsteğe bağlı not alanı
                 }])
                 .select()
                 .single();
@@ -1215,13 +1309,11 @@ app.post('/api/recommendations', requireUser, async (req, res) => {
             if (recError) throw recError;
 
             // B. Insert into Items Table
-            // Since frontend only sends IDs now, we use a placeholder title or fetch it if possible.
-            // For now, we save it to prevent crashes.
             if (recData) {
                 await supabase.from('recommendation_items').insert([{
                     recommendation_id: recData.id,
-                    movie_id: movieId,
-                    movie_title: 'Movie ID ' + movieId, // Placeholder until fetched
+                    movie_id: validMovieId,
+                    movie_title: 'Movie ID ' + validMovieId,
                     poster_path: null
                 }]);
                 results.push(recData);
