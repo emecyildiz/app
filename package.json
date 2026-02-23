@@ -20,14 +20,8 @@
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.16",
     "axios": "^1.6.0",
-    "bcryptjs": "2.4.3",
-    "cors": "2.8.5",
     "dotenv": "16.3.1",
-    "express": "4.18.2",
-    "express-rate-limit": "7.4.0",
     "framer-motion": "^10.16.0",
-    "helmet": "7.1.0",
-    "jsonwebtoken": "9.0.2",
     "lucide-react": "^0.294.0",
     "postcss": "^8.4.32",
     "react": "^18.2.0",
@@ -41,7 +35,6 @@
   },
   "devDependencies": {
     "@types/react": "^18.2.43",
-    "@types/react-dom": "^18.2.17",
-    "terser": "^5.24.0"
+    "@types/react-dom": "^18.2.17"
   }
 }
