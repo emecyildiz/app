@@ -1,12 +1,47 @@
 import axios from 'axios';
 import { supabase } from '../config/supabase';
+import { getCsrfToken } from '../utils/csrfToken';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 class UserService {
   constructor() {
     this.supabase = supabase;
+    this.setupAxiosInterceptor();
   }
+
+  // ===== SETUP AXIOS INTERCEPTOR FOR CSRF TOKEN =====
+  setupAxiosInterceptor() {
+    // Request interceptor - add CSRF token to all POST/PUT/DELETE requests
+    axios.interceptors.request.use(async (config) => {
+      // Only add CSRF token for requests to our API and for non-GET requests
+      if (config.url?.startsWith(API_URL) && ['POST', 'PUT', 'DELETE'].includes(config.method?.toUpperCase())) {
+        try {
+          const csrfToken = await getCsrfToken();
+          if (csrfToken) {
+            config.headers['x-csrf-token'] = csrfToken;
+          }
+        } catch (error) {
+          console.warn('[CSRF Interceptor] Failed to add CSRF token:', error);
+        }
+      }
+      return config;
+    }, (error) => {
+      return Promise.reject(error);
+    });
+
+    // Response interceptor - handle CSRF token errors
+    axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response?.status === 403 && error.response?.data?.error?.includes('csrf')) {
+          console.error('[CSRF] Token validation failed:', error.response.data);
+        }
+        return Promise.reject(error);
+      }
+    );
+  }
+
   // Get auth token from sessionStorage
   getAuthToken() {
     const token = sessionStorage.getItem('auth-token');

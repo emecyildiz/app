@@ -1,4 +1,5 @@
 import { supabase } from '../config/supabase'
+import { addCsrfHeader } from '../utils/csrfToken'
 
 class MovieService {
   constructor() {
@@ -10,12 +11,13 @@ class MovieService {
     try {
       if (!movie || !movie.id) return
       // Prefer backend endpoint to bypass RLS
+      const headers = await addCsrfHeader({
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${sessionStorage.getItem('auth-token') || ''}`
+      })
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/movies/ensure`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${sessionStorage.getItem('auth-token') || ''}`
-        },
+        headers,
         body: JSON.stringify({ 
           id: movie.id, 
           title: movie.title || movie.original_title || `Film #${movie.id}`,

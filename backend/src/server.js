@@ -19,11 +19,41 @@ const express = require('express');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const xss = require('xss');
+const crypto = require('crypto');
 const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
 
 const app = express();
 app.use(express.json());
+
+// ===== CSRF TOKEN GENERATION & VALIDATION =====
+const CSRF_SECRET = process.env.CSRF_SECRET || 'your-super-secret-csrf-key-change-in-prod';
+
+const generateCsrfToken = (userId) => {
+  // CSRF token = sha256(userId + secret + timestamp)
+  const timestamp = Math.floor(Date.now() / (1000 * 60 * 5)); // 5-minute window
+  const tokenData = `${userId}:${CSRF_SECRET}:${timestamp}`;
+  return crypto.createHash('sha256').update(tokenData).digest('hex');
+};
+
+const validateCsrfToken = (userId, token) => {
+  // Current token
+  const currentToken = generateCsrfToken(userId);
+  
+  // Previous token (in case of timing issues between request and validation)
+  const timestamp = Math.floor(Date.now() / (1000 * 60 * 5)) - 1;
+  const prevTokenData = `${userId}:${CSRF_SECRET}:${timestamp}`;
+  const prevToken = crypto.createHash('sha256').update(prevTokenData).digest('hex');
+  
+  // Constant-time comparison to prevent timing attacks
+  return crypto.timingSafeEqual(
+    Buffer.from(token || ''),
+    Buffer.from(currentToken)
+  ) || crypto.timingSafeEqual(
+    Buffer.from(token || ''),
+    Buffer.from(prevToken)
+  );
+};
 
 // ===== XSS SANITIZATION UTILITY =====
 const sanitizeInput = (input) => {
@@ -223,6 +253,39 @@ async function requireUser(req, res, next) {
   }
 }
 
+// ===== CSRF TOKEN VALIDATION MIDDLEWARE (POST/PUT/DELETE için) =====
+const validateCsrfTokenMiddleware = (req, res, next) => {
+  // GET istekleri için CSRF token gerekli değil
+  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
+    return next();
+  }
+
+  // requireUser middleware'den sonra user var
+  if (!req.user?.id) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+
+  // CSRF token header'dan oku
+  const csrfToken = req.headers['x-csrf-token'];
+
+  if (!csrfToken) {
+    console.warn(`[CSRF] No token provided for ${req.method} ${req.path} by user ${req.user.id}`);
+    return res.status(403).json({ error: 'csrf_token_missing', message: 'CSRF token eksik' });
+  }
+
+  try {
+    if (!validateCsrfToken(req.user.id, csrfToken)) {
+      console.warn(`[CSRF] Invalid token for ${req.method} ${req.path} by user ${req.user.id}`);
+      return res.status(403).json({ error: 'csrf_token_invalid', message: 'CSRF token geçersiz' });
+    }
+    console.log(`[CSRF] Valid token for ${req.method} ${req.path} by user ${req.user.id}`);
+    next();
+  } catch (error) {
+    console.error(`[CSRF] Validation error:`, error);
+    return res.status(403).json({ error: 'csrf_validation_failed', message: 'CSRF doğrulama hatası' });
+  }
+};
+
 async function requireAdmin(req, res, next) {
   try {
     const user = await getUserFromRequest(req);
@@ -283,6 +346,22 @@ app.post('/auth/check-email', async (req, res) => {
     return res.status(500).json({ error: 'internal_error' })
   }
 })
+
+// ===== GET CSRF TOKEN (Authenticated users için) =====
+app.get('/api/csrf-token', requireUser, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const csrfToken = generateCsrfToken(userId);
+    
+    res.json({
+      csrfToken,
+      expiresIn: 300 // 5 minutes
+    });
+  } catch (error) {
+    console.error('CSRF token generation error:', error);
+    res.status(500).json({ error: 'Could not generate CSRF token' });
+  }
+});
 
 // (removed duplicate) Public search users - see normalized version below
 
@@ -393,7 +472,7 @@ app.get('/api/users/stats', requireUser, async (req, res) => {
 });
 
 // Activity tracking (best-effort)
-app.post('/api/users/activity', requireUser, async (req, res) => {
+app.post('/api/users/activity', requireUser, validateCsrfTokenMiddleware, async (req, res) => {
   try {
     const uid = req.user.id;
     const { error } = await supabase
@@ -559,7 +638,7 @@ app.get('/api/movies/:id/similar', async (req, res) => {
 const commentRateLimiter = createPerUserRateLimiter(60 * 60 * 1000, 30, 'comment:');
 
 // Add or update comment for a movie by current user (comment-only allowed)
-app.post('/api/comments', requireUser, commentRateLimiter, async (req, res) => {
+app.post('/api/comments', requireUser, validateCsrfTokenMiddleware, commentRateLimiter, async (req, res) => {
   try {
     const uid = req.user.id;
     const { movieId, content, movieTitle, posterPath } = req.body || {};
@@ -645,7 +724,7 @@ app.get('/api/users/me/comments', requireUser, async (req, res) => {
 });
 
 // Delete my comment for a movie
-app.delete('/api/comments/:movieId', requireUser, async (req, res) => {
+app.delete('/api/comments/:movieId', requireUser, validateCsrfTokenMiddleware, async (req, res) => {
   try {
     const uid = req.user.id;
     const mid = parseInt(req.params.movieId, 10);
@@ -725,7 +804,7 @@ app.get('/api/friends/status/:otherUserId', requireUser, async (req, res) => {
 
 // ========== Favorites ==========
 // Add favorite
-app.post('/api/favorites', requireUser, async (req, res) => {
+app.post('/api/favorites', requireUser, validateCsrfTokenMiddleware, async (req, res) => {
   try {
     const uid = req.user.id;
     const movieIdRaw = req.body?.movieId;
@@ -746,7 +825,7 @@ app.post('/api/favorites', requireUser, async (req, res) => {
 });
 
 // Remove favorite
-app.delete('/api/favorites/:movieId', requireUser, async (req, res) => {
+app.delete('/api/favorites/:movieId', requireUser, validateCsrfTokenMiddleware, async (req, res) => {
   try {
     const uid = req.user.id;
     const movieId = parseInt(req.params.movieId, 10);
@@ -807,7 +886,7 @@ app.get('/api/users/:userId/favorites', requireUser, async (req, res) => {
 });
 
 // Send friend request
-app.post('/api/friends/request', requireUser, async (req, res) => {
+app.post('/api/friends/request', requireUser, validateCsrfTokenMiddleware, async (req, res) => {
   try {
     const fromUserId = req.user.id;
     const { toUserId } = req.body;
@@ -858,7 +937,7 @@ app.post('/api/friends/request', requireUser, async (req, res) => {
 });
 
 // ========== RESPOND TO FRIEND REQUEST (Accept/Reject) ==========
-app.post('/api/friends/respond', requireUser, async (req, res) => {
+app.post('/api/friends/respond', requireUser, validateCsrfTokenMiddleware, async (req, res) => {
   try {
     const userId = req.user.id; // Logged-in user (The Receiver)
     const { requestId, action } = req.body; // action: 'accept' or 'reject'
@@ -902,7 +981,7 @@ app.post('/api/friends/respond', requireUser, async (req, res) => {
 });
 
 // Unfriend
-app.delete('/api/friends/:otherUserId', requireUser, async (req, res) => {
+app.delete('/api/friends/:otherUserId', requireUser, validateCsrfTokenMiddleware, async (req, res) => {
   try {
     const me = req.user.id;
     const other = req.params.otherUserId;
@@ -1099,7 +1178,7 @@ app.get('/api/admin/moderators', requireAdmin, async (req, res) => {
 });
 
 // Update user profile (Admin or Moderator can update)
-app.put('/api/admin/users/:userId', requireAdminOrModerator, async (req, res) => {
+app.put('/api/admin/users/:userId', requireAdminOrModerator, validateCsrfTokenMiddleware, async (req, res) => {
   try {
     const { userId } = req.params;
     
@@ -1149,7 +1228,7 @@ app.put('/api/admin/users/:userId', requireAdminOrModerator, async (req, res) =>
 });
 
 // Delete user (Admin only)
-app.delete('/api/admin/users/:userId', requireAdmin, async (req, res) => {
+app.delete('/api/admin/users/:userId', requireAdmin, validateCsrfTokenMiddleware, async (req, res) => {
   try {
     const { userId } = req.params;
     
@@ -1169,7 +1248,7 @@ app.delete('/api/admin/users/:userId', requireAdmin, async (req, res) => {
 });
 
 // Delete own account (User can delete their own account)
-app.delete('/api/users/delete-account', requireUser, async (req, res) => {
+app.delete('/api/users/delete-account', requireUser, validateCsrfTokenMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
     
@@ -1206,7 +1285,7 @@ app.delete('/api/users/delete-account', requireUser, async (req, res) => {
 });
 
 // Update location from IP (User only, fire-and-forget)
-app.post('/api/update-location', requireUser, async (req, res) => {
+app.post('/api/update-location', requireUser, validateCsrfTokenMiddleware, async (req, res) => {
   try {
     const { userId } = req.body || {};
     const authUserId = req.user?.id;
@@ -1280,7 +1359,7 @@ app.post('/api/update-location', requireUser, async (req, res) => {
 const recommendationRateLimiter = createPerUserRateLimiter(60 * 60 * 1000, 20, 'recommendation:');
 
 // 1. SEND RECOMMENDATION (Fixed for Array Payload)
-app.post('/api/recommendations', requireUser, recommendationRateLimiter, async (req, res) => {
+app.post('/api/recommendations', requireUser, validateCsrfTokenMiddleware, recommendationRateLimiter, async (req, res) => {
   try {
     const fromUserId = req.user.id;
     // Extract data from the new frontend payload structure

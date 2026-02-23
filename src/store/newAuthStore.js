@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { supabase } from '../config/supabase'
 import toast from 'react-hot-toast'
 import { translateError } from '../utils/errorTranslate'
+import { clearCsrfToken } from '../utils/csrfToken'
 
 // Ensure only one initialization runs at a time across the app
 let inFlightAuthInit = null
@@ -613,6 +614,11 @@ const useAuthStore = create((set, get) => ({
       // Clear sessionStorage token
       try { 
         sessionStorage.removeItem('auth-token') 
+      } catch {}
+
+      // Clear CSRF token cache
+      try {
+        clearCsrfToken()
       } catch {}
 
       // Also clear localStorage auth keys
