@@ -695,11 +695,13 @@ const useAuthStore = create((set, get) => ({
 
       // Call backend to delete account
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+      const csrfToken = await getCsrfToken()
       const response = await fetch(`${apiUrl}/api/users/delete-account`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${sessionStorage.getItem('auth-token') || ''}`
+          'Authorization': `Bearer ${sessionStorage.getItem('auth-token') || ''}`,
+          'x-csrf-token': csrfToken || ''
         }
       })
 
