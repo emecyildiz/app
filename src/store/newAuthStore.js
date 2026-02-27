@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { supabase } from '../config/supabase'
 import toast from 'react-hot-toast'
 import { translateError } from '../utils/errorTranslate'
-import { clearCsrfToken } from '../utils/csrfToken'
+import { clearCsrfToken, getCsrfToken } from '../utils/csrfToken'
 
 // Ensure only one initialization runs at a time across the app
 let inFlightAuthInit = null
@@ -12,11 +12,13 @@ const fireAndForgetLocationUpdate = async (userId, currentLocation) => {
 
   try {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+    const csrfToken = await getCsrfToken()
     await fetch(`${apiUrl}/api/update-location`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${sessionStorage.getItem('auth-token') || ''}`
+        'Authorization': `Bearer ${sessionStorage.getItem('auth-token') || ''}`,
+        'x-csrf-token': csrfToken || ''
       },
       body: JSON.stringify({ userId })
     })
