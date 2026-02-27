@@ -184,15 +184,24 @@ const rawOrigins = [
   .filter(Boolean)
   .join(',');
 
-const allowedOrigins = (rawOrigins || 'http://localhost:3001,http://localhost:3002')
+// Include production URLs as defaults if env vars are not set
+const defaultOrigins = 'http://localhost:3001,http://localhost:3002,https://ratemet.vercel.app,https://findemo.me';
+const allowedOrigins = (rawOrigins || defaultOrigins)
   .split(',')
   .map((o) => o.trim());
 app.use((req, res, next) => {
   const origin = req.headers.origin;
+  console.log(`[CORS Debug] Origin: ${origin}, Method: ${req.method}, Path: ${req.path}`);
+  console.log(`[CORS Debug] Allowed Origins: ${allowedOrigins.join(', ')}`);
+  
   if (origin && allowedOrigins.includes(origin)) {
+    console.log(`[CORS] ✅ Origin kabul edildi: ${origin}`);
     res.header('Access-Control-Allow-Origin', origin);
     res.header('Access-Control-Allow-Credentials', 'true');
+  } else if (origin) {
+    console.log(`[CORS] ❌ Origin reddedildi: ${origin}`);
   }
+  
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-csrf-token');
   if (req.method === 'OPTIONS') {
