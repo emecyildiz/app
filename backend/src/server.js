@@ -166,6 +166,18 @@ app.use((req, res, next) => {
 // Global rate limiting (DDoS/abuse protection)
 const rateLimitWindowMs = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10);
 const rateLimitMax = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '300', 10);
+const publicRateLimitMax = parseInt(process.env.RATE_LIMIT_PUBLIC_MAX_REQUESTS || '1200', 10);
+
+// Public endpoints: still rate limited, but more permissive
+const publicLimiter = rateLimit({
+  windowMs: rateLimitWindowMs,
+  max: publicRateLimitMax,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  message: { error: 'too_many_requests' },
+  skip: (req) => req.method === 'OPTIONS',
+});
+
 app.use(
   rateLimit({
     windowMs: rateLimitWindowMs,
@@ -174,7 +186,9 @@ app.use(
     legacyHeaders: false,
     message: { error: 'too_many_requests' },
     skip: (req) => {
-      // Skip rate limiting for public GET requests to movies/genres
+      // Never rate limit preflight requests
+      if (req.method === 'OPTIONS') return true;
+      // Use the public limiter for these endpoints instead
       if (req.method === 'GET' && (req.path.startsWith('/api/movies') || req.path.startsWith('/api/genres'))) {
         return true;
       }
@@ -182,6 +196,9 @@ app.use(
     }
   })
 );
+
+app.use('/api/movies', publicLimiter);
+app.use('/api/genres', publicLimiter);
 
 // Basic CORS setup (allow multiple origins via env)
 const rawOrigins = [
@@ -290,7 +307,7 @@ const validateCsrfTokenMiddleware = (req, res, next) => {
       console.warn(`[CSRF] Invalid token for ${req.method} ${req.path} by user ${req.user.id}`);
       return res.status(403).json({ error: 'csrf_token_invalid', message: 'CSRF token geçersiz' });
     }
-    console.log(`[CSRF] Valid token for ${req.method} ${req.path} by user ${req.user.id}`);
+    // Keep success logs off to avoid noisy production logs
     next();
   } catch (error) {
     console.error(`[CSRF] Validation error:`, error);
