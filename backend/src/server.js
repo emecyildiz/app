@@ -165,7 +165,7 @@ app.use((req, res, next) => {
 
 // Global rate limiting (DDoS/abuse protection)
 const rateLimitWindowMs = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10);
-const rateLimitMax = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10);
+const rateLimitMax = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '300', 10);
 app.use(
   rateLimit({
     windowMs: rateLimitWindowMs,
@@ -173,6 +173,13 @@ app.use(
     standardHeaders: 'draft-7',
     legacyHeaders: false,
     message: { error: 'too_many_requests' },
+    skip: (req) => {
+      // Skip rate limiting for public GET requests to movies/genres
+      if (req.method === 'GET' && (req.path.startsWith('/api/movies') || req.path.startsWith('/api/genres'))) {
+        return true;
+      }
+      return false;
+    }
   })
 );
 
@@ -191,15 +198,10 @@ const allowedOrigins = (rawOrigins || defaultOrigins)
   .map((o) => o.trim());
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  console.log(`[CORS Debug] Origin: ${origin}, Method: ${req.method}, Path: ${req.path}`);
-  console.log(`[CORS Debug] Allowed Origins: ${allowedOrigins.join(', ')}`);
   
   if (origin && allowedOrigins.includes(origin)) {
-    console.log(`[CORS] ✅ Origin kabul edildi: ${origin}`);
     res.header('Access-Control-Allow-Origin', origin);
     res.header('Access-Control-Allow-Credentials', 'true');
-  } else if (origin) {
-    console.log(`[CORS] ❌ Origin reddedildi: ${origin}`);
   }
   
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -297,6 +299,9 @@ const validateCsrfTokenMiddleware = (req, res, next) => {
 };
 
 async function requireAdmin(req, res, next) {
+  // Allow CORS preflight requests to pass through
+  if (req.method === 'OPTIONS') return next();
+  
   try {
     const user = await getUserFromRequest(req);
     if (!user) return res.status(401).json({ error: 'unauthorized' });
@@ -310,6 +315,9 @@ async function requireAdmin(req, res, next) {
 }
 
 async function requireAdminOrModerator(req, res, next) {
+  // Allow CORS preflight requests to pass through
+  if (req.method === 'OPTIONS') return next();
+  
   try {
     const user = await getUserFromRequest(req);
     if (!user) return res.status(401).json({ error: 'unauthorized' });

@@ -18,9 +18,12 @@ const MobileBottomNav = () => {
 
   useEffect(() => {
     let mounted = true
+    let inFlight = false
     const loadPending = async () => {
       try {
         if (!isAuthenticated) { setPendingRecCount(0); return }
+        if (inFlight) return
+        inFlight = true
         const recs = await recommendationService.getRecommendations('received', 'pending')
         if (mounted) {
           const next = Array.isArray(recs) ? recs.length : 0
@@ -38,10 +41,12 @@ const MobileBottomNav = () => {
         }
       } catch (_) {
         if (mounted) { setPendingRecCount(0); setHasNewRec(false) }
+      } finally {
+        inFlight = false
       }
     }
     loadPending()
-    const id = setInterval(loadPending, 60000)
+    const id = setInterval(loadPending, 120000)
     return () => { mounted = false; clearInterval(id) }
   }, [isAuthenticated])
 

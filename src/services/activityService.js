@@ -2,6 +2,7 @@ import axios from 'axios'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 const ENABLED = import.meta.env.VITE_ACTIVITY_TRACKING_ENABLED === 'true'
+let activityIntervalId = null
 
 export const activityService = {
   // Track user activity
@@ -23,20 +24,26 @@ export const activityService = {
   // Start activity tracking
   startTracking: () => {
     if (!ENABLED) return null
+    if (activityIntervalId) return activityIntervalId
     // Track activity every 2 minutes
     const interval = setInterval(() => {
       activityService.trackActivity()
     }, 2 * 60 * 1000)
     // Initial track
     activityService.trackActivity()
+    activityIntervalId = interval
     return interval
   },
 
   // Stop activity tracking
   stopTracking: (interval) => {
+    const id = interval || activityIntervalId
     console.log('activityService: Stopping activity tracking...')
-    if (interval) {
-      clearInterval(interval)
+    if (id) {
+      clearInterval(id)
+    }
+    if (id === activityIntervalId) {
+      activityIntervalId = null
     }
   }
 } 

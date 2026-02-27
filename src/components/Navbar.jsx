@@ -69,9 +69,12 @@ const Navbar = () => {
   // Load and check for new pending recommendations (dot indicator)
   useEffect(() => {
     let mounted = true
+    let inFlight = false
     const loadPending = async () => {
       try {
         if (!safeIsAuthenticated) { setPendingRecCount(0); return }
+        if (inFlight) return
+        inFlight = true
         const recs = await recommendationService.getRecommendations('received', 'pending')
         if (!mounted) return
         const lastViewed = getLastViewedAt()
@@ -86,10 +89,12 @@ const Navbar = () => {
         setHasNewRec((prev) => prev !== nextHasNew ? nextHasNew : prev)
       } catch (_) {
         if (mounted) setHasNewRec(false)
+      } finally {
+        inFlight = false
       }
     }
     loadPending()
-    const id = setInterval(loadPending, 60000)
+    const id = setInterval(loadPending, 120000)
     return () => { mounted = false; clearInterval(id) }
   }, [safeIsAuthenticated])
 
