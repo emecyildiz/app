@@ -1085,10 +1085,13 @@ app.get('/api/admin/dashboard', requireAdmin, async (req, res) => {
       .from('profiles')
       .select('id, role');
     if (error) throw error;
-    const totalUsers = profiles?.length || 0;
+    
+    // Only count users with USER role (exclude ADMIN and MODERATOR)
+    const totalUsers = (profiles || []).filter(p => p.role === 'USER').length;
     const totalModerators = (profiles || []).filter(p => p.role === 'MODERATOR').length;
     
     // Calculate active users (last 24 hours and last 15 minutes)
+    // Only count users with USER role
     let activeUsers = 0;
     let realTimeActiveUsers = 0;
     try {
@@ -1097,8 +1100,12 @@ app.get('/api/admin/dashboard', requireAdmin, async (req, res) => {
       const last24Hours = new Date(now.getTime() - 24 * 60 * 60 * 1000);
       const last15Minutes = new Date(now.getTime() - 15 * 60 * 1000);
       
+      // Get USER role ids for filtering
+      const userRoleIds = (profiles || []).filter(p => p.role === 'USER').map(p => p.id);
+      
       authUsers.forEach(user => {
-        if (user.last_sign_in_at) {
+        // Only count if user has USER role
+        if (userRoleIds.includes(user.id) && user.last_sign_in_at) {
           const lastSignIn = new Date(user.last_sign_in_at);
           if (lastSignIn >= last24Hours) {
             activeUsers++;
