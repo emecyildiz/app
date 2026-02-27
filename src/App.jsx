@@ -17,6 +17,8 @@ const Home = lazy(() => import('./pages/Home'))
 const Movies = lazy(() => import('./pages/Movies'))
 const MovieDetail = lazy(() => import('./pages/MovieDetail'))
 const About = lazy(() => import('./pages/About'))
+const Terms = lazy(() => import('./pages/Terms'))
+const Privacy = lazy(() => import('./pages/Privacy'))
 import Profile from './pages/Profile'
 const PublicProfile = lazy(() => import('./pages/PublicProfile'))
 const Login = lazy(() => import('./pages/Login'))
@@ -100,6 +102,19 @@ function App() {
               <About />
             </Suspense>
           } />
+          
+          <Route path="terms" element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <Terms />
+            </Suspense>
+          } />
+          
+          <Route path="privacy" element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <Privacy />
+            </Suspense>
+          } />
+          
           <Route
             path="profile"
             element={
