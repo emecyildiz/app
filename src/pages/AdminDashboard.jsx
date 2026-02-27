@@ -14,7 +14,7 @@ import {
 import toast from 'react-hot-toast'
 
 export default function AdminDashboard() {
-  const { user, profile, getAllUsers, getAllModerators, addModerator, removeModerator, deleteUser, updateUserProfile, getDashboardStats, get } = useAuthStore()
+  const { user, profile, getAllUsers, getAllModerators, addModerator, removeModerator, updateUserProfile, getDashboardStats, get } = useAuthStore()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('overview')
   const [showAddModerator, setShowAddModerator] = useState(false)
@@ -154,8 +154,8 @@ export default function AdminDashboard() {
 
   const handleDeleteUser = async (userId) => {
     if (window.confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?')) {
-      const result = await deleteUser(userId)
-      if (result.success) {
+      try {
+        await userService.deleteUser(userId)
         // Reload data after deleting user
         const [usersData, moderatorsData] = await Promise.all([
           userService.getAllUsers(),
@@ -164,6 +164,9 @@ export default function AdminDashboard() {
         setUsers(usersData)
         setModerators(moderatorsData)
         toast.success('Kullanıcı başarıyla silindi!')
+      } catch (error) {
+        console.error('Error deleting user:', error)
+        toast.error('Kullanıcı silinirken hata oluştu!')
       }
     }
   }
