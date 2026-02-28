@@ -670,36 +670,68 @@ const useAuthStore = create((set, get) => ({
         throw new Error('User not authenticated')
       }
 
-      // Map front-end keys to DB columns
-      const payload = {
-        name: updates.name,
-        username: updates.username,
-        bio: updates.bio,
-        location: updates.location,
-        social_links: {
-          ...(updates.socialLinks || {}),
-          // privacy: 'public' | 'private' (default public)
-          privacy: updates.isPublic === false ? 'private' : 'public'
-        },
-        updated_at: new Date().toISOString()
+      // Map front-end keys to DB columns (ONLY update allowed columns)
+      const payload = {}
+      
+      // Only include fields that are actually being updated and exist in DB schema
+      if (updates.name !== undefined) payload.name = updates.name || null
+      if (updates.username !== undefined) payload.username = updates.username || null
+      if (updates.bio !== undefined) payload.bio = updates.bio || null
+      if (updates.location !== undefined) payload.location = updates.location || null
+      
+      if (updates.avatar !== undefined) {
+        payload.avatar_url = updates.avatar || null
       }
 
-      if (updates.avatar !== undefined) {
-        payload.avatar_url = updates.avatar
+      // Only update social_links if it's provided
+      if (updates.socialLinks !== undefined || updates.isPublic !== undefined) {
+        payload.social_links = {
+          ...(updates.socialLinks || {}),
+          privacy: updates.isPublic === false ? 'private' : 'public'
+        }
       }
+
+      // Always update timestamp
+      payload.updated_at = new Date().toISOString()
+
+      console.log('Updating profile with payload:', payload)
 
       const { data, error } = await supabase
         .from('profiles')
         .update(payload)
         .eq('id', user.id)
         .select()
-        .single()
+        .maybeSingle() // Use maybeSingle() instead of single() to handle 0 rows gracefully
 
+      // Check for specific Supabase errors
       if (error) {
         console.error('Profile update error:', error)
-        toast.error('Profil güncellenemedi')
+        
+        // Handle RLS/permission errors
+        if (error.code === 'PGRST116' || error.message?.includes('0 rows')) {
+          console.error('RLS Policy blocked update or user not found')
+          toast.error('Profil güncellenirken yetki hatası oluştu. Lütfen sayfayı yenileyin.')
+          set({ isLoading: false })
+          return { success: false, error: 'RLS_ERROR' }
+        }
+        
+        if (error.code === '406') {
+          toast.error('Güncelleme başarısız oldu. Lütfen girdiğiniz bilgileri kontrol edin.')
+          set({ isLoading: false })
+          return { success: false, error: 'INVALID_UPDATE' }
+        }
+
+        toast.error('Profil güncellenemedi: ' + error.message)
         set({ isLoading: false })
         return { success: false, error: error.message }
+      }
+
+      // If data is null (no rows returned), that's an RLS issue
+      if (!data) {
+        console.error('No data returned from update (RLS likely blocked it)')
+        toast.error('Profil güncellenemedi. Lütfen sayfayı yenileyin ve tekrar deneyiniz.')
+        set({ isLoading: false })
+        return { success: false, error: 'NO_DATA_RETURNED' }
       }
 
       set({
@@ -714,9 +746,16 @@ const useAuthStore = create((set, get) => ({
       return { success: true }
     } catch (error) {
       console.error('Profile update error:', error)
-      toast.error('Profil güncellenemedi')
+      
+      // Handle network/parsing errors
+      if (error instanceof TypeError) {
+        toast.error('Ağ hatası oluştu. İnternet bağlantınızı kontrol edin.')
+      } else {
+        toast.error('Profil güncellenirken hata oluştu: ' + (error?.message || 'Bilinmeyen hata'))
+      }
+      
       set({ isLoading: false })
-      return { success: false, error: error.message }
+      return { success: false, error: error?.message }
     }
   },
 
