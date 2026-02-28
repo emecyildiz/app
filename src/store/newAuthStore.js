@@ -200,6 +200,18 @@ const useAuthStore = create((set, get) => ({
             const { user } = session
             console.log('Processing SIGNED_IN event for user:', user.email)
 
+            // CRITICAL: Avoid redundant profile fetches if already loaded for same user
+            const currentState = get()
+            if (currentState.profile?.id === user.id && currentState.isAuthenticated) {
+              console.log('Profile already loaded for user, skipping fetch')
+              // Just update session/token if needed
+              try {
+                sessionStorage.setItem('auth-token', session.access_token)
+              } catch {}
+              set({ session })
+              return
+            }
+
             // Store token
             try {
               sessionStorage.setItem('auth-token', session.access_token)
@@ -259,6 +271,7 @@ const useAuthStore = create((set, get) => ({
       }
     )
 
+    // IMPORTANT: Return subscription for cleanup
     return subscription
   },
 

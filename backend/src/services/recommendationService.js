@@ -49,10 +49,15 @@ class RecommendationService {
   }
 
   async getRecommendations(userId, { type = 'received', status } = {}) {
-    // Keep selection minimal to avoid join/rls issues
+    // Join with profiles to include user info (from_user and to_user)
     let query = supabase
       .from('recommendations')
-      .select('*, items:recommendation_items(movie_id)', { count: 'exact' });
+      .select(`
+        *,
+        items:recommendation_items(movie_id),
+        from_user:profiles!recommendations_from_user_id_fkey(id, name, username, avatar_url),
+        to_user:profiles!recommendations_to_user_id_fkey(id, name, username, avatar_url)
+      `, { count: 'exact' });
 
     // Gelen veya giden önerileri filtrele ve soft-delete flaglerini uygula
     if (type === 'received') {
