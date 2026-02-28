@@ -7,13 +7,12 @@ import toast from 'react-hot-toast'
 
 const AuthCallback = () => {
   const navigate = useNavigate()
-  const { initializeAuth } = useAuthStore()
+  const { initializeAuth, isAuthenticated, isLoading } = useAuthStore()
 
   useEffect(() => {
     const handleCallback = async () => {
       try {
         // OAuth state problemini çöz - URL'deki hash'i temizle
-        // window.history.replaceState ile URL'de fragment kalmıyor
         window.history.replaceState({}, document.title, window.location.pathname)
 
         // Supabase session'ı al (OAuth'dan gelen token URL'de)
@@ -30,15 +29,20 @@ const AuthCallback = () => {
         }
 
         // Biraz bekle state'in settle olması için
-        await new Promise(r => setTimeout(r, 800))
+        await new Promise(r => setTimeout(r, 1000))
 
-        toast.success('Giriş başarılı!')
-        navigate('/', { replace: true })
+        // Başarısı kontrol et ve yönlendir
+        if (isAuthenticated || session?.user?.id) {
+          toast.success('Giriş başarılı!')
+          navigate('/', { replace: true })
+        } else {
+          throw new Error('Auth verification failed')
+        }
       } catch (error) {
         console.error('Auth callback error:', error)
         toast.error('Giriş sırasında bir hata oluştu: ' + (error?.message || 'Bilinmeyen hata'))
         
-        // OAuth state hatası varsa login'e dön
+        // Hata durumunda login'e dön
         setTimeout(() => {
           navigate('/login', { replace: true })
         }, 2000)
@@ -47,6 +51,13 @@ const AuthCallback = () => {
 
     handleCallback()
   }, [])
+
+  // Eğer giriş başarılı oldu ise hemen yönlendir
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      navigate('/', { replace: true })
+    }
+  }, [isAuthenticated, isLoading, navigate])
 
   return (
     <div className="min-h-screen flex items-center justify-center">

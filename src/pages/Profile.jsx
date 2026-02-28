@@ -63,21 +63,26 @@ const Profile = () => {
   })
 
   const onSubmit = async (data) => {
-    const updates = {
-      name: data.name,
-      username: data.username,
-      email: data.email,
-      bio: data.bio,
-      isPublic: data.isPublic,
-      socialLinks: {
-        twitter: data.twitter,
-        instagram: data.instagram,
-        letterboxd: data.letterboxd,
+    try {
+      const updates = {
+        name: data.name,
+        username: data.username,
+        email: data.email,
+        bio: data.bio,
+        isPublic: data.isPublic,
+        socialLinks: {
+          twitter: data.twitter,
+          instagram: data.instagram,
+          letterboxd: data.letterboxd,
+        }
       }
-    }
-    const result = await updateProfile(updates)
-    if (result.success) {
-      setIsEditModalOpen(false)
+      const result = await updateProfile(updates)
+      if (result.success) {
+        setIsEditModalOpen(false)
+      }
+    } catch (error) {
+      console.error('Profile update error:', error)
+      toast.error('Profil güncellenemedi: ' + (error?.message || 'Bilinmeyen hata'))
     }
   }
 
@@ -501,7 +506,6 @@ const Profile = () => {
     }
   }
 
-  if (isLoading) return null
   if (!user) return <Navigate to="/login" replace />
   return (
     <div className="min-h-screen-dvh pt-20">

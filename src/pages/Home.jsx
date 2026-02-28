@@ -259,9 +259,9 @@ const Home = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 relative">
+      <section className="py-12 md:py-16 relative">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             {stats.map((stat, index) => {
               const Icon = stat.icon
               return (
@@ -272,13 +272,13 @@ const Home = () => {
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   viewport={{ once: true }}
                   whileHover={{ y: -5 }}
-                  className="glass rounded-2xl p-6 text-center border border-white/5 hover:border-white/20 transition-all duration-300"
+                  className="glass rounded-lg md:rounded-2xl p-3 md:p-6 text-center border border-white/5 hover:border-white/20 transition-all duration-300"
                 >
-                  <Icon className={`w-10 h-10 ${stat.color} mx-auto mb-3`} />
-                  <div className="text-4xl font-extrabold text-white mb-1">
+                  <Icon className={`w-8 md:w-10 h-8 md:h-10 ${stat.color} mx-auto mb-2 md:mb-3`} />
+                  <div className="text-lg md:text-4xl font-extrabold text-white mb-1 line-clamp-2 break-words">
                     {stat.value}
                   </div>
-                  <div className="text-gray-400 text-sm font-medium">
+                  <div className="text-gray-400 text-xs md:text-sm font-medium line-clamp-2">
                     {stat.label}
                   </div>
                 </motion.div>
