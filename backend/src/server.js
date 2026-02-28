@@ -845,6 +845,19 @@ app.post('/api/favorites', requireUser, validateCsrfTokenMiddleware, async (req,
     const movieIdRaw = req.body?.movieId;
     const movieId = parseInt(movieIdRaw, 10);
     if (!movieId || Number.isNaN(movieId)) return res.status(400).json({ success: false, error: 'movieId required' });
+    
+    // Ensure movie exists in DB (add if not present)
+    try {
+      await supabase
+        .from('movies')
+        .upsert({ tmdb_id: movieId }, { onConflict: 'tmdb_id', ignoreDuplicates: true })
+        .select('id')
+        .single();
+    } catch (movieErr) {
+      console.warn(`Could not upsert movie ${movieId}:`, movieErr);
+      // Continue anyway - favorite might still work if FK is not enforced
+    }
+    
     // Upsert-like behavior: ignore duplicates
     const { data, error } = await supabase
       .from('favorites')
@@ -1452,8 +1465,9 @@ app.post('/api/recommendations', requireUser, validateCsrfTokenMiddleware, recom
                     from_user_id: fromUserId,
                     to_user_id: toUserId,
                     movie_id: validMovieId,
-                    status: 'pending',
-                    content: cleanNote || null // İsteğe bağlı not alanı
+                    status: 'pending'
+                    // Note: Do not include 'content' field if it doesn't exist in schema
+                    // If you need to store notes, use recommendation_items or another method
                 }])
                 .select()
                 .single();
