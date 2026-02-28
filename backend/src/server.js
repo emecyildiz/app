@@ -1321,6 +1321,137 @@ app.get('/api/admin/moderators', requireAdmin, async (req, res) => {
   }
 });
 
+// Add new moderator (Admin only) - Creates a new user with MODERATOR role
+app.post('/api/admin/moderators', requireAdmin, validateCsrfTokenMiddleware, async (req, res) => {
+  try {
+    const { email, password, name, username } = req.body;
+    
+    if (!email || !password || !name) {
+      return res.status(400).json({ success: false, error: 'Email, password, and name are required' });
+    }
+    
+    // Create auth user
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true, // Auto-confirm email for moderators
+      user_metadata: {
+        name,
+        username: username || email.split('@')[0]
+      }
+    });
+    
+    if (authError) throw authError;
+    
+    // Update profile to set role as MODERATOR
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .update({ 
+        role: 'MODERATOR',
+        name,
+        username: username || email.split('@')[0]
+      })
+      .eq('id', authData.user.id)
+      .select()
+      .single();
+    
+    if (profileError) {
+      // If profile update fails, delete the auth user to rollback
+      await supabase.auth.admin.deleteUser(authData.user.id);
+      throw profileError;
+    }
+    
+    console.log(`[AUDIT] Admin ${req.user.id} created moderator: ${authData.user.id} (${email})`);
+    
+    res.json({ success: true, data: profileData });
+  } catch (e) {
+    console.error('Error creating moderator:', e);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Promote user to moderator (Admin only)
+app.put('/api/admin/users/:userId/promote', requireAdmin, validateCsrfTokenMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Check if user exists and is not already an admin
+    const { data: targetProfile, error: fetchError } = await supabase
+      .from('profiles')
+      .select('id, role, name, username')
+      .eq('id', userId)
+      .single();
+    
+    if (fetchError || !targetProfile) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    
+    if (targetProfile.role === 'ADMIN') {
+      return res.status(403).json({ success: false, error: 'Cannot modify admin role' });
+    }
+    
+    if (targetProfile.role === 'MODERATOR') {
+      return res.status(400).json({ success: false, error: 'User is already a moderator' });
+    }
+    
+    // Update role to MODERATOR
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ role: 'MODERATOR' })
+      .eq('id', userId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    console.log(`[AUDIT] Admin ${req.user.id} promoted user ${userId} to MODERATOR`);
+    
+    res.json({ success: true, data });
+  } catch (e) {
+    console.error('Error promoting user:', e);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// Demote moderator to user (Admin only)
+app.delete('/api/admin/moderators/:userId', requireAdmin, validateCsrfTokenMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Check if user is a moderator
+    const { data: targetProfile, error: fetchError } = await supabase
+      .from('profiles')
+      .select('id, role')
+      .eq('id', userId)
+      .single();
+    
+    if (fetchError || !targetProfile) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    
+    if (targetProfile.role !== 'MODERATOR') {
+      return res.status(400).json({ success: false, error: 'User is not a moderator' });
+    }
+    
+    // Demote to USER role
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ role: 'USER' })
+      .eq('id', userId)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    console.log(`[AUDIT] Admin ${req.user.id} demoted moderator ${userId} to USER`);
+    
+    res.json({ success: true, data });
+  } catch (e) {
+    console.error('Error demoting moderator:', e);
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
 // Update user profile (Admin or Moderator can update)
 app.put('/api/admin/users/:userId', requireAdminOrModerator, validateCsrfTokenMiddleware, async (req, res) => {
   try {

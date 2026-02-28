@@ -15,7 +15,7 @@ import toast from 'react-hot-toast'
 
 export default function AdminDashboard() {
   const authStore = useAuthStore()
-  const { user, profile } = authStore
+  const { user, profile, updateUserProfile } = authStore
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('overview')
   const [showAddModerator, setShowAddModerator] = useState(false)
@@ -122,33 +122,64 @@ export default function AdminDashboard() {
       return
     }
 
-    const result = await addModerator(moderatorForm)
-    if (result.success) {
-      setModeratorForm({ email: '', password: '', name: '', username: '' })
-      setShowAddModerator(false)
-      // Reload data after adding moderator
-      const [usersData, moderatorsData] = await Promise.all([
-        userService.getAllUsers(),
-        userService.getAllModerators()
-      ])
-      setUsers(usersData)
-      setModerators(moderatorsData)
-      toast.success('Moderatör başarıyla eklendi!')
-    }
-  }
-
-  const handleRemoveModerator = async (moderatorId) => {
-    if (window.confirm('Bu moderatörü kaldırmak istediğinizden emin misiniz?')) {
-      const result = await removeModerator(moderatorId)
+    try {
+      const result = await userService.addModerator(moderatorForm)
       if (result.success) {
-        // Reload data after removing moderator
+        setModeratorForm({ email: '', password: '', name: '', username: '' })
+        setShowAddModerator(false)
+        // Reload data after adding moderator
         const [usersData, moderatorsData] = await Promise.all([
           userService.getAllUsers(),
           userService.getAllModerators()
         ])
         setUsers(usersData)
         setModerators(moderatorsData)
-        toast.success('Moderatör başarıyla kaldırıldı!')
+        toast.success('Moderatör başarıyla eklendi!')
+      }
+    } catch (error) {
+      console.error('Moderatör ekleme hatası:', error)
+      toast.error(error.response?.data?.error || 'Moderatör eklenirken hata oluştu')
+    }
+  }
+
+  const handleRemoveModerator = async (moderatorId) => {
+    if (window.confirm('Bu moderatörü kaldırmak istediğinizden emin misiniz? Kullanıcı normal USER rolüne düşürülecektir.')) {
+      try {
+        const result = await userService.removeModerator(moderatorId)
+        if (result.success) {
+          // Reload data after removing moderator
+          const [usersData, moderatorsData] = await Promise.all([
+            userService.getAllUsers(),
+            userService.getAllModerators()
+          ])
+          setUsers(usersData)
+          setModerators(moderatorsData)
+          toast.success('Moderatör başarıyla kaldırıldı ve normal kullanıcı rolüne düşürüldü!')
+        }
+      } catch (error) {
+        console.error('Moderatör kaldırma hatası:', error)
+        toast.error(error.response?.data?.error || 'Moderatör kaldırılırken hata oluştu')
+      }
+    }
+  }
+
+  const handlePromoteToModerator = async (userId, userName) => {
+    if (window.confirm(`${userName} kullanıcısını moderatör yapmak istediğinizden emin misiniz?`)) {
+      try {
+        const result = await userService.promoteToModerator(userId)
+        if (result.success) {
+          // Reload data after promotion
+          const [usersData, moderatorsData] = await Promise.all([
+            userService.getAllUsers(),
+            userService.getAllModerators()
+          ])
+          setUsers(usersData)
+          setModerators(moderatorsData)
+          toast.success(`${userName} başarıyla moderatör yapıldı!`)
+        }
+      } catch (error) {
+        console.error('Moderatör yapma hatası:', error)
+        toast.error(error.response?.data?.error || 'Kullanıcı moderatör yapılırken hata oluştu')
       }
     }
   }
@@ -401,6 +432,13 @@ export default function AdminDashboard() {
                               <td className="p-4">
                                 <div className="flex items-center gap-2">
                                   <button
+                                    onClick={() => handlePromoteToModerator(user.id, user.name || user.username)}
+                                    className="text-green-500 hover:text-green-400 text-sm font-medium"
+                                    title="Moderatör Yap"
+                                  >
+                                    ⬆️ Moderatör Yap
+                                  </button>
+                                  <button
                                     onClick={() => handleEditUser(user)}
                                     className="text-blue-500 hover:text-blue-400 text-sm"
                                   >
@@ -566,9 +604,10 @@ export default function AdminDashboard() {
                                   </button>
                                   <button
                                     onClick={() => handleRemoveModerator(moderator.id)}
-                                    className="text-red-500 hover:text-red-400 text-sm"
+                                    className="text-orange-500 hover:text-orange-400 text-sm font-medium"
+                                    title="Moderatörü kaldır ve normal kullanıcı yap"
                                   >
-                                    Kaldır
+                                    ⬇️ Demote
                                   </button>
                                 </div>
                               </td>

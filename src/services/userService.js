@@ -117,6 +117,45 @@ class UserService {
     }
   }
 
+  // Add new moderator (creates new user with MODERATOR role)
+  async addModerator(moderatorData) {
+    try {
+      const response = await axios.post(`${API_URL}/api/admin/moderators`, moderatorData, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error adding moderator:', error);
+      throw error;
+    }
+  }
+
+  // Promote existing user to moderator
+  async promoteToModerator(userId) {
+    try {
+      const response = await axios.put(`${API_URL}/api/admin/users/${userId}/promote`, {}, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error promoting user to moderator:', error);
+      throw error;
+    }
+  }
+
+  // Demote moderator to user
+  async removeModerator(userId) {
+    try {
+      const response = await axios.delete(`${API_URL}/api/admin/moderators/${userId}`, {
+        headers: this.getAuthHeaders()
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error removing moderator:', error);
+      throw error;
+    }
+  }
+
   // Get my aggregated stats
   async getMyStats() {
     try {
