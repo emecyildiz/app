@@ -872,7 +872,7 @@ const useAuthStore = create((set, get) => ({
       toast.error('Güncelleme sırasında hata oluştu: ' + error.message)
       return { success: false, error: error.message }
     }
-  }
-})
+  },
+}))
 
 export { useAuthStore }
