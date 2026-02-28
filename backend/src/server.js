@@ -849,11 +849,9 @@ app.post('/api/favorites', requireUser, validateCsrfTokenMiddleware, async (req,
     if (!movieId || Number.isNaN(movieId)) return res.status(400).json({ success: false, error: 'movieId required' });
     
     // Ensure movie exists in DB (CRITICAL: must complete before favorite insert)
-    const { data: movieData, error: movieError } = await supabase
+    const { error: movieError } = await supabase
       .from('movies')
-      .upsert({ tmdb_id: movieId }, { onConflict: 'tmdb_id' })
-      .select('id')
-      .single();
+      .upsert({ id: movieId }, { onConflict: 'id' });
     
     if (movieError) {
       console.error(`FK Constraint Prevention: Could not upsert movie ${movieId}:`, movieError);
@@ -1485,9 +1483,7 @@ app.post('/api/recommendations', requireUser, validateCsrfTokenMiddleware, recom
             // Ensure movie exists in DB before creating recommendation (FK constraint prevention)
             const { error: movieError } = await supabase
                 .from('movies')
-                .upsert({ tmdb_id: validMovieId }, { onConflict: 'tmdb_id' })
-                .select('id')
-                .single();
+                .upsert({ id: validMovieId }, { onConflict: 'id' });
             
             if (movieError) {
               console.error(`FK Prevention: Could not upsert movie ${validMovieId}:`, movieError);

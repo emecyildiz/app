@@ -2,6 +2,8 @@ import { lazy, Suspense, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { useAuthStore } from './store/newAuthStore'
+import { useFavoritesStore } from './store/favoritesStore'
+import { userService } from './services/userService'
 import { activityService } from './services/activityService'
 
 // Layout components
@@ -39,6 +41,23 @@ const ModeratorDashboard = lazy(() => import('./pages/ModeratorDashboard'))
 
 function App() {
   const { isAuthenticated, user, isLoading, isInitialized, isInitializing } = useAuthStore()
+  const { syncFromDB } = useFavoritesStore()
+
+  // Load favorites from DB when user authenticates
+  useEffect(() => {
+    const loadFavoritesFromDB = async () => {
+      if (isAuthenticated && !isLoading) {
+        try {
+          const favoriteIds = await userService.getFavoritesList();
+          syncFromDB(favoriteIds);
+        } catch (error) {
+          console.error('Failed to load favorites from DB:', error);
+        }
+      }
+    };
+    
+    loadFavoritesFromDB();
+  }, [isAuthenticated, isLoading, syncFromDB])
 
   // Start activity tracking when user is authenticated
   useEffect(() => {

@@ -150,15 +150,20 @@ class UserService {
     return response.data;
   }
 
-  async getFavoritesCount() {
+  async getFavoritesList() {
     try {
-      const response = await axios.get(`${API_URL}/api/users/favorites/count`, {
+      const { data: { user } } = await this.supabase?.auth?.getUser?.() || { data: { user: null } };
+      const uid = user?.id || null;
+      if (!uid) return [];
+      
+      const response = await axios.get(`${API_URL}/api/users/${uid}/favorites`, {
         headers: this.getAuthHeaders()
       });
-      return response.data?.count ?? 0;
+      
+      return response.data?.items || [];
     } catch (error) {
-      console.error('Error getting favorites count:', error);
-      return 0;
+      console.error('Error getting favorites list from DB:', error);
+      return [];
     }
   }
 

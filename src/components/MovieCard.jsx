@@ -25,8 +25,8 @@ const MovieCard = ({ movie, showFavoriteButton = true }) => {
   const { isAuthenticated } = useAuthStore()
   const navigate = useNavigate()
   const { addToFavorites, removeFromFavorites } = useFavoritesStore()
-  const favorites = useFavoritesStore(state => state.favorites)
-  const isFavorited = favorites.some(f => f.id === id)
+  const favoriteIds = useFavoritesStore(state => state.favoriteIds)
+  const isFavorited = favoriteIds.has(id)
 
   const posterURL = tmdbService.getImageURL(poster_path, 'w500')
   const backdropURL = tmdbService.getImageURL(backdrop_path, 'w500')
