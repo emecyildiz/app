@@ -201,6 +201,8 @@ const MovieDetail = () => {
   const posterURL = tmdbService.getImageURL(poster_path, 'w500')
   const backdropURL = tmdbService.getImageURL(backdrop_path, 'original')
   const trailer = videos?.results?.find(video => video.type === 'Trailer')
+  const currentMovieId = Number(currentMovie?.id || id)
+  const isMovieFavorited = isFavorite(currentMovieId)
 
   return (
     <div className="min-h-screen pt-20">
@@ -341,30 +343,40 @@ const MovieDetail = () => {
 
                   {/* Favorite Button */}
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       if (!isAuthenticated) {
                         toast.error('Favorilere eklemek için giriş yapın')
                         navigate('/login')
                         return
                       }
-                      if (isFavorite(id)) {
-                        removeFromFavorites(id)
-                        userService.removeFavorite(id)
-                        toast.success('Favorilerden çıkarıldı')
-                      } else {
-                        addToFavorites(currentMovie)
-                        userService.addFavorite(id)
-                        toast.success('Favorilere eklendi')
+                      if (!currentMovieId || Number.isNaN(currentMovieId)) {
+                        toast.error('Geçersiz film bilgisi')
+                        return
+                      }
+
+                      try {
+                        if (isMovieFavorited) {
+                          await userService.removeFavorite(currentMovieId)
+                          removeFromFavorites(currentMovieId)
+                          toast.success('Favorilerden çıkarıldı')
+                        } else {
+                          await userService.addFavorite(currentMovie)
+                          addToFavorites(currentMovie)
+                          toast.success('Favorilere eklendi')
+                        }
+                      } catch (error) {
+                        console.error('Favori işlemi hatası:', error)
+                        toast.error('Favori işlemi başarısız oldu')
                       }
                     }}
                     className={`btn inline-flex items-center gap-2 ${
-                      isFavorite(id) 
+                      isMovieFavorited 
                         ? 'btn-secondary border-red-500 text-red-400 hover:bg-red-500 hover:text-white' 
                         : 'btn-secondary'
                     }`}
                   >
-                    <Heart className={`w-4 h-4 ${isFavorite(id) ? 'fill-current' : ''}`} />
-                    {isFavorite(id) ? 'Film Favorilerde' : 'Favorilere Ekle'}
+                    <Heart className={`w-4 h-4 ${isMovieFavorited ? 'fill-current' : ''}`} />
+                    {isMovieFavorited ? 'Film Favorilerde' : 'Favorilere Ekle'}
                   </button>
 
                   {/* Recommend Button */}

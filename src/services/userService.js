@@ -131,7 +131,11 @@ class UserService {
   }
 
   async addFavorite(movie) {
-    const movieId = parseInt(typeof movie === 'number' ? movie : movie?.id, 10)
+    const movieIdCandidate =
+      typeof movie === 'number'
+        ? movie
+        : (movie?.id ?? movie?.movie_id ?? movie?.tmdb_id)
+    const movieId = parseInt(movieIdCandidate, 10)
     const title =
       (typeof movie === 'object' ? (movie?.title || movie?.original_title) : null) ||
       (movieId ? `Film #${movieId}` : null)
