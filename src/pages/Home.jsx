@@ -71,12 +71,12 @@ const Home = () => {
   ]
 
   const categories = [
-    { name: 'Aksiyon', emoji: '💥', gradient: 'from-red-600 to-orange-600' },
-    { name: 'Komedi', emoji: '😂', gradient: 'from-yellow-500 to-amber-500' },
-    { name: 'Drama', emoji: '🎭', gradient: 'from-purple-600 to-pink-600' },
-    { name: 'Bilim Kurgu', emoji: '🚀', gradient: 'from-blue-600 to-cyan-600' },
-    { name: 'Korku', emoji: '👻', gradient: 'from-gray-700 to-gray-900' },
-    { name: 'Romantik', emoji: '💕', gradient: 'from-pink-500 to-rose-500' },
+    { name: 'Aksiyon', slug: 'action', emoji: '💥', gradient: 'from-red-600 to-orange-600' },
+    { name: 'Komedi', slug: 'comedy', emoji: '😂', gradient: 'from-yellow-500 to-amber-500' },
+    { name: 'Drama', slug: 'drama', emoji: '🎭', gradient: 'from-purple-600 to-pink-600' },
+    { name: 'Bilim Kurgu', slug: 'science-fiction', emoji: '🚀', gradient: 'from-blue-600 to-cyan-600' },
+    { name: 'Korku', slug: 'horror', emoji: '👻', gradient: 'from-gray-700 to-gray-900' },
+    { name: 'Romantik', slug: 'romance', emoji: '💕', gradient: 'from-pink-500 to-rose-500' },
   ]
 
   return (
@@ -316,24 +316,29 @@ const Home = () => {
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {categories.map((category, index) => (
-              <motion.div
+              <Link
                 key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
-                viewport={{ once: true }}
-                whileHover={{ scale: 1.05 }}
-                className="group cursor-pointer"
+                to={`/movies?genre=${category.slug}`}
+                className="group cursor-pointer no-underline"
               >
-                <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${category.gradient} p-6 h-32 flex flex-col items-center justify-center shadow-lg hover:shadow-2xl transition-all duration-300`}>
-                  <div className="text-4xl mb-2 transform group-hover:scale-110 transition-transform duration-300">
-                    {category.emoji}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4, delay: index * 0.05 }}
+                  viewport={{ once: true }}
+                  whileHover={{ scale: 1.05 }}
+                  className="h-full"
+                >
+                  <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${category.gradient} p-6 h-32 flex flex-col items-center justify-center shadow-lg hover:shadow-2xl transition-all duration-300`}>
+                    <div className="text-4xl mb-2 transform group-hover:scale-110 transition-transform duration-300">
+                      {category.emoji}
+                    </div>
+                    <div className="text-white font-semibold text-sm text-center">
+                      {category.name}
+                    </div>
                   </div>
-                  <div className="text-white font-semibold text-sm text-center">
-                    {category.name}
-                  </div>
-                </div>
-              </motion.div>
+                </motion.div>
+              </Link>
             ))}
           </div>
         </div>

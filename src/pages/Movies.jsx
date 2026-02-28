@@ -65,7 +65,7 @@ const Movies = () => {
     } else {
       loadMovies('popular')
     }
-  }, [])
+  }, [searchParams, loadGenres, loadMoviesByGenre, loadMovies])
 
   useEffect(() => {
     setSearchInput(searchQuery)
