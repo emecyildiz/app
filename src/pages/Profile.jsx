@@ -434,7 +434,7 @@ const Profile = () => {
   useEffect(() => {
     let mounted = true
     const preloadFriends = async () => {
-      if (!user) return
+      if (!user?.id) return
       try {
         const list = await userService.listFriends()
         if (mounted) setFriends(list || [])
@@ -442,7 +442,7 @@ const Profile = () => {
     }
     preloadFriends()
     return () => { mounted = false }
-  }, [user])
+  }, [user?.id])
 
   // Optional: preload my favorite IDs to reconcile UI if needed (hidden, non-blocking)
   useEffect(() => {
