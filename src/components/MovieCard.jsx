@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
-import { Star, Calendar, Clock, Heart } from 'lucide-react'
+import { Star, Calendar, Clock, Heart, Loader } from 'lucide-react'
+import { useState } from 'react'
 import { tmdbService } from '../services/tmdbService'
 import { useFavoritesStore } from '../store/favoritesStore'
 import { userService } from '../services/userService'
@@ -8,6 +9,7 @@ import { useAuthStore } from '../store/newAuthStore'
 import toast from 'react-hot-toast'
 
 const MovieCard = ({ movie, showFavoriteButton = true }) => {
+  const [isLoadingFavorite, setIsLoadingFavorite] = useState(false)
   const {
     id,
     title,
@@ -22,8 +24,9 @@ const MovieCard = ({ movie, showFavoriteButton = true }) => {
 
   const { isAuthenticated } = useAuthStore()
   const navigate = useNavigate()
-  const { addToFavorites, removeFromFavorites, isFavorite } = useFavoritesStore()
-  const isFavorited = isFavorite(id)
+  const { addToFavorites, removeFromFavorites } = useFavoritesStore()
+  const favorites = useFavoritesStore(state => state.favorites)
+  const isFavorited = favorites.some(f => f.id === id)
 
   const posterURL = tmdbService.getImageURL(poster_path, 'w500')
   const backdropURL = tmdbService.getImageURL(backdrop_path, 'w500')
@@ -98,7 +101,7 @@ const MovieCard = ({ movie, showFavoriteButton = true }) => {
           {/* Favorite Button */}
           {showFavoriteButton && (
             <button
-              onClick={(e) => {
+              onClick={async (e) => {
                 e.preventDefault()
                 e.stopPropagation()
                 if (!isAuthenticated) {
@@ -106,19 +109,39 @@ const MovieCard = ({ movie, showFavoriteButton = true }) => {
                   navigate('/login')
                   return
                 }
-                if (isFavorited) {
-                  removeFromFavorites(id)
-                  userService.removeFavorite(id)
-                } else {
-                  addToFavorites(movie)
-                  userService.addFavorite(id)
+                
+                if (isLoadingFavorite) return // Prevent double-click
+                
+                setIsLoadingFavorite(true)
+                try {
+                  if (isFavorited) {
+                    // Remove from favorites - verify with DB
+                    await userService.removeFavorite(id)
+                    removeFromFavorites(id)
+                    toast.success('Favorilerden kaldırıldı')
+                  } else {
+                    // Add to favorites - verify with DB
+                    await userService.addFavorite(id)
+                    addToFavorites(movie)
+                    toast.success('Favorilere eklendi')
+                  }
+                } catch (error) {
+                  console.error('Favori işlemi hatası:', error)
+                  toast.error('İşlem başarısız oldu')
+                } finally {
+                  setIsLoadingFavorite(false)
                 }
               }}
-              className="absolute top-2 left-2 p-2 bg-black/70 rounded-full hover:bg-black/90 transition-colors"
+              disabled={isLoadingFavorite}
+              className="absolute top-2 left-2 p-2 bg-black/70 rounded-full hover:bg-black/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Heart 
-                className={`w-4 h-4 ${isFavorited ? 'text-red-500 fill-current' : 'text-white'}`} 
-              />
+              {isLoadingFavorite ? (
+                <Loader className="w-4 h-4 text-white animate-spin" />
+              ) : (
+                <Heart 
+                  className={`w-4 h-4 ${isFavorited ? 'text-red-500 fill-current' : 'text-white'}`} 
+                />
+              )}
             </button>
           )}
         </div>

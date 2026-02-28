@@ -2,17 +2,19 @@ const path = require('path');
 const fs = require('fs');
 const dotenv = require('dotenv');
 
-// Load .env file manually to avoid encoding issues
-const envPath = path.resolve(__dirname, '../.env');
-try {
-  const envConfig = dotenv.parse(fs.readFileSync(envPath, 'utf8'));
-  Object.keys(envConfig).forEach(key => {
-    if (!process.env[key]) {
-      process.env[key] = envConfig[key];
-    }
-  });
-} catch (err) {
-  console.error('Failed to load .env:', err.message);
+// Load .env file manually to avoid encoding issues (skip in production)
+if (process.env.NODE_ENV !== 'production') {
+  const envPath = path.resolve(__dirname, '../.env');
+  try {
+    const envConfig = dotenv.parse(fs.readFileSync(envPath, 'utf8'));
+    Object.keys(envConfig).forEach(key => {
+      if (!process.env[key]) {
+        process.env[key] = envConfig[key];
+      }
+    });
+  } catch (err) {
+    console.error('Failed to load .env:', err.message);
+  }
 }
 
 const express = require('express');
@@ -846,16 +848,16 @@ app.post('/api/favorites', requireUser, validateCsrfTokenMiddleware, async (req,
     const movieId = parseInt(movieIdRaw, 10);
     if (!movieId || Number.isNaN(movieId)) return res.status(400).json({ success: false, error: 'movieId required' });
     
-    // Ensure movie exists in DB (add if not present)
-    try {
-      await supabase
-        .from('movies')
-        .upsert({ tmdb_id: movieId }, { onConflict: 'tmdb_id', ignoreDuplicates: true })
-        .select('id')
-        .single();
-    } catch (movieErr) {
-      console.warn(`Could not upsert movie ${movieId}:`, movieErr);
-      // Continue anyway - favorite might still work if FK is not enforced
+    // Ensure movie exists in DB (CRITICAL: must complete before favorite insert)
+    const { data: movieData, error: movieError } = await supabase
+      .from('movies')
+      .upsert({ tmdb_id: movieId }, { onConflict: 'tmdb_id' })
+      .select('id')
+      .single();
+    
+    if (movieError) {
+      console.error(`FK Constraint Prevention: Could not upsert movie ${movieId}:`, movieError);
+      return res.status(500).json({ success: false, error: 'Movie could not be saved to database' });
     }
     
     // Upsert-like behavior: ignore duplicates
@@ -864,7 +866,29 @@ app.post('/api/favorites', requireUser, validateCsrfTokenMiddleware, async (req,
       .upsert({ user_id: uid, movie_id: movieId }, { onConflict: 'user_id,movie_id', ignoreDuplicates: true })
       .select('user_id')
       .single();
-    if (error) throw error;
+    
+    if (error) {
+      // Log detailed error info for debugging FK constraint violations
+      console.error('Favorites insert error:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        movieId,
+        userId: uid
+      });
+      
+      // If it's FK constraint error (23503), it means movie wasn't in DB
+      if (error.code === '23503') {
+        return res.status(409).json({ 
+          success: false, 
+          error: 'Movie not found in database. Ensure movie exists before adding to favorites.',
+          code: 'FK_CONSTRAINT_VIOLATION'
+        });
+      }
+      
+      throw error;
+    }
     res.json({ success: true });
   } catch (e) {
     console.error('favorites add error:', e);
@@ -1456,6 +1480,19 @@ app.post('/api/recommendations', requireUser, validateCsrfTokenMiddleware, recom
             const validMovieId = parseInt(movieId, 10);
             if (Number.isNaN(validMovieId)) {
               continue; // Skip invalid IDs
+            }
+            
+            // Ensure movie exists in DB before creating recommendation (FK constraint prevention)
+            const { error: movieError } = await supabase
+                .from('movies')
+                .upsert({ tmdb_id: validMovieId }, { onConflict: 'tmdb_id' })
+                .select('id')
+                .single();
+            
+            if (movieError) {
+              console.error(`FK Prevention: Could not upsert movie ${validMovieId}:`, movieError);
+              errors.push({ movieId: validMovieId, error: 'Movie could not be saved' });
+              continue;
             }
             
             // A. Insert into Main Table

@@ -131,27 +131,23 @@ class UserService {
   }
 
   async addFavorite(movieId) {
-    try {
-      const response = await axios.post(`${API_URL}/api/favorites`, { movieId }, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data?.success === true;
-    } catch (error) {
-      console.error('Error adding favorite:', error);
-      return false;
+    const response = await axios.post(`${API_URL}/api/favorites`, { movieId }, {
+      headers: this.getAuthHeaders()
+    });
+    if (!response.data?.success) {
+      throw new Error(response.data?.error || 'Failed to add favorite');
     }
+    return response.data;
   }
 
   async removeFavorite(movieId) {
-    try {
-      const response = await axios.delete(`${API_URL}/api/favorites/${movieId}`, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data?.success === true;
-    } catch (error) {
-      console.error('Error removing favorite:', error);
-      return false;
+    const response = await axios.delete(`${API_URL}/api/favorites/${movieId}`, {
+      headers: this.getAuthHeaders()
+    });
+    if (!response.data?.success) {
+      throw new Error(response.data?.error || 'Failed to remove favorite');
     }
+    return response.data;
   }
 
   async getFavoritesCount() {
