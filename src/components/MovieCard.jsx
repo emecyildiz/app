@@ -26,7 +26,7 @@ const MovieCard = ({ movie, showFavoriteButton = true }) => {
   const navigate = useNavigate()
   const { addToFavorites, removeFromFavorites } = useFavoritesStore()
   const favoriteIds = useFavoritesStore(state => state.favoriteIds)
-  const isFavorited = favoriteIds.has(id)
+  const isFavorited = favoriteIds.has(Number(id))
 
   const posterURL = tmdbService.getImageURL(poster_path, 'w500')
   const backdropURL = tmdbService.getImageURL(backdrop_path, 'w500')
@@ -121,7 +121,7 @@ const MovieCard = ({ movie, showFavoriteButton = true }) => {
                     toast.success('Favorilerden kaldırıldı')
                   } else {
                     // Add to favorites - verify with DB
-                    await userService.addFavorite(id)
+                    await userService.addFavorite(movie)
                     addToFavorites(movie)
                     toast.success('Favorilere eklendi')
                   }

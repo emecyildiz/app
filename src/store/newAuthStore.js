@@ -25,6 +25,40 @@ const fireAndForgetLocationUpdate = async (userId, currentLocation) => {
   } catch {}
 }
 
+const fetchOrEnsureProfile = async (session, user) => {
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+  const token = session?.access_token || sessionStorage.getItem('auth-token') || ''
+  const response = await fetch(`${apiUrl}/api/users/me/profile`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  })
+
+  if (!response.ok) {
+    throw new Error(`profile_fetch_failed_${response.status}`)
+  }
+
+  const body = await response.json()
+  const profile = body?.profile || null
+
+  if (!profile) {
+    return {
+      id: user.id,
+      name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+      username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
+      role: 'USER',
+      social_links: {},
+      avatar: user.user_metadata?.avatar_url || user.user_metadata?.picture || null
+    }
+  }
+
+  return {
+    ...profile,
+    avatar: profile.avatar_url || profile.avatar || null
+  }
+}
+
 const useAuthStore = create((set, get) => ({
   user: null,
   profile: null,
@@ -93,71 +127,10 @@ const useAuthStore = create((set, get) => ({
             sessionStorage.setItem('auth-token', session.access_token)
           } catch {}
 
-          // Fetch profile with timeout
+          // Fetch profile via backend (service-role) to avoid RLS issues
           try {
-            console.log('Fetching profile for user:', user.id)
-            
-            // Add timeout to prevent hanging
-            const profilePromise = supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', user.id)
-              .single()
-
-            const timeoutPromise = new Promise((_, reject) => 
-              setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
-            )
-
-            const { data, error: profileError } = await Promise.race([profilePromise, timeoutPromise])
-
-            if (profileError && (profileError.code === 'PGRST116' || profileError.status === 406)) {
-              console.log('Profile not found, creating new profile')
-              const insertPromise = supabase.from('profiles').insert({
-                id: user.id,
-                name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
-                username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
-                role: 'USER',
-                social_links: {},
-                avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null
-              })
-              
-              const insertTimeout = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Profile insert timeout')), 3000)
-              )
-              
-              await Promise.race([insertPromise, insertTimeout])
-            } else if (profileError && (profileError.status === 401 || profileError.status === 403)) {
-              console.error('Profile fetch unauthorized, signing out')
-              try { sessionStorage.removeItem('auth-token') } catch {}
-              try {
-                Object.keys(localStorage).forEach(key => {
-                  if (key.includes('supabase') || key.startsWith('sb-')) {
-                    localStorage.removeItem(key)
-                  }
-                })
-              } catch {}
-              set({ 
-                user: null, 
-                profile: null, 
-                session: null, 
-                isAuthenticated: false, 
-                isLoading: false,
-                isInitialized: true 
-              })
-              return
-            }
-
-            const finalProfile = data ? {
-              ...data,
-              avatar: data.avatar_url || data.avatar || null
-            } : {
-              id: user.id,
-              name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
-              username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
-              role: 'USER',
-              social_links: {},
-              avatar: null
-            }
+            console.log('Fetching profile via backend for user:', user.id)
+            const finalProfile = await fetchOrEnsureProfile(session, user)
 
             console.log('Setting complete auth state with profile:', finalProfile.name)
             // Set complete state at once
@@ -232,38 +205,10 @@ const useAuthStore = create((set, get) => ({
               sessionStorage.setItem('auth-token', session.access_token)
             } catch {}
 
-            // Fetch profile immediately
+            // Fetch profile via backend (service-role) to avoid RLS issues
             try {
-              console.log('Fetching profile for user:', user.id)
-              const { data, error: profileError } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', user.id)
-                .single()
-
-              if (profileError && profileError.code === 'PGRST116') {
-                console.log('Profile not found, creating new profile')
-                await supabase.from('profiles').insert({
-                  id: user.id,
-                  name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
-                  username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
-                  role: 'USER',
-                  social_links: {},
-                  avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null
-                })
-              }
-
-              const finalProfile = data ? {
-                ...data,
-                avatar: data.avatar_url || data.avatar || null
-              } : {
-                id: user.id,
-                name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
-                username: user.user_metadata?.username || user.email?.split('@')[0] || 'user',
-                role: 'USER',
-                social_links: {},
-                avatar: null
-              }
+              console.log('Fetching profile via backend for user:', user.id)
+              const finalProfile = await fetchOrEnsureProfile(session, user)
 
               console.log('Setting complete auth state with profile:', finalProfile.name)
               // Set complete state at once
@@ -340,26 +285,6 @@ const useAuthStore = create((set, get) => ({
         return { success: false, error: error.message }
       }
 
-      // If user is created, ensure profile exists
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: data.user.id,
-            username: userData.username,
-            name: userData.name
-          }, {
-            onConflict: 'id'
-          })
-
-        if (profileError) {
-          console.error('Error creating/updating profile:', profileError)
-          // Don't fail the signup, just log the error
-        } else {
-          console.log('Profile created successfully for user:', data.user.id)
-        }
-      }
-
       set({ isLoading: false })
       toast.success('E‑posta doğrulama bağlantısı gönderdik. Lütfen e‑postanızı kontrol edin.')
       return { success: true }
@@ -405,23 +330,6 @@ const useAuthStore = create((set, get) => ({
         return { success: false, error: updateError.message }
       }
 
-      // Ensure profile row exists/updated
-      try {
-        await supabase
-          .from('profiles')
-          .upsert(
-            {
-              id: updateData?.user?.id || verifyData?.user?.id,
-              username: userData.username,
-              name: userData.name,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: 'id' }
-          )
-      } catch (profileErr) {
-        console.error('Profile upsert after OTP error:', profileErr)
-      }
-
       // Some flows return no session immediately; fetch after a short delay
       let session = verifyData?.session
       if (!session) {
@@ -429,9 +337,11 @@ const useAuthStore = create((set, get) => ({
         session = (await supabase.auth.getSession()).data.session
       }
       const user = updateData?.user || verifyData?.user || session?.user
+      const profile = user ? await fetchOrEnsureProfile(session, user) : null
 
       set({
         user,
+        profile,
         session,
         isAuthenticated: true,
         isLoading: false,
@@ -501,26 +411,12 @@ const useAuthStore = create((set, get) => ({
         sessionStorage.setItem('auth-token', data.session.access_token)
       } catch {}
 
-      // Get user profile
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', data.user.id)
-        .single()
-
-      if (profileError) {
-        console.error('Error fetching profile:', profileError)
-      }
+      const profile = await fetchOrEnsureProfile(data.session, data.user)
 
       // Set complete state at once
       set({
         user: data.user,
-        profile: profile || {
-          id: data.user.id,
-          name: data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User',
-          username: data.user.user_metadata?.username || data.user.email?.split('@')[0] || 'user',
-          role: 'USER'
-        },
+        profile,
         session: data.session,
         isAuthenticated: true,
         isLoading: false

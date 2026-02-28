@@ -22,8 +22,8 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const xss = require('xss');
 const crypto = require('crypto');
-const { createClient } = require('@supabase/supabase-js');
 const axios = require('axios');
+const supabase = require('./config/supabase');
 
 const app = express();
 app.use(express.json());
@@ -231,12 +231,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Supabase setup
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
 // TMDB API setup
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_BASE_URL = process.env.TMDB_API_BASE_URL || 'https://api.themoviedb.org/3';
@@ -397,6 +391,51 @@ app.get('/api/csrf-token', requireUser, (req, res) => {
   } catch (error) {
     console.error('CSRF token generation error:', error);
     res.status(500).json({ error: 'Could not generate CSRF token' });
+  }
+});
+
+app.get('/api/users/me/profile', requireUser, async (req, res) => {
+  try {
+    const user = req.user;
+    const uid = user?.id;
+    if (!uid) return res.status(401).json({ success: false, error: 'unauthorized' });
+
+    const rawName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'User';
+    const rawUsername = user?.user_metadata?.username || user?.email?.split('@')[0] || `user_${uid.slice(0, 8)}`;
+    const username = sanitizeInput(String(rawUsername).trim().toLowerCase().replace(/\s+/g, '_')) || `user_${uid.slice(0, 8)}`;
+
+    const { data: existing, error: existingError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', uid)
+      .maybeSingle();
+
+    if (existingError && existingError.code !== 'PGRST116') throw existingError;
+
+    if (existing) {
+      return res.json({ success: true, profile: existing });
+    }
+
+    const payload = {
+      id: uid,
+      name: sanitizeInput(rawName),
+      username,
+      role: 'USER',
+      social_links: {},
+      avatar_url: user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null
+    };
+
+    const { data: inserted, error: insertError } = await supabase
+      .from('profiles')
+      .insert(payload)
+      .select('*')
+      .single();
+
+    if (insertError) throw insertError;
+    res.json({ success: true, profile: inserted });
+  } catch (error) {
+    console.error('ensure profile error:', error);
+    res.status(500).json({ success: false, error: error?.message || 'internal_error' });
   }
 });
 
@@ -703,6 +742,7 @@ app.post('/api/comments', requireUser, validateCsrfTokenMiddleware, commentRateL
         .from('movies')
         .upsert({ 
           id: mid, 
+          tmdb_id: mid,
           title: cleanTitle,
           poster_path: posterPath || null 
         }, { onConflict: 'id' });
@@ -791,6 +831,7 @@ app.post('/api/movies/ensure', requireUser, async (req, res) => {
     
     const payload = {
       id: movieId,
+      tmdb_id: movieId,
       title: cleanTitle,
       poster_path: posterPath || null
     }
@@ -845,26 +886,47 @@ app.post('/api/favorites', requireUser, validateCsrfTokenMiddleware, async (req,
   try {
     const uid = req.user.id;
     const movieIdRaw = req.body?.movieId;
+    const rawTitle = req.body?.title;
+    const rawPosterPath = req.body?.posterPath;
     const movieId = parseInt(movieIdRaw, 10);
     if (!movieId || Number.isNaN(movieId)) return res.status(400).json({ success: false, error: 'movieId required' });
+    const movieTitle = sanitizeInput((typeof rawTitle === 'string' ? rawTitle : '').trim() || `Film #${movieId}`);
+    const posterPath = typeof rawPosterPath === 'string' ? rawPosterPath : null;
     
     // Ensure movie exists in DB (CRITICAL: must complete before favorite insert)
     const { error: movieError } = await supabase
       .from('movies')
-      .upsert({ id: movieId }, { onConflict: 'id' });
+      .upsert({
+        id: movieId,
+        tmdb_id: movieId,
+        title: movieTitle,
+        poster_path: posterPath
+      }, { onConflict: 'id' });
     
     if (movieError) {
       console.error(`FK Constraint Prevention: Could not upsert movie ${movieId}:`, movieError);
       return res.status(500).json({ success: false, error: 'Movie could not be saved to database' });
     }
     
-    // Upsert-like behavior: ignore duplicates
-    const { data, error } = await supabase
+    const { data: existingFav, error: existingFavError } = await supabase
       .from('favorites')
-      .upsert({ user_id: uid, movie_id: movieId }, { onConflict: 'user_id,movie_id', ignoreDuplicates: true })
-      .select('user_id')
-      .single();
-    
+      .select('id')
+      .eq('user_id', uid)
+      .eq('movie_id', movieId)
+      .maybeSingle();
+
+    if (existingFavError && existingFavError.code !== 'PGRST116') {
+      throw existingFavError;
+    }
+
+    if (existingFav?.id) {
+      return res.json({ success: true });
+    }
+
+    const { error } = await supabase
+      .from('favorites')
+      .insert({ user_id: uid, movie_id: movieId });
+
     if (error) {
       // Log detailed error info for debugging FK constraint violations
       console.error('Favorites insert error:', {
@@ -947,7 +1009,9 @@ app.get('/api/users/:userId/favorites', requireUser, async (req, res) => {
       .order('created_at', { ascending: false })
       .range(from, to);
     if (error) throw error;
-    const items = (data || []).map(r => r.movie_id);
+    const items = (data || [])
+      .map(r => Number(r.movie_id))
+      .filter(id => !Number.isNaN(id));
     res.json({ items, totalPages: Math.ceil((count || 0) / limit) });
   } catch (e) {
     console.error('favorites list error:', e);
@@ -1483,7 +1547,12 @@ app.post('/api/recommendations', requireUser, validateCsrfTokenMiddleware, recom
             // Ensure movie exists in DB before creating recommendation (FK constraint prevention)
             const { error: movieError } = await supabase
                 .from('movies')
-                .upsert({ id: validMovieId }, { onConflict: 'id' });
+                .upsert({
+                  id: validMovieId,
+                  tmdb_id: validMovieId,
+                  title: `Film #${validMovieId}`,
+                  poster_path: null
+                }, { onConflict: 'id' });
             
             if (movieError) {
               console.error(`FK Prevention: Could not upsert movie ${validMovieId}:`, movieError);

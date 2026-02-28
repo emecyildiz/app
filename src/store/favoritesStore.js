@@ -8,21 +8,25 @@ export const useFavoritesStore = create(
       favoriteIds: new Set(), // True source from DB
       
       addToFavorites: (movie) => {
+        const movieId = Number(movie?.id)
+        if (Number.isNaN(movieId)) return
         const { favorites, favoriteIds } = get()
-        if (!favoriteIds.has(movie.id)) {
+        if (!favoriteIds.has(movieId)) {
           set({ 
             favorites: [...favorites, movie],
-            favoriteIds: new Set([...favoriteIds, movie.id])
+            favoriteIds: new Set([...favoriteIds, movieId])
           })
         }
       },
       
       removeFromFavorites: (movieId) => {
+        const numericMovieId = Number(movieId)
+        if (Number.isNaN(numericMovieId)) return
         const { favorites, favoriteIds } = get()
         const newIds = new Set(favoriteIds)
-        newIds.delete(movieId)
+        newIds.delete(numericMovieId)
         set({ 
-          favorites: favorites.filter(f => f.id !== movieId),
+          favorites: favorites.filter(f => Number(f.id) !== numericMovieId),
           favoriteIds: newIds
         })
       },
@@ -35,13 +39,18 @@ export const useFavoritesStore = create(
       },
       
       isFavorite: (movieId) => {
+        const numericMovieId = Number(movieId)
+        if (Number.isNaN(numericMovieId)) return false
         const { favoriteIds } = get()
-        return favoriteIds.has(movieId)
+        return favoriteIds.has(numericMovieId)
       },
       
       // Sync from DB - called on app load and after add/remove
       syncFromDB: (favoriteIds) => {
-        set({ favoriteIds: new Set(favoriteIds) })
+        const normalized = (Array.isArray(favoriteIds) ? favoriteIds : [])
+          .map(id => Number(id))
+          .filter(id => !Number.isNaN(id))
+        set({ favoriteIds: new Set(normalized) })
       },
       
       getFavoritesCount: () => {

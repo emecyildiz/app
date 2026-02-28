@@ -130,8 +130,18 @@ class UserService {
     }
   }
 
-  async addFavorite(movieId) {
-    const response = await axios.post(`${API_URL}/api/favorites`, { movieId }, {
+  async addFavorite(movie) {
+    const movieId = parseInt(typeof movie === 'number' ? movie : movie?.id, 10)
+    const title =
+      (typeof movie === 'object' ? (movie?.title || movie?.original_title) : null) ||
+      (movieId ? `Film #${movieId}` : null)
+    const posterPath = typeof movie === 'object' ? (movie?.poster_path || null) : null
+
+    if (!movieId || Number.isNaN(movieId)) {
+      throw new Error('invalid_movieId')
+    }
+
+    const response = await axios.post(`${API_URL}/api/favorites`, { movieId, title, posterPath }, {
       headers: this.getAuthHeaders()
     });
     if (!response.data?.success) {
