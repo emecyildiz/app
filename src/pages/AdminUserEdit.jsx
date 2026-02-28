@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 export default function AdminUserEdit() {
   const { userId } = useParams()
   const navigate = useNavigate()
-  const { profile: currentUser, getAllUsers, updateUserProfile } = useAuthStore()
+  const { profile: currentUser, getAllUsers, fetchAdminUsers, updateUserProfile } = useAuthStore()
   const [loading, setLoading] = useState(false)
   const [userData, setUserData] = useState(null)
   const [formData, setFormData] = useState({
@@ -29,25 +29,35 @@ export default function AdminUserEdit() {
   }
 
   useEffect(() => {
-    const users = getAllUsers()
-    const targetUser = users.find(u => u.id === userId)
-    
-    if (targetUser) {
-      setUserData(targetUser)
-      setFormData({
-        name: targetUser.name || '',
-        username: targetUser.username || '',
-        email: targetUser.email || '',
-        bio: targetUser.bio || '',
-        location: targetUser.location || '',
-        socialLinks: {
-          twitter: targetUser.socialLinks?.twitter || '',
-          instagram: targetUser.socialLinks?.instagram || '',
-          letterboxd: targetUser.socialLinks?.letterboxd || ''
+    const loadUserData = async () => {
+      try {
+        // Fetch admin users list from backend if not already cached
+        const users = await fetchAdminUsers()
+        const targetUser = users?.find(u => u.id === userId) || getAllUsers()?.find(u => u.id === userId)
+        
+        if (targetUser) {
+          setUserData(targetUser)
+          setFormData({
+            name: targetUser.name || '',
+            username: targetUser.username || '',
+            email: targetUser.email || '',
+            bio: targetUser.bio || '',
+            location: targetUser.location || '',
+            socialLinks: {
+              twitter: targetUser.socialLinks?.twitter || '',
+              instagram: targetUser.socialLinks?.instagram || '',
+              letterboxd: targetUser.socialLinks?.letterboxd || ''
+            }
+          })
         }
-      })
+      } catch (error) {
+        console.error('Error loading user data:', error)
+        toast.error('Kullanıcı verileri yüklenirken hata oluştu')
+      }
     }
-  }, [userId, getAllUsers])
+
+    loadUserData()
+  }, [userId, fetchAdminUsers, getAllUsers])
 
   if (!userData) {
     return (

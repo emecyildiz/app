@@ -67,6 +67,7 @@ const useAuthStore = create((set, get) => ({
   session: null,
   isInitialized: false, // Track if auth has been initialized
   isInitializing: false,
+  adminUsers: [], // Cache for admin users list
 
   // Initialize auth state
   initializeAuth: async () => {
@@ -785,7 +786,93 @@ const useAuthStore = create((set, get) => ({
   isModeratorOrAdmin: () => {
     const profile = get().profile
     return profile?.role === 'ADMIN' || profile?.role === 'MODERATOR'
+  },
+
+  // Get all users for admin (cached)
+  getAllUsers: () => {
+    return get().adminUsers
+  },
+
+  // Fetch users list for admin
+  fetchAdminUsers: async () => {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+      const token = sessionStorage.getItem('auth-token') || ''
+      const response = await fetch(`${apiUrl}/api/admin/users`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        console.error('Failed to fetch admin users:', response.status)
+        return
+      }
+
+      const users = await response.json()
+      set({ adminUsers: users })
+      return users
+    } catch (error) {
+      console.error('Error fetching admin users:', error)
+    }
+  },
+
+  // Update user profile (admin action)
+  updateUserProfile: async (userId, updates) => {
+    try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+      const token = sessionStorage.getItem('auth-token') || ''
+      const csrfToken = await getCsrfToken()
+
+      // Build payload with only allowed fields (must match backend ALLOWED_FIELDS)
+      const payload = {}
+      if (updates.name !== undefined) payload.name = updates.name || null
+      if (updates.username !== undefined) payload.username = updates.username || null
+      if (updates.bio !== undefined) payload.bio = updates.bio || null
+      if (updates.location !== undefined) payload.location = updates.location || null
+      
+      // Convert camelCase to snake_case for backend
+      if (updates.socialLinks !== undefined) {
+        payload.social_links = updates.socialLinks
+      }
+
+      console.log('Updating user with payload:', payload)
+
+      const response = await fetch(`${apiUrl}/api/admin/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'x-csrf-token': csrfToken || ''
+        },
+        body: JSON.stringify(payload)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('Update failed:', errorData)
+        toast.error('Kullanıcı güncellenemedi: ' + (errorData.error || 'Bilinmeyen hata'))
+        return { success: false, error: errorData.error }
+      }
+
+      const result = await response.json()
+      toast.success('Kullanıcı başarıyla güncellendi!')
+
+      // Update local cache with original format for frontend consistency
+      set(state => ({
+        adminUsers: state.adminUsers.map(u => 
+          u.id === userId ? { ...u, ...updates } : u
+        )
+      }))
+
+      return { success: true, data: result }
+    } catch (error) {
+      console.error('Error updating user:', error)
+      toast.error('Güncelleme sırasında hata oluştu: ' + error.message)
+      return { success: false, error: error.message }
+    }
   }
-}))
+})
 
 export { useAuthStore }

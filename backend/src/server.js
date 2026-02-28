@@ -72,7 +72,7 @@ const sanitizeInput = (input) => {
 // ===== MASS ASSIGNMENT PREVENTION =====
 const ALLOWED_FIELDS = {
   'profiles': ['name', 'username', 'bio', 'social_links', 'isPublic'], // Whilelisting: sadece bu alanlar
-  'admin_update': ['name', 'username', 'bio', 'location']  // Admin düzenleme için izin verilen
+  'admin_update': ['name', 'username', 'bio', 'location', 'social_links']  // Admin düzenleme için izin verilen
 };
 
 // Input validation function (Mass Assignment protection)
