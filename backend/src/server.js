@@ -788,7 +788,10 @@ app.get('/api/users/me/comments', requireUser, async (req, res) => {
     const to = from + limit - 1;
     const { data, error, count } = await supabase
       .from('comments')
-      .select('*', { count: 'exact' })
+      .select(`
+        *,
+        movie:movies!comments_movie_id_fkey(id, title, poster_path)
+      `, { count: 'exact' })
       .eq('user_id', uid)
       .order('created_at', { ascending: false })
       .range(from, to);

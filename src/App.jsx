@@ -43,6 +43,20 @@ function App() {
   const { isAuthenticated, user, isLoading, isInitialized, isInitializing } = useAuthStore()
   const { syncFromDB } = useFavoritesStore()
 
+  // Setup auth state listener with proper cleanup (runs once on mount)
+  useEffect(() => {
+    console.log('Setting up auth listener...')
+    const subscription = useAuthStore.getState().setupAuthListener()
+    
+    // Cleanup function: unsubscribe when component unmounts
+    return () => {
+      console.log('Cleaning up auth listener...')
+      if (subscription?.unsubscribe) {
+        subscription.unsubscribe()
+      }
+    }
+  }, []) // Empty dependency array: run once on mount, cleanup on unmount
+
   // Load favorites from DB when user authenticates
   useEffect(() => {
     const loadFavoritesFromDB = async () => {

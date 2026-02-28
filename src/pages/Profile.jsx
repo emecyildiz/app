@@ -856,10 +856,40 @@ const Profile = () => {
                   <div className="space-y-4">
                     {myComments.map((c) => (
                       <div key={c.id} className="glass rounded-xl p-4">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="text-gray-300 whitespace-pre-wrap flex-1">{c.content}</div>
+                        <div className="flex gap-4">
+                          {/* Film Posteri */}
+                          {c.movie && (
+                            <a 
+                              href={`/movie/${c.movie_id}`}
+                              className="flex-shrink-0 group"
+                            >
+                              <img
+                                src={c.movie.poster_path ? `https://image.tmdb.org/t/p/w92${c.movie.poster_path}` : '/placeholder-movie.png'}
+                                alt={c.movie.title || 'Film'}
+                                className="w-16 h-24 object-cover rounded-lg shadow-lg group-hover:scale-105 transition-transform"
+                              />
+                            </a>
+                          )}
+                          
+                          {/* Yorum İçeriği */}
+                          <div className="flex-1 flex flex-col">
+                            {c.movie && (
+                              <a 
+                                href={`/movie/${c.movie_id}`}
+                                className="text-primary-400 hover:text-primary-300 font-semibold mb-2 transition-colors"
+                              >
+                                {c.movie.title || `Film #${c.movie_id}`}
+                              </a>
+                            )}
+                            <div className="text-gray-300 whitespace-pre-wrap flex-1">{c.content}</div>
+                            <div className="text-xs text-gray-500 mt-2">
+                              {new Date(c.created_at).toLocaleString('tr-TR')}
+                            </div>
+                          </div>
+
+                          {/* Sil Butonu */}
                           <button
-                            className="btn btn-secondary btn-sm"
+                            className="btn btn-secondary btn-sm self-start"
                             onClick={async () => {
                               const ok = await userService.deleteComment(c.movie_id)
                               if (ok) {
@@ -870,9 +900,6 @@ const Profile = () => {
                           >
                             Sil
                           </button>
-                        </div>
-                        <div className="text-xs text-gray-500 mt-2">
-                          {new Date(c.created_at).toLocaleString('tr-TR')}
                         </div>
                       </div>
                     ))}

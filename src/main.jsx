@@ -6,12 +6,11 @@ import { useAuthStore } from './store/newAuthStore'
 
 // Single-source auth bootstrap: do it once here, guarded against StrictMode double-invoke
 const authStore = useAuthStore.getState()
-let authSubscription = null
 ;(async () => {
   try {
     if (!authStore.isInitialized && !authStore.isInitializing) {
       await authStore.initializeAuth()
-      authSubscription = authStore.setupAuthListener()
+      // Note: setupAuthListener is now called in App.jsx useEffect for proper cleanup
     } else {
       console.log('Bootstrap: auth already initializing/initialized, skipping...')
     }
@@ -19,15 +18,6 @@ let authSubscription = null
     console.error('Bootstrap auth error:', e)
   }
 })()
-
-// Cleanup listener on app unmount (for HMR/dev)
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', () => {
-    if (authSubscription?.unsubscribe) {
-      authSubscription.unsubscribe()
-    }
-  })
-}
 
 // Setup dynamic viewport unit to handle mobile browser UI chrome
 const setViewportUnit = () => {
