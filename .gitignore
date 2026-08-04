@@ -33,5 +33,4 @@ coverage/
 node_modules/
 .env
 *.log
-package-lock.json
 .DS_Store
