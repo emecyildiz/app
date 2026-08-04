@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 const { query, withTransaction } = require('../config/database');
 const { clearSessionCookie, readSessionToken, serializeSessionCookie } = require('../auth/cookies');
 const { createToken, hashIpAddress, hashToken } = require('../auth/tokens');
-const { normalizeEmail, validatePassword, validateRegistration } = require('../auth/validation');
+const { normalizeEmail, normalizeUsername, validatePassword, validateRegistration } = require('../auth/validation');
 const { loadSession, requireSession, requireSessionCsrf } = require('../middleware/sessionAuth');
 const { sendPasswordResetEmail, sendVerificationEmail } = require('../services/emailService');
 
@@ -235,6 +235,75 @@ router.get('/csrf', requireSession, async (req, res, next) => {
     );
     return res.json({ csrfToken });
   } catch (error) {
+    return next(error);
+  }
+});
+
+router.patch('/profile', requireSessionCsrf, async (req, res, next) => {
+  try {
+    const name = req.body?.name === undefined ? undefined : String(req.body.name).trim();
+    const username = req.body?.username === undefined ? undefined : normalizeUsername(req.body.username);
+    const bio = req.body?.bio === undefined ? undefined : String(req.body.bio).trim();
+    const location = req.body?.location === undefined ? undefined : String(req.body.location).trim();
+    const avatarUrl = req.body?.avatarUrl === undefined ? undefined : String(req.body.avatarUrl).trim();
+    const socialLinks = req.body?.socialLinks;
+
+    if (name !== undefined && (name.length < 2 || name.length > 120)) {
+      return res.status(400).json({ error: 'invalid_profile', message: 'Name must contain between 2 and 120 characters.' });
+    }
+    if (username !== undefined && !/^[a-z0-9_]{3,32}$/.test(username)) {
+      return res.status(400).json({ error: 'invalid_profile', message: 'Username must be 3-32 characters and use lowercase letters, numbers, or underscores.' });
+    }
+    if (bio !== undefined && bio.length > 1000) {
+      return res.status(400).json({ error: 'invalid_profile', message: 'Bio must not exceed 1,000 characters.' });
+    }
+    if (location !== undefined && location.length > 120) {
+      return res.status(400).json({ error: 'invalid_profile', message: 'Location must not exceed 120 characters.' });
+    }
+    if (avatarUrl !== undefined && avatarUrl.length > 2048) {
+      return res.status(400).json({ error: 'invalid_profile', message: 'Avatar URL is too long.' });
+    }
+    if (avatarUrl && !avatarUrl.startsWith('/') && !/^https:\/\//i.test(avatarUrl)) {
+      return res.status(400).json({ error: 'invalid_profile', message: 'Avatar URL must use HTTPS or a local path.' });
+    }
+    if (socialLinks !== undefined) {
+      if (!socialLinks || typeof socialLinks !== 'object' || Array.isArray(socialLinks)) {
+        return res.status(400).json({ error: 'invalid_profile', message: 'Social links must be an object.' });
+      }
+      const serialized = JSON.stringify(socialLinks);
+      const invalidValue = Object.values(socialLinks).some((value) => typeof value !== 'string' || value.length > 200);
+      if (serialized.length > 2000 || invalidValue) {
+        return res.status(400).json({ error: 'invalid_profile', message: 'Social links contain an invalid value.' });
+      }
+    }
+
+    const result = await query(
+      `UPDATE profiles
+       SET name = COALESCE($2, name),
+           username = COALESCE($3, username),
+           bio = COALESCE($4, bio),
+           location = COALESCE($5, location),
+           avatar_url = COALESCE($6, avatar_url),
+           social_links = COALESCE($7::jsonb, social_links),
+           updated_at = now()
+       WHERE id = $1
+       RETURNING id, name, username, bio, location, avatar_url, social_links, created_at`,
+      [
+        req.user.id,
+        name,
+        username,
+        bio,
+        location,
+        avatarUrl,
+        socialLinks === undefined ? undefined : JSON.stringify(socialLinks),
+      ],
+    );
+
+    return res.json({ profile: result.rows[0] });
+  } catch (error) {
+    if (error.code === '23505') {
+      return res.status(409).json({ error: 'username_unavailable', message: 'That username is unavailable.' });
+    }
     return next(error);
   }
 });

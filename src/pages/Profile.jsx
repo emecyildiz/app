@@ -67,7 +67,6 @@ const Profile = () => {
       const updates = {
         name: data.name,
         username: data.username,
-        email: data.email,
         bio: data.bio,
         isPublic: data.isPublic,
         socialLinks: {
@@ -1304,18 +1303,11 @@ const Profile = () => {
                 </label>
                 <input
                   type="email"
-                  {...register('email', {
-                    required: 'E-posta gereklidir',
-                    pattern: {
-                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Geçerli bir e-posta adresi girin',
-                    },
-                  })}
-                  className="input"
+                  {...register('email')}
+                  className="input opacity-70 cursor-not-allowed"
+                  disabled
                 />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-400">{errors.email.message}</p>
-                )}
+                <p className="mt-1 text-xs text-gray-500">Email changes require a separate verification flow and are currently disabled.</p>
               </div>
 
               <div>

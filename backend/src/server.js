@@ -115,7 +115,9 @@ app.use((req, res, next) => {
   if (isLocal) return next();
 
   // Geçerli adreslerimiz (Vercel ve Cloudflare)
-  const allowedOrigins = ['https://findemo.me', 'https://ratemet.vercel.app'];
+  const allowedOrigins = (process.env.ALLOWED_ORIGIN || process.env.CORS_ORIGIN || 'https://ratemet.emecworks.com')
+    .split(',')
+    .map((value) => value.trim());
 
   // Eğer istek dışarıdan geliyorsa ama bizim resmi adreslerimizden kopup gelmediyse engelle!
   if (origin && !allowedOrigins.includes(origin)) {
@@ -212,7 +214,7 @@ const rawOrigins = [
   .join(',');
 
 // Include production URLs as defaults if env vars are not set
-const defaultOrigins = 'http://localhost:3001,http://localhost:3002,https://ratemet.vercel.app,https://findemo.me';
+const defaultOrigins = 'http://localhost:5173,http://localhost:3001,http://localhost:3002,https://ratemet.emecworks.com';
 const allowedOrigins = (rawOrigins || defaultOrigins)
   .split(',')
   .map((o) => o.trim());

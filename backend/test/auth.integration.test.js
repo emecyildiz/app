@@ -109,6 +109,35 @@ test('registration, login, session, CSRF rotation, and logout work together', as
   const { csrfToken } = await csrf.json();
   assert.ok(csrfToken);
 
+  const rejectedProfileUpdate = await request('/api/auth/profile', {
+    method: 'PATCH',
+    headers: { Cookie: cookie, 'x-csrf-token': 'invalid-token' },
+    body: JSON.stringify({ name: 'Updated Viewer' }),
+  });
+  assert.equal(rejectedProfileUpdate.status, 403);
+
+  const profileUpdate = await request('/api/auth/profile', {
+    method: 'PATCH',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({
+      name: 'Updated Viewer',
+      username: 'updated_viewer',
+      bio: 'A short profile bio.',
+      socialLinks: { letterboxd: 'updated-viewer', privacy: 'public' },
+    }),
+  });
+  assert.equal(profileUpdate.status, 200);
+  const profileBody = await profileUpdate.json();
+  assert.equal(profileBody.profile.name, 'Updated Viewer');
+  assert.equal(profileBody.profile.username, 'updated_viewer');
+  assert.equal(profileBody.profile.social_links.letterboxd, 'updated-viewer');
+
+  const updatedSession = await request('/api/auth/session', {
+    headers: { Cookie: cookie },
+  });
+  assert.equal(updatedSession.status, 200);
+  assert.equal((await updatedSession.json()).user.username, 'updated_viewer');
+
   const rejectedLogout = await request('/api/auth/logout', {
     method: 'POST',
     headers: { Cookie: cookie, 'x-csrf-token': 'invalid-token' },
