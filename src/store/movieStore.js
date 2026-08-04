@@ -13,6 +13,7 @@ export const useMovieStore = create((set, get) => ({
   searchQuery: '',
   selectedGenre: null,
   sortBy: 'popularity.desc',
+  listType: 'popular',
 
   // Actions
   setLoading: (loading) => set({ loading }),
@@ -42,6 +43,9 @@ export const useMovieStore = create((set, get) => ({
         movies: response.results,
         currentPage: response.page,
         totalPages: response.total_pages,
+        listType: type,
+        searchQuery: '',
+        selectedGenre: null,
         loading: false
       })
     } catch (error) {
@@ -60,7 +64,7 @@ export const useMovieStore = create((set, get) => ({
     }
   },
 
-  // Film arama
+  // Search for movies.
   searchMovies: async (query, page = 1) => {
     if (!query.trim()) {
       get().loadMovies('popular', page)
@@ -108,19 +112,19 @@ export const useMovieStore = create((set, get) => ({
     }
   },
 
-  // Change the active page.
+  // Change the active page without losing the current catalog mode.
   changePage: (page) => {
-    const { searchQuery, selectedGenre } = get()
+    const { searchQuery, selectedGenre, listType } = get()
     if (searchQuery) {
       get().searchMovies(searchQuery, page)
     } else if (selectedGenre) {
       get().loadMoviesByGenre(selectedGenre, page)
     } else {
-      get().loadMovies('popular', page)
+      get().loadMovies(listType, page)
     }
   },
 
-  // Arama temizle
+  // Clear the active search.
   clearSearch: () => {
     set({ searchQuery: '', selectedGenre: null })
     get().loadMovies('popular', 1)
