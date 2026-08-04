@@ -1,116 +1,62 @@
-import { Film, Heart, Github, Mail } from 'lucide-react'
-import { APP_NAME, APP_LOGO_URL } from '../config/appConfig'
+import { ArrowUpRight, Github } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { APP_NAME } from '../config/appConfig'
 
 const Footer = () => {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="bg-dark-200 border-t border-dark-500 mt-20">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand */}
-          <div className="space-y-4">
-            <Link to="/" className="flex items-center gap-2 text-xl font-bold text-white">
-                                            <img src="/brand/ratemet-logo.svg" alt={APP_NAME} className="h-10 w-auto" />
-            </Link>
-            <p className="text-gray-400 text-sm">
-              A modern catalog and rating platform for movie enthusiasts.
-              Discover titles, read opinions, and build your own collections.
-            </p>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-white font-semibold mb-4">Quick links</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link to="/" className="text-gray-400 hover:text-primary-400 transition-colors">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link to="/movies" className="text-gray-400 hover:text-primary-400 transition-colors">
-                  Filmler
-                </Link>
-              </li>
-              <li>
-                <Link to="/about" className="text-gray-400 hover:text-primary-400 transition-colors">
-                  About
-                </Link>
-              </li>
-              <li>
-                <Link to="/profile" className="text-gray-400 hover:text-primary-400 transition-colors">
-                  Profil
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Categories */}
-          <div>
-            <h3 className="text-white font-semibold mb-4">Kategoriler</h3>
-            <ul className="space-y-2">
-              <li>
-                <Link to="/movies?genre=action" className="text-gray-400 hover:text-primary-400 transition-colors">
-                  Aksiyon
-                </Link>
-              </li>
-              <li>
-                <Link to="/movies?genre=drama" className="text-gray-400 hover:text-primary-400 transition-colors">
-                  Dram
-                </Link>
-              </li>
-              <li>
-                <Link to="/movies?genre=comedy" className="text-gray-400 hover:text-primary-400 transition-colors">
-                  Komedi
-                </Link>
-              </li>
-              <li>
-                <Link to="/movies?genre=horror" className="text-gray-400 hover:text-primary-400 transition-colors">
-                  Korku
-                </Link>
-              </li>
-              <li>
-                <Link to="/movies?genre=thriller" className="text-gray-400 hover:text-primary-400 transition-colors">
-                  Gerilim
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Social Links */}
-          <div>
-            <h3 className="text-white font-semibold mb-4">Contact</h3>
-            <div className="flex gap-4">
-              <a
-                href="https://github.com/emecyildiz"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 rounded-lg bg-dark-300 flex items-center justify-center text-gray-400 hover:bg-primary-500 hover:text-white transition-all"
-                aria-label="GitHub"
-              >
-                <Github className="w-5 h-5" />
-              </a>
-              <a
-                href="mailto:emecyildiz@gmail.com"
-                className="w-10 h-10 rounded-lg bg-dark-300 flex items-center justify-center text-gray-400 hover:bg-primary-500 hover:text-white transition-all"
-                aria-label="Email"
-              >
-                <Mail className="w-5 h-5" />
-              </a>
-            </div>
-          </div>
+    <footer className="border-t border-white/10 bg-[#0d0e0c] text-[#a09d95]">
+      <div className="mx-auto grid max-w-[1440px] gap-12 px-5 py-14 sm:px-8 lg:grid-cols-[1.4fr_0.6fr_0.6fr] lg:px-12 lg:py-20">
+        <div className="max-w-xl">
+          <Link to="/" className="font-display text-3xl text-[#e8e3d9] transition hover:text-[#e85d4a]">
+            {APP_NAME}
+          </Link>
+          <p className="mt-4 max-w-md text-sm leading-7">
+            A personal film archive for discovering, rating, and remembering what you watch.
+          </p>
+          <p className="mt-8 font-mono text-[10px] uppercase tracking-[0.22em] text-[#77756f]">
+            An Emecworks project
+          </p>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-dark-500 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-gray-400 text-sm">
-            © {currentYear} {APP_NAME}. All rights reserved.
-          </p>
-          <p className="text-gray-400 text-sm flex items-center gap-1">
-            Made with <Heart className="w-4 h-4 text-primary-500" /> by {APP_NAME} Team
-          </p>
+        <div>
+          <p className="ui-eyebrow">Explore</p>
+          <nav className="mt-5 flex flex-col items-start gap-3 text-sm">
+            <Link to="/movies" className="transition hover:text-[#e8e3d9]">Film index</Link>
+            <Link to="/about" className="transition hover:text-[#e8e3d9]">About the project</Link>
+            <Link to="/privacy" className="transition hover:text-[#e8e3d9]">Privacy</Link>
+            <Link to="/terms" className="transition hover:text-[#e8e3d9]">Terms</Link>
+          </nav>
+        </div>
+
+        <div>
+          <p className="ui-eyebrow">Elsewhere</p>
+          <div className="mt-5 flex flex-col items-start gap-3 text-sm">
+            <a
+              href="https://github.com/emecyildiz"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 transition hover:text-[#e8e3d9]"
+            >
+              <Github className="h-4 w-4" /> GitHub
+            </a>
+            <a
+              href="https://emecworks.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 transition hover:text-[#e8e3d9]"
+            >
+              Emecworks <ArrowUpRight className="h-4 w-4" />
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-white/10 px-5 py-5 sm:px-8 lg:px-12">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-2 font-mono text-[10px] uppercase tracking-[0.16em] text-[#66645f] sm:flex-row sm:items-center sm:justify-between">
+          <span>&copy; {currentYear} {APP_NAME}</span>
+          <span>Independent film notes, without the noise</span>
         </div>
       </div>
     </footer>

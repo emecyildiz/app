@@ -1,432 +1,295 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Home, Film, Info, User, LogIn, UserPlus, Menu, X, LogOut, Shield, Users, Search, Heart, Star, MessageSquare, Share2, Settings } from 'lucide-react'
-import { useRef } from 'react'
-import { userService } from '../services/userService'
+import {
+  Film,
+  Heart,
+  Info,
+  LogIn,
+  LogOut,
+  Menu,
+  MessageSquare,
+  Search,
+  Settings,
+  Share2,
+  Shield,
+  Star,
+  User,
+  UserPlus,
+  Users,
+  X,
+} from 'lucide-react'
 import { APP_NAME } from '../config/appConfig'
-import { useAuthStore } from '../store/newAuthStore'
 import recommendationService from '../services/recommendationService'
+import { userService } from '../services/userService'
+import { useAuthStore } from '../store/newAuthStore'
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const location = useLocation()
-  const navigate = useNavigate()
-  const { isAuthenticated, user, profile, signOut } = useAuthStore()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [isSearching, setIsSearching] = useState(false)
-  const searchTimeout = useRef(null)
-  const [hasNewRec, setHasNewRec] = useState(false)
+  const [hasSearched, setHasSearched] = useState(false)
+  const [hasNewRecommendation, setHasNewRecommendation] = useState(false)
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { isAuthenticated, user, profile, signOut } = useAuthStore()
 
-  // Guard: if auth store hasn't hydrated yet, avoid rendering actions that rely on it
-  const safeIsAuthenticated = Boolean(isAuthenticated && profile && user)
-
-  const handleSearchChange = (e) => {
-    setQuery(e.target.value)
-    setResults([])
-  }
-
-  const handleSearchSubmit = async (e) => {
-    e.preventDefault()
-    const value = query.trim()
-    if (!value || value.length < 2) return
-    setIsSearching(true)
-    try {
-      const res = await userService.searchUsers(value, 8)
-      setResults(res)
-    } finally {
-      setIsSearching(false)
-    }
-  }
-
-  const goToPublicProfile = (username, id) => {
-    setQuery('')
-    setResults([])
-    // Prefer username routing; fallback to id if username yok
-    const target = (username && username.trim().length > 0) ? username : id
-    navigate(`/u/${encodeURIComponent(target)}`)
-  }
+  const hasSession = Boolean(isAuthenticated && profile && user)
+  const isProfileRoute = location.pathname.startsWith('/profile')
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
-    }
-
-    window.addEventListener('scroll', handleScroll)
+    const handleScroll = () => setIsScrolled(window.scrollY > 12)
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Helper to persist last viewed time for recommendations
-  const getLastViewedAt = () => {
-    try { return Number(localStorage.getItem('recs-last-viewed-at') || 0) || 0 } catch { return 0 }
-  }
-  const setLastViewedAt = (ts) => {
-    try { localStorage.setItem('recs-last-viewed-at', String(ts)) } catch {}
-  }
-
-  // Load and check for new pending recommendations (dot indicator)
   useEffect(() => {
     let mounted = true
     let inFlight = false
-    const loadPending = async () => {
+
+    const loadPendingRecommendations = async () => {
+      if (!hasSession || inFlight) {
+        if (!hasSession && mounted) setHasNewRecommendation(false)
+        return
+      }
+
+      inFlight = true
       try {
-        if (!safeIsAuthenticated) { setPendingRecCount(0); return }
-        if (inFlight) return
-        inFlight = true
-        const recs = await recommendationService.getRecommendations('received', 'pending')
+        const recommendations = await recommendationService.getRecommendations('received', 'pending')
         if (!mounted) return
-        const lastViewed = getLastViewedAt()
-        let latest = 0
-        if (Array.isArray(recs)) {
-          for (const r of recs) {
-            const t = r?.created_at ? Date.parse(r.created_at) : 0
-            if (Number.isFinite(t) && t > latest) latest = t
-          }
-        }
-        const nextHasNew = latest > 0 && latest > lastViewed
-        setHasNewRec((prev) => prev !== nextHasNew ? nextHasNew : prev)
-      } catch (_) {
-        if (mounted) setHasNewRec(false)
+
+        const lastViewedAt = Number(localStorage.getItem('recs-last-viewed-at') || 0) || 0
+        const latestCreatedAt = Array.isArray(recommendations)
+          ? recommendations.reduce((latest, recommendation) => {
+              const createdAt = recommendation?.created_at ? Date.parse(recommendation.created_at) : 0
+              return Number.isFinite(createdAt) ? Math.max(latest, createdAt) : latest
+            }, 0)
+          : 0
+
+        setHasNewRecommendation(latestCreatedAt > lastViewedAt)
+      } catch {
+        if (mounted) setHasNewRecommendation(false)
       } finally {
         inFlight = false
       }
     }
-    loadPending()
-    const id = setInterval(loadPending, 120000)
-    return () => { mounted = false; clearInterval(id) }
-  }, [safeIsAuthenticated])
 
-  // When user opens recommendations page, mark as viewed and clear dot
-  useEffect(() => {
-    if (!safeIsAuthenticated) return
-    const isRecsPage = location.pathname.startsWith('/profile/recommendations')
-    if (isRecsPage) {
-      setHasNewRec(false)
-      try { localStorage.setItem('recs-last-viewed-at', String(Date.now())) } catch {}
+    loadPendingRecommendations()
+    const intervalId = window.setInterval(loadPendingRecommendations, 120000)
+    return () => {
+      mounted = false
+      window.clearInterval(intervalId)
     }
-  }, [location.pathname, safeIsAuthenticated])
+  }, [hasSession])
+
+  useEffect(() => {
+    if (hasSession && location.pathname.startsWith('/profile/recommendations')) {
+      setHasNewRecommendation(false)
+      localStorage.setItem('recs-last-viewed-at', String(Date.now()))
+    }
+  }, [hasSession, location.pathname])
+
+  const handleSearchChange = (event) => {
+    setQuery(event.target.value)
+    setResults([])
+    setHasSearched(false)
+  }
+
+  const handleSearchSubmit = async (event) => {
+    event.preventDefault()
+    const value = query.trim()
+    if (value.length < 2) return
+
+    setIsSearching(true)
+    setHasSearched(false)
+    try {
+      const matches = await userService.searchUsers(value, 8)
+      setResults(matches)
+    } finally {
+      setIsSearching(false)
+      setHasSearched(true)
+    }
+  }
+
+  const goToPublicProfile = (username, id) => {
+    const target = username?.trim() || id
+    setQuery('')
+    setResults([])
+    setHasSearched(false)
+    navigate(`/u/${encodeURIComponent(target)}`)
+  }
 
   const navLinks = [
-    { path: '/', label: 'Home', icon: Home },
-    { path: '/movies', label: 'Filmler', icon: Film },
+    { path: '/movies', label: 'Films', icon: Film },
     { path: '/about', label: 'About', icon: Info },
-    ...(safeIsAuthenticated ? [{ path: '/profile', label: 'Profil', icon: User }] : []),
-    ...(safeIsAuthenticated && profile?.role === 'ADMIN' ? [{ path: '/admin', label: 'Admin Panel', icon: Shield }] : []),
-    ...(safeIsAuthenticated && profile?.role === 'MODERATOR' ? [{ path: '/moderator', label: 'Moderator panel', icon: Shield }] : []),
+    ...(hasSession ? [{ path: '/profile/overview', label: 'Journal', icon: User }] : []),
+    ...(hasSession && profile?.role === 'ADMIN' ? [{ path: '/admin', label: 'Admin', icon: Shield }] : []),
+    ...(hasSession && profile?.role === 'MODERATOR' ? [{ path: '/moderator', label: 'Moderation', icon: Shield }] : []),
   ]
 
-  const isProfileRoute = location.pathname.startsWith('/profile')
   const profileTabs = [
     { id: 'overview', label: 'Overview', icon: User },
-    { id: 'favorites', label: 'Favorilerim', icon: Heart },
-    { id: 'ratings', label: 'Puanlar', icon: Star },
+    { id: 'favorites', label: 'Favorites', icon: Heart },
+    { id: 'ratings', label: 'Ratings', icon: Star },
     { id: 'comments', label: 'Comments', icon: MessageSquare },
-    { id: 'recommendations', label: 'Recommendations', icon: Share2, dot: hasNewRec },
+    { id: 'recommendations', label: 'Recommendations', icon: Share2, dot: hasNewRecommendation },
     { id: 'friends', label: 'Friends', icon: Users },
     { id: 'settings', label: 'Settings', icon: Settings },
   ]
 
+  const isActivePath = (path) => {
+    if (path === '/movies') return location.pathname.startsWith('/movies')
+    if (path.startsWith('/profile')) return location.pathname.startsWith('/profile')
+    return location.pathname === path
+  }
+
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'glass-dark shadow-lg' : 'bg-transparent'
-      }`}
-    >
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link
-            to="/"
-            className="flex items-center gap-2 text-xl font-bold text-white hover:text-primary-400 transition-colors"
-          >
-            <img src="/brand/ratemet-logo.svg" alt={APP_NAME} className="h-10 w-auto" />
-          </Link>
+    <header className={`fixed inset-x-0 top-0 z-50 border-b transition-colors duration-300 ${isScrolled ? 'border-white/10 bg-[#0d0e0c]/95 backdrop-blur-xl' : 'border-white/[0.07] bg-[#0d0e0c]/90'}`}>
+      <nav aria-label="Primary navigation" className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between px-5 sm:px-8 lg:px-12">
+        <Link to="/" className="group flex items-center gap-3" aria-label={`${APP_NAME} home`}>
+          <img src="/brand/ratemet-logo.svg" alt="" className="h-8 w-auto sm:h-9" />
+          <span className="hidden border-l border-white/10 pl-3 font-mono text-[9px] uppercase tracking-[0.2em] text-[#77756f] xl:block">
+            Film journal<br />and catalog
+          </span>
+        </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-            {/* Nav Links */}
-            <ul className="flex items-center gap-6">
-              {navLinks.map((link) => {
-                const Icon = link.icon
-                const isActive = location.pathname === link.path
-                return (
-                  <li key={link.path}>
-                    <Link
-                      to={link.path}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                        isActive
-                          ? 'text-primary-400 bg-primary-400/10'
-                          : 'text-gray-300 hover:text-white hover:bg-white/10'
-                      }`}
-                    >
-                      <Icon className="w-4 h-4" />
-                      <span>{link.label}</span>
-                    </Link>
-                  </li>
-                )
-              })}
-            </ul>
-
-            {/* User Search */}
-            <div className="relative w-72">
-              <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-2">
-                <Search className="w-4 h-4 text-gray-400" />
-                <input
-                  value={query}
-                  onChange={handleSearchChange}
-                  placeholder="Search users..."
-                  className="bg-transparent outline-none text-sm text-white placeholder:text-gray-400 w-full"
-                />
-                <button type="submit" className="text-xs px-2 py-1 bg-primary-500/20 text-primary-300 rounded">Ara</button>
-              </form>
-              {query && results.length > 0 && (
-                <div className="absolute mt-2 w-full glass-dark rounded-lg border border-white/10 max-h-72 overflow-auto z-50">
-                  {results.map((u) => (
-                    <button
-                      key={u.id}
-                      onClick={() => goToPublicProfile(u.username, u.id)}
-                      className="w-full text-left px-3 py-2 hover:bg-white/10 flex items-center gap-2"
-                    >
-                      <img
-                        src={u.avatar || `https://ui-avatars.com/api/?name=${u.name || u.username}&background=ef4444&color=fff`}
-                        alt={u.name}
-                        className="w-6 h-6 rounded-full"
-                      />
-                      <div className="flex flex-col">
-                        <span className="text-white text-sm">{u.name || u.username}</span>
-                        <span className="text-gray-400 text-xs">@{u.username}</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-              {query && !isSearching && results.length === 0 && (
-                <div className="absolute mt-2 w-full glass-dark rounded-lg border border-white/10 p-3 text-sm text-gray-400 z-50">
-                  No results
-                </div>
-              )}
-            </div>
-
-            {/* Auth Buttons + New Recommendation Dot */}
-            <div className="flex items-center gap-3">
-              {safeIsAuthenticated ? (
-                <>
-                  <div className="relative">
-                    <Link
-                      to="/profile/recommendations"
-                      className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
-                      title="Recommendations"
-                    >
-                      <Share2 className="w-5 h-5" />
-                    </Link>
-                    {hasNewRec && (
-                      <span className="absolute -top-1.5 -right-1.5 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-black/40"></span>
-                    )}
-                  </div>
-                  <Link
-                    to="/profile"
-                    className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
-                  >
-                    <img
-                      src={profile?.avatar || `https://ui-avatars.com/api/?name=${profile?.name}&background=ef4444&color=fff`}
-                      alt={profile?.name}
-                      className="w-8 h-8 rounded-full"
-                    />
-                    <span className="font-medium">{profile?.name}</span>
-                    {profile?.role === 'ADMIN' && (
-                      <span className="px-2 py-0.5 text-xs bg-red-600 text-white rounded-full">Admin</span>
-                    )}
-                    {profile?.role === 'MODERATOR' && (
-                      <span className="px-2 py-0.5 text-xs bg-blue-600 text-white rounded-full">Moderator</span>
-                    )}
-                  </Link>
-                  <button
-                    onClick={signOut}
-                    className="btn btn-ghost"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span>Sign out</span>
-                  </button>
-                  {/* The legacy forced sign-out button was removed. */}
-                </>
-              ) : (
-                <>
-                  <Link to="/login" className="btn btn-ghost">
-                    <LogIn className="w-4 h-4" />
-                    <span>Sign in</span>
-                  </Link>
-                  <Link to="/register" className="btn btn-primary">
-                    <UserPlus className="w-4 h-4" />
-                    <span>Register</span>
-                  </Link>
-                </>
-              )}
-            </div>
+        <div className="hidden items-center gap-7 md:flex">
+          <div className="flex items-center gap-1">
+            {navLinks.map((link) => {
+              const Icon = link.icon
+              const isActive = isActivePath(link.path)
+              return (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`inline-flex min-h-10 items-center gap-2 border-b px-3 text-sm transition ${isActive ? 'border-[#e85d4a] text-[#f3efe6]' : 'border-transparent text-[#aaa79f] hover:text-[#f3efe6]'}`}
+                >
+                  <Icon className="h-4 w-4" strokeWidth={1.6} />
+                  {link.label}
+                </Link>
+              )
+            })}
           </div>
 
-          {/* Mobile Menu Toggle (only on profile route) */}
-          {isProfileRoute && (
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden text-white hover:text-primary-400 transition-colors"
-            >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          )}
-        </div>
-      </div>
+          <div className="relative">
+            <form onSubmit={handleSearchSubmit} className="flex h-10 w-56 items-center border border-white/10 bg-white/[0.025] px-3 transition focus-within:border-white/25 xl:w-64">
+              <Search className="h-4 w-4 shrink-0 text-[#77756f]" strokeWidth={1.6} />
+              <input
+                value={query}
+                onChange={handleSearchChange}
+                placeholder="Find a member"
+                aria-label="Find a member"
+                className="min-w-0 flex-1 bg-transparent px-2 text-sm text-[#e8e3d9] outline-none placeholder:text-[#66645f]"
+              />
+              <button type="submit" disabled={isSearching} className="font-mono text-[9px] uppercase tracking-[0.16em] text-[#aaa79f] hover:text-white disabled:opacity-40">
+                {isSearching ? '...' : 'Search'}
+              </button>
+            </form>
 
-      {/* Mobile Menu (only on profile route) */}
+            {(results.length > 0 || (query && hasSearched && !isSearching)) && (
+              <div className="absolute right-0 mt-2 w-72 border border-white/10 bg-[#151613] shadow-2xl">
+                {results.map((result) => (
+                  <button
+                    key={result.id}
+                    type="button"
+                    onClick={() => goToPublicProfile(result.username, result.id)}
+                    className="flex w-full items-center gap-3 border-b border-white/[0.07] px-4 py-3 text-left transition last:border-b-0 hover:bg-white/[0.04]"
+                  >
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#252620] text-xs font-semibold text-[#e8e3d9]">
+                      {(result.name || result.username || '?').slice(0, 1).toUpperCase()}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm text-[#e8e3d9]">{result.name || result.username}</span>
+                      <span className="block truncate text-xs text-[#77756f]">@{result.username}</span>
+                    </span>
+                  </button>
+                ))}
+                {results.length === 0 && (
+                  <p className="px-4 py-3 text-sm text-[#77756f]">No members found.</p>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {hasSession ? (
+              <>
+                <Link to="/profile/recommendations" className="relative p-2 text-[#aaa79f] transition hover:text-white" aria-label="Recommendations">
+                  <Share2 className="h-5 w-5" strokeWidth={1.6} />
+                  {hasNewRecommendation && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#e85d4a]" />}
+                </Link>
+                <Link to="/profile/overview" className="max-w-36 truncate px-2 text-sm text-[#d3cec4] hover:text-white">
+                  {profile?.name || profile?.username || 'Profile'}
+                </Link>
+                <button type="button" onClick={signOut} className="p-2 text-[#77756f] transition hover:text-[#e85d4a]" aria-label="Sign out">
+                  <LogOut className="h-5 w-5" strokeWidth={1.6} />
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="inline-flex h-10 items-center gap-2 px-3 text-sm text-[#aaa79f] transition hover:text-white">
+                  <LogIn className="h-4 w-4" strokeWidth={1.6} /> Sign in
+                </Link>
+                <Link to="/register" className="inline-flex h-10 items-center gap-2 bg-[#e85d4a] px-4 text-sm font-semibold text-[#17130f] transition hover:bg-[#f06b57]">
+                  <UserPlus className="h-4 w-4" /> Join
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+
+        {isProfileRoute && (
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen((open) => !open)}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-profile-menu"
+            className="p-2 text-[#d3cec4] md:hidden"
+          >
+            <span className="sr-only">Toggle profile menu</span>
+            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        )}
+      </nav>
+
       <AnimatePresence>
         {isMobileMenuOpen && isProfileRoute && (
           <motion.div
+            id="mobile-profile-menu"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden glass-dark border-t border-white/10"
+            className="overflow-hidden border-t border-white/10 bg-[#11120f] md:hidden"
           >
-            <div className="container mx-auto px-4 py-4">
-              {/* Mobile Nav Links: show profile tabs if on profile route */}
-              <ul className="space-y-2 mb-4">
-                {(isProfileRoute ? profileTabs : navLinks).map((link) => {
-                  const Icon = link.icon
-                  const isActive = isProfileRoute
-                    ? location.pathname === `/profile/${link.id}`
-                    : location.pathname === link.path
-                  const handleClick = () => {
-                    if (isProfileRoute) {
-                      const tabId = link.id
-                      if (tabId) navigate(`/profile/${encodeURIComponent(tabId)}`)
-                    } else {
-                      navigate(link.path)
-                    }
-                    setIsMobileMenuOpen(false)
-                    try {
-                      window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
-                    } catch {
-                      window.scrollTo(0, 0)
-                    }
-                  }
-                  return (
-                    <li key={isProfileRoute ? link.id : link.path}>
-                      <button
-                        onClick={handleClick}
-                        className={`w-full text-left flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${
-                          isActive
-                            ? 'text-primary-400 bg-primary-400/10'
-                            : 'text-gray-300 hover:text-white hover:bg-white/10'
-                        }`}
-                      >
-                        <div className="relative">
-                          <Icon className="w-5 h-5" />
-                          {link.id === 'recommendations' && link.dot && (
-                            <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-black/40"></span>
-                          )}
-                        </div>
-                        <span>{link.label}</span>
-                      </button>
-                    </li>
-                  )
-                })}
-              </ul>
-
-              {/* Mobile User Search */}
-              <div className="pt-2">
-                <div className="relative">
-                  <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-2">
-                    <Search className="w-4 h-4 text-gray-400" />
-                    <input
-                      value={query}
-                      onChange={handleSearchChange}
-                      placeholder="Search users..."
-                      className="bg-transparent outline-none text-sm text-white placeholder:text-gray-400 w-full"
-                    />
-                    <button type="submit" className="text-xs px-2 py-1 bg-primary-500/20 text-primary-300 rounded">Ara</button>
-                  </form>
-                  {query && results.length > 0 && (
-                    <div className="absolute mt-2 w-full glass-dark rounded-lg border border-white/10 max-h-72 overflow-auto z-50">
-                      {results.map((u) => (
-                        <button
-                          key={u.id}
-                          onClick={() => { setIsMobileMenuOpen(false); goToPublicProfile(u.username, u.id) }}
-                          className="w-full text-left px-3 py-2 hover:bg-white/10 flex items-center gap-2"
-                        >
-                          <img
-                            src={u.avatar || `https://ui-avatars.com/api/?name=${u.name || u.username}&background=ef4444&color=fff`}
-                            alt={u.name}
-                            className="w-6 h-6 rounded-full"
-                          />
-                          <div className="flex flex-col">
-                            <span className="text-white text-sm">{u.name || u.username}</span>
-                            <span className="text-gray-400 text-xs">@{u.username}</span>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {query && !isSearching && results.length === 0 && (
-                    <div className="absolute mt-2 w-full glass-dark rounded-lg border border-white/10 p-3 text-sm text-gray-400 z-50">
-                      No results
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Mobile Auth Buttons */}
-              <div className="space-y-2 pt-4 border-t border-white/10">
-                {safeIsAuthenticated ? (
-                  <>
-                    <Link
-                      to="/profile"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-all"
-                    >
-                      <img
-                        src={user?.avatar || `https://ui-avatars.com/api/?name=${user?.name}&background=ef4444&color=fff`}
-                        alt={user?.name}
-                        className="w-8 h-8 rounded-full"
-                      />
-                      <span className="font-medium">{user?.name}</span>
-                    </Link>
-                    <button
-                      onClick={() => {
-                        signOut()
-                        setIsMobileMenuOpen(false)
-                      }}
-                      className="w-full btn btn-ghost justify-start"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span>Sign out</span>
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      to="/login"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="w-full btn btn-ghost justify-start"
-                    >
-                      <LogIn className="w-4 h-4" />
-                      <span>Sign in</span>
-                    </Link>
-                    <Link
-                      to="/register"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="w-full btn btn-primary justify-start"
-                    >
-                      <UserPlus className="w-4 h-4" />
-                      <span>Register</span>
-                    </Link>
-                  </>
-                )}
-              </div>
+            <div className="grid grid-cols-2 gap-px bg-white/10 p-px">
+              {profileTabs.map((tab) => {
+                const Icon = tab.icon
+                const isActive = location.pathname === `/profile/${tab.id}`
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => {
+                      navigate(`/profile/${tab.id}`)
+                      setIsMobileMenuOpen(false)
+                      window.scrollTo({ top: 0, behavior: 'auto' })
+                    }}
+                    className={`relative flex items-center gap-3 bg-[#11120f] px-4 py-4 text-left text-sm ${isActive ? 'text-[#e85d4a]' : 'text-[#aaa79f]'}`}
+                  >
+                    <Icon className="h-4 w-4" strokeWidth={1.6} />
+                    {tab.label}
+                    {tab.dot && <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-[#e85d4a]" />}
+                  </button>
+                )
+              })}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </nav>
+    </header>
   )
 }
 
