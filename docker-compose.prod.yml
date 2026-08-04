@@ -53,7 +53,7 @@ services:
       ratemet-egress:
         gw_priority: 1
 
-  web:
+  ratemet-gateway:
     build:
       context: .
     ports:
@@ -65,8 +65,6 @@ services:
     networks:
       ratemet-internal:
       emecworks-edge:
-        aliases:
-          - ratemet-gateway
 
 volumes:
   ratemet_postgres_data:
