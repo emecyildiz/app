@@ -20,9 +20,9 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
   useEffect(() => {
     if (!isOpen) return;
     if (movie) {
-      setTitle(`${movie.title} filmini önermek istiyorum`);
+      setTitle(`${movie.title} is worth watching`);
     } else {
-      setTitle((prev) => prev || 'Film önerisi');
+      setTitle((prev) => prev || 'Movie recommendation');
     }
     // Preselect recipient when provided from parent (friend profile flow)
     if (toUserId && toUser) {
@@ -41,8 +41,8 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
       const data = await userService.searchUsers(query, 10);
       setSearchResults(data);
     } catch (error) {
-      console.error('Kullanıcı arama hatası:', error);
-      toast.error('Kullanıcılar aranırken bir hata oluştu');
+      console.error('User search failed:', error);
+      toast.error('Users could not be searched.');
     }
   };
 
@@ -50,18 +50,18 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
     e.preventDefault();
     const recipientId = toUserId || selectedUser?.id;
     if (!recipientId) {
-      toast.error('Lütfen bir kullanıcı seçin');
+      toast.error('Please select a user.');
       return;
     }
     if (!title.trim()) {
-      toast.error('Lütfen bir başlık girin');
+      toast.error('Please enter a title.');
       return;
     }
     // Validate movies in multi-select mode
     let movieIds = [];
     if (isMultiMovieMode) {
       if (selectedMovies.length === 0) {
-        toast.error('Lütfen en az bir film seçin');
+        toast.error('Please select at least one movie.');
         return;
       }
       movieIds = selectedMovies.map((m) => m.id);
@@ -77,12 +77,12 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
         note,
         movieIds
       );
-      toast.success('Öneri başarıyla gönderildi');
+      toast.success('Recommendation sent.');
       onSuccess?.();
       onClose();
     } catch (error) {
-      console.error('Öneri gönderme hatası:', error);
-      toast.error('Öneri gönderilirken bir hata oluştu');
+      console.error('Recommendation failed:', error);
+      toast.error('The recommendation could not be sent.');
     } finally {
       setIsLoading(false);
     }
@@ -110,15 +110,15 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
       const res = await tmdbService.searchMovies(query, 1);
       setMovieResults(res?.results || []);
     } catch (err) {
-      console.error('Film arama hatası:', err);
-      toast.error('Filmler aranırken bir hata oluştu');
+      console.error('Movie search failed:', err);
+      toast.error('Movies could not be searched.');
     }
   };
 
   const addMovie = (m) => {
     if (selectedMovies.find((x) => x.id === m.id)) return;
     if (selectedMovies.length >= 3) {
-      toast.error('En fazla 3 film seçebilirsiniz');
+      toast.error('You can select up to three movies.');
       return;
     }
     setSelectedMovies((prev) => [...prev, m]);
@@ -135,14 +135,14 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <Dialog.Panel className="mx-auto max-w-lg w-full glass rounded-xl p-6">
           <Dialog.Title className="text-lg font-semibold text-white mb-4">
-            Film Önerisi Gönder
+            Send a movie recommendation
           </Dialog.Title>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Alıcı */}
+            {/* Recipient */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                Kime önerilecek?
+                Who should receive it?
               </label>
               {toUserId ? (
                 <div className="flex items-center gap-2 p-2 border border-white/10 rounded bg-white/5">
@@ -151,7 +151,7 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs">@</div>
                   )}
-                  <span className="text-white">{toUser?.name || toUser?.username || 'Seçilen kullanıcı'}</span>
+                  <span className="text-white">{toUser?.name || toUser?.username || 'Selected user'}</span>
                 </div>
               ) : (
                 !selectedUser ? (
@@ -160,7 +160,7 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
                       type="text"
                       value={searchQuery}
                       onChange={(e) => handleSearch(e.target.value)}
-                      placeholder="Kullanıcı ara..."
+                      placeholder="Search users..."
                       className="input w-full"
                     />
                     {searchResults.length > 0 && (
@@ -200,28 +200,28 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
                       onClick={() => setSelectedUser(null)}
                       className="ml-auto text-sm text-red-400 hover:text-red-300"
                     >
-                      Değiştir
+                      Change
                     </button>
                   </div>
                 )
               )}
             </div>
 
-            {/* Başlık */}
+            {/* Title */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                Başlık
+                Title
               </label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="input w-full"
-                placeholder="Öneri başlığı"
+                placeholder="Recommendation title"
               />
             </div>
 
-            {/* Film(ler) Seçimi */}
+            {/* Movie selection */}
             {isMultiMovieMode && (
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -272,7 +272,7 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
                     ))}
                   </div>
                 )}
-                <div className="mt-2 text-xs text-gray-400">En fazla 3 film seçebilirsiniz.</div>
+                <div className="mt-2 text-xs text-gray-400">You can select up to three movies..</div>
               </div>
             )}
 
@@ -286,7 +286,7 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
                 onChange={(e) => setNote(e.target.value)}
                 className="input w-full"
                 rows="3"
-                placeholder="Neden önerdiğinizi belirtebilirsiniz..."
+                placeholder="Add an optional note..."
               />
             </div>
 
@@ -298,7 +298,7 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
                 className="btn btn-secondary btn-sm"
                 disabled={isLoading}
               >
-                İptal
+                Cancel
               </button>
               <button
                 type="submit"
@@ -310,7 +310,7 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
                   (isMultiMovieMode && selectedMovies.length === 0)
                 }
               >
-                {isLoading ? 'Gönderiliyor...' : 'Gönder'}
+                {isLoading ? 'Sending...' : 'Send'}
               </button>
             </div>
           </form>

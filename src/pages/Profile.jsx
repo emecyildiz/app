@@ -67,7 +67,6 @@ const Profile = () => {
       const updates = {
         name: data.name,
         username: data.username,
-        email: data.email,
         bio: data.bio,
         isPublic: data.isPublic,
         socialLinks: {
@@ -82,7 +81,7 @@ const Profile = () => {
       }
     } catch (error) {
       console.error('Profile update error:', error)
-      toast.error('Profil güncellenemedi: ' + (error?.message || 'Bilinmeyen hata'))
+      toast.error('Profile could not be updated: ' + (error?.message || 'Unknown error'))
     }
   }
 
@@ -129,7 +128,7 @@ const Profile = () => {
     } catch {}
   }, [section])
 
-  // Film puanlarını yükle
+  // Load movie ratings.
   useEffect(() => {
     let mounted = true
     const loadRatings = async () => {
@@ -193,7 +192,7 @@ const Profile = () => {
           setRatingsTotalPages(data.totalPages)
         }
       } catch (error) {
-        toast.error('Puanladığınız filmler yüklenirken bir hata oluştu')
+        toast.error('Rated movies could not be loaded.')
       } finally {
         if (mounted) setRatingsLoading(false)
       }
@@ -243,13 +242,13 @@ const Profile = () => {
   }, [activeTab, commentsPage])
 
   const tabs = [
-    { id: 'overview', label: 'Genel Bakış', icon: User },
+    { id: 'overview', label: 'Overview', icon: User },
     { id: 'favorites', label: 'Favorilerim', icon: Heart },
-    { id: 'ratings', label: 'Puanladıklarım', icon: Star },
-    { id: 'comments', label: 'Yorumlarım', icon: MessageSquare },
-    { id: 'recommendations', label: 'Öneriler', icon: Share2 },
-    { id: 'friends', label: 'Arkadaşlar', icon: Users },
-    { id: 'settings', label: 'Ayarlar', icon: Settings },
+    { id: 'ratings', label: 'My ratings', icon: Star },
+    { id: 'comments', label: 'My comments', icon: MessageSquare },
+    { id: 'recommendations', label: 'Recommendations', icon: Share2 },
+    { id: 'friends', label: 'Friends', icon: Users },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ]
 
   // Load recommendations when recommendations tab is active
@@ -322,7 +321,7 @@ const Profile = () => {
         }
       } catch (error) {
         console.error('Error loading recommendations:', error)
-        toast.error('Öneriler yüklenirken bir hata oluştu')
+        toast.error('Recommendations could not be loaded.')
       } finally {
         if (mounted) setRecommendationsLoading(false)
       }
@@ -557,7 +556,7 @@ const Profile = () => {
                     <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-6 text-sm mt-3">
                       <div className="flex items-center gap-2 text-gray-300">
                         <Calendar className="w-4 h-4" />
-                        <span>Üyelik: {stats.memberSince ? new Date(stats.memberSince).toLocaleDateString('tr-TR') : 'Bilinmiyor'}</span>
+                        <span>Member since: {stats.memberSince ? new Date(stats.memberSince).toLocaleDateString('en-US') : 'Unknown'}</span>
                       </div>
                     </div>
 
@@ -605,7 +604,7 @@ const Profile = () => {
                       className="btn btn-primary"
                     >
                       <Edit2 className="w-4 h-4" />
-                      Profili Düzenle
+                      Profili Edit
                     </button>
                     <button onClick={signOut} className="btn btn-secondary">
                       <LogOut className="w-4 h-4" />
@@ -625,7 +624,7 @@ const Profile = () => {
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                 <Film className="w-4 h-4 text-primary-400" />
                 <span className="text-white font-semibold">{stats.watchedMovies}</span>
-                <span className="text-gray-400 text-sm">İzlendi</span>
+                <span className="text-gray-400 text-sm">Watched</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                 <Star className="w-4 h-4 text-yellow-400" />
@@ -635,7 +634,7 @@ const Profile = () => {
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                 <MessageSquare className="w-4 h-4 text-blue-400" />
                 <span className="text-white font-semibold">{stats.comments}</span>
-                <span className="text-gray-400 text-sm">Yorum</span>
+                <span className="text-gray-400 text-sm">Comments</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                 <Heart className="w-4 h-4 text-red-400" />
@@ -645,12 +644,12 @@ const Profile = () => {
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                 <Calendar className="w-4 h-4 text-blue-400" />
                 <span className="text-white font-semibold">{stats.memberSinceDays}</span>
-                <span className="text-gray-400 text-sm">Gün</span>
+                <span className="text-gray-400 text-sm">Days</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                 <User className="w-4 h-4 text-green-400" />
                 <span className="text-white font-semibold">{friends.length}</span>
-                <span className="text-gray-400 text-sm">Arkadaş</span>
+                <span className="text-gray-400 text-sm">Friends</span>
               </div>
             </motion.div>
           </>
@@ -703,7 +702,7 @@ const Profile = () => {
                   <h2 className="text-2xl font-bold text-white mb-4">Son Aktiviteler</h2>
                   <div className="glass rounded-xl p-6">
                     <p className="text-gray-400 text-center py-8">
-                      Henüz aktivite bulunmuyor
+                      No recent activity
                     </p>
                   </div>
                 </div>
@@ -720,7 +719,7 @@ const Profile = () => {
                       onChange={(e) => setSelectedGenreId(e.target.value)}
                       className="input py-2 px-3"
                     >
-                      <option value="">Tüm Türler</option>
+                      <option value="">All genres</option>
                       {genreOptions.map((g) => (
                         <option key={g.id} value={g.id}>{g.name}</option>
                       ))}
@@ -728,13 +727,13 @@ const Profile = () => {
                     {favorites.length > 0 && (
                       <button
                         onClick={() => {
-                          if (window.confirm('Tüm favorileri temizlemek istediğinize emin misiniz?')) {
+                          if (window.confirm('Are you sure you want to clear all favorites?')) {
                             clearFavorites()
                           }
                         }}
                         className="text-sm text-gray-400 hover:text-red-400 transition-colors"
                       >
-                        Tümünü Temizle
+                        Clear all
                       </button>
                     )}
                   </div>
@@ -743,7 +742,7 @@ const Profile = () => {
                 {favoriteLoading && filteredFavorites.length === 0 ? (
                   <div className="glass rounded-xl p-12 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-4"></div>
-                    <p className="text-gray-400">Favoriler yükleniyor...</p>
+                    <p className="text-gray-400">Loading favorites...</p>
                   </div>
                 ) : filteredFavorites.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
@@ -766,8 +765,8 @@ const Profile = () => {
                 ) : (
                   <div className="glass rounded-xl p-12 text-center">
                     <Heart className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400 text-lg">Henüz favori film eklemediniz</p>
-                    <p className="text-gray-500 text-sm mt-2">Film detay sayfalarından favorilere ekleyebilirsiniz</p>
+                    <p className="text-gray-400 text-lg">You have not added any favorite movies</p>
+                    <p className="text-gray-500 text-sm mt-2">Add favorites from a movie detail page</p>
                   </div>
                 )}
                 {favoritePage < favoriteTotalPages && (
@@ -777,7 +776,7 @@ const Profile = () => {
                       disabled={favoriteLoading}
                       className="btn btn-primary"
                     >
-                      {favoriteLoading ? 'Yükleniyor...' : 'Daha Fazla Göster'}
+                      {favoriteLoading ? 'Loading...' : 'Show more'}
                     </button>
                   </div>
                 )}
@@ -787,7 +786,7 @@ const Profile = () => {
             {activeTab === 'ratings' && (
               <div>
                 <h2 className="text-2xl font-bold text-white mb-6">
-                  Puanladığım Filmler ({stats.ratings})
+                  My rated movies ({stats.ratings})
                 </h2>
 
                 {ratedMovies.length > 0 ? (
@@ -834,7 +833,7 @@ const Profile = () => {
                           disabled={ratingsLoading}
                           className="btn btn-primary"
                         >
-                          {ratingsLoading ? 'Yükleniyor...' : 'Daha Fazla Göster'}
+                          {ratingsLoading ? 'Loading...' : 'Show more'}
                         </button>
                       </div>
                     )}
@@ -842,8 +841,8 @@ const Profile = () => {
                 ) : (
                   <div className="glass rounded-xl p-12 text-center">
                     <Star className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400 text-lg">Henüz film puanlamadınız</p>
-                    <p className="text-gray-500 text-sm mt-2">Film detay sayfalarından puan verebilirsiniz</p>
+                    <p className="text-gray-400 text-lg">You have not rated any movies</p>
+                    <p className="text-gray-500 text-sm mt-2">Rate a movie from its detail page</p>
                   </div>
                 )}
               </div>
@@ -851,7 +850,7 @@ const Profile = () => {
 
             {activeTab === 'comments' && (
               <div>
-                <h2 className="text-2xl font-bold text-white mb-6">Yorumlarım ({stats.comments})</h2>
+                <h2 className="text-2xl font-bold text-white mb-6">My comments ({stats.comments})</h2>
                 {myComments.length > 0 ? (
                   <div className="space-y-4">
                     {myComments.map((c) => (
@@ -871,7 +870,7 @@ const Profile = () => {
                             </a>
                           )}
                           
-                          {/* Yorum İçeriği */}
+                          {/* Comment content */}
                           <div className="flex-1 flex flex-col">
                             {c.movie && (
                               <a 
@@ -910,13 +909,13 @@ const Profile = () => {
                           disabled={commentsLoading}
                           className="btn btn-primary"
                         >
-                          {commentsLoading ? 'Yükleniyor...' : 'Daha Fazla Göster'}
+                          {commentsLoading ? 'Loading...' : 'Show more'}
                         </button>
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="glass rounded-xl p-12 text-center text-gray-400">Henüz yorum yok</div>
+                  <div className="glass rounded-xl p-12 text-center text-gray-400">No comments yet</div>
                 )}
               </div>
             )}
@@ -924,7 +923,7 @@ const Profile = () => {
             {activeTab === 'friends' && (
               <div className="space-y-8">
                 <div>
-                  <h2 className="text-2xl font-bold text-white mb-4">Gelen İstekler</h2>
+                  <h2 className="text-2xl font-bold text-white mb-4">Incoming requests</h2>
                   <div className="glass rounded-xl p-4">
                     {requests.length === 0 ? (
                       <p className="text-gray-400 text-center py-6">Bekleyen istek yok</p>
@@ -957,10 +956,10 @@ const Profile = () => {
                 </div>
 
                 <div>
-                  <h2 className="text-2xl font-bold text-white mb-4">Arkadaşlarım ({friends.length})</h2>
+                  <h2 className="text-2xl font-bold text-white mb-4">My friends ({friends.length})</h2>
                   <div className="glass rounded-xl p-4">
                     {friends.length === 0 ? (
-                      <p className="text-gray-400 text-center py-6">Henüz arkadaş yok</p>
+                      <p className="text-gray-400 text-center py-6">No friends yet</p>
                     ) : (
                       <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {friends.map((f) => (
@@ -974,7 +973,7 @@ const Profile = () => {
                             </a>
                             <button disabled={friendsBusy} onClick={() => unfriend(f.id)} className="btn btn-secondary btn-sm">
                               <UserMinus className="w-4 h-4" />
-                              Kaldır
+                              Remove
                             </button>
                           </li>
                         ))}
@@ -990,17 +989,17 @@ const Profile = () => {
             {activeTab === 'recommendations' && (
               <div>
                 <div className="space-y-8">
-                  {/* Gelen Öneriler (İzlendi / İzlenmedi) */}
+                  {/* Gelen Recommendations (Watched / Unwatched) */}
                   <div>
-                    <h2 className="text-2xl font-bold text-white mb-4">Gelen Öneriler</h2>
+                    <h2 className="text-2xl font-bold text-white mb-4">Gelen Recommendations</h2>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* İzlenmedi */}
+                      {/* Unwatched */}
                       <div className="glass rounded-xl p-4">
-                        <h3 className="text-white font-semibold mb-3">İzlemediklerim</h3>
+                        <h3 className="text-white font-semibold mb-3">Not watched</h3>
                         {recommendationsLoading ? (
                           <div className="text-center py-8">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
-                            <p className="text-gray-400 mt-2">Yükleniyor...</p>
+                            <p className="text-gray-400 mt-2">Loading...</p>
                           </div>
                         ) : (
                           <div className="space-y-3">
@@ -1024,7 +1023,7 @@ const Profile = () => {
                                         const res = await movieService.markAsWatched(item.movie_id)
                                         if (res?.success) toggleLocalRecommendationWatched(rec.id, item.movie_id, true)
                                       }}
-                                    >İzledim</button>
+                                    >Watched</button>
                                     <button
                                       className="btn btn-secondary btn-xs"
                                       onClick={async ()=>{
@@ -1039,18 +1038,18 @@ const Profile = () => {
                               ))
                             ))}
                             {receivedRecommendations.every(r => (r.items || []).every(i => i.isWatched)) && (
-                              <p className="text-gray-400 text-center py-6">İzlemediğiniz öneri yok</p>
+                              <p className="text-gray-400 text-center py-6">No unwatched recommendations</p>
                             )}
                           </div>
                         )}
                       </div>
-                      {/* İzledim */}
+                      {/* Watched */}
                       <div className="glass rounded-xl p-4">
-                        <h3 className="text-white font-semibold mb-3">İzlediklerim</h3>
+                        <h3 className="text-white font-semibold mb-3">Watched</h3>
                         {recommendationsLoading ? (
                           <div className="text-center py-8">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
-                            <p className="text-gray-400 mt-2">Yükleniyor...</p>
+                            <p className="text-gray-400 mt-2">Loading...</p>
                           </div>
                         ) : (
                           <div className="space-y-3">
@@ -1073,7 +1072,7 @@ const Profile = () => {
                                         const res = await movieService.markAsUnwatched(item.movie_id)
                                         if (res?.success) toggleLocalRecommendationWatched(rec.id, item.movie_id, false)
                                       }}
-                                    >İzlemedim</button>
+                                    >Not watched</button>
                                     <button
                                       className="btn btn-secondary btn-xs"
                                       onClick={async ()=>{
@@ -1088,7 +1087,7 @@ const Profile = () => {
                               ))
                             ))}
                             {receivedRecommendations.every(r => (r.items || []).every(i => !i.isWatched)) && (
-                              <p className="text-gray-400 text-center py-6">İzlediğiniz öneri yok</p>
+                              <p className="text-gray-400 text-center py-6">No watched recommendations</p>
                             )}
                           </div>
                         )}
@@ -1096,17 +1095,17 @@ const Profile = () => {
                     </div>
                   </div>
 
-                  {/* Gönderilen Öneriler - mini kartlar */}
+                  {/* Sent recommendations. */}
                   <div>
-                    <h2 className="text-2xl font-bold text-white mb-4">Gönderilen Öneriler</h2>
+                    <h2 className="text-2xl font-bold text-white mb-4">Sent recommendations</h2>
                     <div className="glass rounded-xl p-4">
                       {recommendationsLoading ? (
                         <div className="text-center py-8">
                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
-                          <p className="text-gray-400 mt-2">Yükleniyor...</p>
+                          <p className="text-gray-400 mt-2">Loading...</p>
                         </div>
                       ) : sentRecommendations.length === 0 ? (
-                        <p className="text-gray-400 text-center py-8">Henüz öneri göndermediniz</p>
+                        <p className="text-gray-400 text-center py-8">You have not sent any recommendations</p>
                       ) : (
                         <div className="space-y-3">
                           {sentRecommendations.flatMap((rec) => (
@@ -1134,13 +1133,13 @@ const Profile = () => {
 
             {activeTab === 'settings' && (
               <div className="max-w-2xl">
-                <h2 className="text-2xl font-bold text-white mb-6">Hesap Ayarları</h2>
+                <h2 className="text-2xl font-bold text-white mb-6">Account settings</h2>
                 <div className="space-y-6">
                   <div className="glass rounded-xl p-6">
                     <h3 className="text-lg font-semibold text-white mb-4">E-posta Bildirimleri</h3>
                     <div className="space-y-3">
                       <label className="flex items-center justify-between">
-                        <span className="text-gray-300">Yeni filmler hakkında bildirim al</span>
+                        <span className="text-gray-300">Receive notifications about new movies</span>
                         <input
                           type="checkbox"
                           className="w-5 h-5 rounded border-gray-600 bg-dark-200 text-primary-500 focus:ring-primary-500"
@@ -1148,7 +1147,7 @@ const Profile = () => {
                         />
                       </label>
                       <label className="flex items-center justify-between">
-                        <span className="text-gray-300">Haftalık öneriler</span>
+                        <span className="text-gray-300">Weekly recommendations</span>
                         <input
                           type="checkbox"
                           className="w-5 h-5 rounded border-gray-600 bg-dark-200 text-primary-500 focus:ring-primary-500"
@@ -1162,7 +1161,7 @@ const Profile = () => {
                     <h3 className="text-lg font-semibold text-white mb-4">Gizlilik</h3>
                     <div className="space-y-3">
                       <label className="flex items-center justify-between">
-                        <span className="text-gray-300">Profilimi herkese açık yap</span>
+                        <span className="text-gray-300">Make my profile public</span>
                         <input
                           type="checkbox"
                           {...register('isPublic')}
@@ -1173,13 +1172,13 @@ const Profile = () => {
                   </div>
 
                   <div className="glass rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-red-400 mb-4">Tehlikeli Bölge</h3>
+                    <h3 className="text-lg font-semibold text-red-400 mb-4">Danger zone</h3>
                     <button 
                       onClick={() => setShowDeleteConfirm(true)}
                       disabled={isLoading}
                       className="btn btn-secondary border-red-500 text-red-400 hover:bg-red-500 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Hesabı Sil
+                      Delete account
                     </button>
                   </div>
                 </div>
@@ -1209,9 +1208,9 @@ const Profile = () => {
             onClick={(e) => e.stopPropagation()}
             className="bg-gray-900 rounded-lg p-6 max-w-sm mx-auto border border-red-900/50"
           >
-            <h2 className="text-2xl font-bold text-red-400 mb-2">Hesabı Sil</h2>
+            <h2 className="text-2xl font-bold text-red-400 mb-2">Delete account</h2>
             <p className="text-gray-300 mb-6">
-              Bu işlem geri alınamaz. Hesabınızın tüm verileri silinecektir. Emin misiniz?
+              This action cannot be undone. All account data will be deleted. Continue?
             </p>
             <div className="flex gap-3">
               <button
@@ -1219,7 +1218,7 @@ const Profile = () => {
                 disabled={isLoading}
                 className="flex-1 btn btn-secondary disabled:opacity-50"
               >
-                İptal
+                Cancel
               </button>
               <button
                 onClick={handleDeleteAccount}
@@ -1249,7 +1248,7 @@ const Profile = () => {
             className="glass rounded-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-2xl font-bold text-white mb-6">Profili Düzenle</h3>
+            <h3 className="text-2xl font-bold text-white mb-6">Profili Edit</h3>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1263,7 +1262,7 @@ const Profile = () => {
                       required: 'Ad soyad gereklidir',
                       minLength: {
                         value: 3,
-                        message: 'Ad soyad en az 3 karakter olmalıdır',
+                        message: 'Your name must contain at least three characters.',
                       },
                     })}
                     className="input"
@@ -1275,19 +1274,19 @@ const Profile = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Kullanıcı Adı
+                    Username
                   </label>
                   <input
                     type="text"
                     {...register('username', {
-                      required: 'Kullanıcı adı gereklidir',
+                      required: 'A username is required.',
                       pattern: {
                         value: /^[a-z0-9_]+$/,
-                        message: 'Kullanıcı adı sadece küçük harf, rakam ve _ içerebilir',
+                        message: 'The username may contain lowercase letters, numbers, and underscores.',
                       },
                       minLength: {
                         value: 3,
-                        message: 'Kullanıcı adı en az 3 karakter olmalıdır',
+                        message: 'The username must contain at least three characters.',
                       },
                     })}
                     className="input"
@@ -1304,18 +1303,11 @@ const Profile = () => {
                 </label>
                 <input
                   type="email"
-                  {...register('email', {
-                    required: 'E-posta gereklidir',
-                    pattern: {
-                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: 'Geçerli bir e-posta adresi girin',
-                    },
-                  })}
-                  className="input"
+                  {...register('email')}
+                  className="input opacity-70 cursor-not-allowed"
+                  disabled
                 />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-400">{errors.email.message}</p>
-                )}
+                <p className="mt-1 text-xs text-gray-500">Email changes require a separate verification flow and are currently disabled.</p>
               </div>
 
               <div>
@@ -1343,7 +1335,7 @@ const Profile = () => {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Twitter Kullanıcı Adı
+                    Twitter username
                   </label>
                   <div className="flex">
                     <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-600 bg-dark-300 text-gray-400">
@@ -1353,14 +1345,14 @@ const Profile = () => {
                       type="text"
                       {...register('twitter')}
                       className="input rounded-l-none"
-                      placeholder="kullaniciadi"
+                      placeholder="username"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Instagram Kullanıcı Adı
+                    Instagram username
                   </label>
                   <div className="flex">
                     <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-600 bg-dark-300 text-gray-400">
@@ -1370,20 +1362,20 @@ const Profile = () => {
                       type="text"
                       {...register('instagram')}
                       className="input rounded-l-none"
-                      placeholder="kullaniciadi"
+                      placeholder="username"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Letterboxd Kullanıcı Adı
+                    Letterboxd username
                   </label>
                   <input
                     type="text"
                     {...register('letterboxd')}
                     className="input"
-                    placeholder="kullaniciadi"
+                    placeholder="username"
                   />
                 </div>
               </div>
@@ -1394,13 +1386,13 @@ const Profile = () => {
                   onClick={() => setIsEditModalOpen(false)}
                   className="flex-1 btn btn-secondary"
                 >
-                  İptal
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   className="flex-1 btn btn-primary"
                 >
-                  Kaydet
+                  Save
                 </button>
               </div>
             </form>

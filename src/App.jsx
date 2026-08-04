@@ -25,15 +25,9 @@ import Profile from './pages/Profile'
 const PublicProfile = lazy(() => import('./pages/PublicProfile'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
-const AuthCallback = lazy(() => import('./pages/AuthCallback'))
-const EmailConfirmed = lazy(() => import('./pages/EmailConfirmed'))
-const ConfirmSignup = lazy(() => import('./pages/ConfirmSignup'))
-const InviteUserAccepted = lazy(() => import('./pages/InviteUserAccepted'))
-const MagicLink = lazy(() => import('./pages/MagicLink'))
-const ChangeEmailConfirmed = lazy(() => import('./pages/ChangeEmailConfirmed'))
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
-const Reauthenticate = lazy(() => import('./pages/Reauthenticate'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const AdminUserEdit = lazy(() => import('./pages/AdminUserEdit'))
 const ModeratorDashboard = lazy(() => import('./pages/ModeratorDashboard'))
@@ -219,25 +213,20 @@ function App() {
           </Suspense>
         } />
         
-        {/* OAuth Callback */}
-        <Route path="/auth/callback" element={
+        <Route path="/verify-email" element={
           <Suspense fallback={<LoadingSpinner fullScreen />}>
-            <AuthCallback />
+            <VerifyEmail />
           </Suspense>
         } />
-        
-        <Route path="/email-confirmed" element={
-          <Suspense fallback={<LoadingSpinner fullScreen />}>
-            <EmailConfirmed />
-          </Suspense>
-        } />
-        <Route path="/confirm-signup" element={<Suspense fallback={<LoadingSpinner fullScreen />}><ConfirmSignup /></Suspense>} />
-        <Route path="/invite-accepted" element={<Suspense fallback={<LoadingSpinner fullScreen />}><InviteUserAccepted /></Suspense>} />
-        <Route path="/magic-link" element={<Suspense fallback={<LoadingSpinner fullScreen />}><MagicLink /></Suspense>} />
-        <Route path="/change-email" element={<Suspense fallback={<LoadingSpinner fullScreen />}><ChangeEmailConfirmed /></Suspense>} />
         <Route path="/reset-password" element={<Suspense fallback={<LoadingSpinner fullScreen />}><ResetPassword /></Suspense>} />
         <Route path="/forgot-password" element={<Suspense fallback={<LoadingSpinner fullScreen />}><ForgotPassword /></Suspense>} />
-        <Route path="/reauthenticate" element={<Suspense fallback={<LoadingSpinner fullScreen />}><Reauthenticate /></Suspense>} />
+        <Route path="/auth/callback" element={<Navigate to="/login" replace />} />
+        <Route path="/email-confirmed" element={<Navigate to="/login" replace />} />
+        <Route path="/confirm-signup" element={<Navigate to="/login" replace />} />
+        <Route path="/invite-accepted" element={<Navigate to="/login" replace />} />
+        <Route path="/magic-link" element={<Navigate to="/login" replace />} />
+        <Route path="/change-email" element={<Navigate to="/login" replace />} />
+        <Route path="/reauthenticate" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   )

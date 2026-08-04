@@ -1,407 +1,209 @@
-import axios from 'axios';
-import { supabase } from '../config/supabase';
-import { getCsrfToken } from '../utils/csrfToken';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+import { apiRequest } from './apiClient'
 
 class UserService {
-  constructor() {
-    this.supabase = supabase;
-    this.setupAxiosInterceptor();
+  getUserStats() {
+    return apiRequest('/api/admin/dashboard')
   }
 
-  // ===== SETUP AXIOS INTERCEPTOR FOR CSRF TOKEN =====
-  setupAxiosInterceptor() {
-    // Request interceptor - add CSRF token to all POST/PUT/DELETE requests
-    axios.interceptors.request.use(async (config) => {
-      // Only add CSRF token for requests to our API and for non-GET requests
-      if (config.url?.startsWith(API_URL) && ['POST', 'PUT', 'DELETE'].includes(config.method?.toUpperCase())) {
-        try {
-          const csrfToken = await getCsrfToken();
-          if (csrfToken) {
-            config.headers['x-csrf-token'] = csrfToken;
-          }
-        } catch (error) {
-          console.warn('[CSRF Interceptor] Failed to add CSRF token:', error);
-        }
-      }
-      return config;
-    }, (error) => {
-      return Promise.reject(error);
-    });
-
-    // Response interceptor - handle CSRF token errors
-    axios.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        if (error.response?.status === 403 && error.response?.data?.error?.includes('csrf')) {
-          console.error('[CSRF] Token validation failed:', error.response.data);
-        }
-        return Promise.reject(error);
-      }
-    );
+  getAllUsers() {
+    return apiRequest('/api/admin/users')
   }
 
-  // Get auth token from sessionStorage
-  getAuthToken() {
-    const token = sessionStorage.getItem('auth-token');
-    return token;
+  getAllModerators() {
+    return apiRequest('/api/admin/moderators')
   }
 
-  // Create axios instance with auth header
-  getAuthHeaders() {
-    const token = this.getAuthToken();
-    return {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    };
+  deleteUser(userId) {
+    return apiRequest(`/api/admin/users/${userId}`, { method: 'DELETE', csrf: true })
   }
 
-  async getUserStats() {
-    try {
-      const response = await axios.get(`${API_URL}/api/admin/dashboard`, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching user stats:', error);
-      throw error;
-    }
+  updateUser(userId, userData) {
+    return apiRequest(`/api/admin/users/${userId}`, { method: 'PUT', body: userData, csrf: true })
   }
 
-  async getAllUsers() {
-    try {
-      const response = await axios.get(`${API_URL}/api/admin/users`, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching all users:', error);
-      throw error;
-    }
+  addModerator(moderatorData) {
+    return apiRequest('/api/admin/moderators', { method: 'POST', body: moderatorData, csrf: true })
   }
 
-  async getAllModerators() {
-    try {
-      const response = await axios.get(`${API_URL}/api/admin/moderators`, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching moderators:', error);
-      throw error;
-    }
+  promoteToModerator(userId) {
+    return apiRequest(`/api/admin/users/${userId}/promote`, { method: 'PUT', body: {}, csrf: true })
   }
 
-  async deleteUser(userId) {
-    try {
-      const response = await axios.delete(`${API_URL}/api/admin/users/${userId}`, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      throw error;
-    }
+  removeModerator(userId) {
+    return apiRequest(`/api/admin/moderators/${userId}`, { method: 'DELETE', csrf: true })
   }
 
-  async updateUser(userId, userData) {
-    try {
-      const response = await axios.put(`${API_URL}/api/admin/users/${userId}`, userData, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error updating user:', error);
-      throw error;
-    }
-  }
-
-  // Add new moderator (creates new user with MODERATOR role)
-  async addModerator(moderatorData) {
-    try {
-      const response = await axios.post(`${API_URL}/api/admin/moderators`, moderatorData, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error adding moderator:', error);
-      throw error;
-    }
-  }
-
-  // Promote existing user to moderator
-  async promoteToModerator(userId) {
-    try {
-      const response = await axios.put(`${API_URL}/api/admin/users/${userId}/promote`, {}, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error promoting user to moderator:', error);
-      throw error;
-    }
-  }
-
-  // Demote moderator to user
-  async removeModerator(userId) {
-    try {
-      const response = await axios.delete(`${API_URL}/api/admin/moderators/${userId}`, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error removing moderator:', error);
-      throw error;
-    }
-  }
-
-  // Get my aggregated stats
   async getMyStats() {
     try {
-      const response = await axios.get(`${API_URL}/api/users/stats`, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data;
+      return await apiRequest('/api/users/stats')
     } catch (error) {
-      console.error('Error fetching my stats:', error);
-      return null;
+      console.error('Unable to load profile statistics:', error)
+      return null
     }
   }
 
   async addFavorite(movie) {
-    const movieIdCandidate =
-      typeof movie === 'number'
-        ? movie
-        : (movie?.id ?? movie?.movie_id ?? movie?.tmdb_id)
-    const movieId = parseInt(movieIdCandidate, 10)
-    const title =
-      (typeof movie === 'object' ? (movie?.title || movie?.original_title) : null) ||
-      (movieId ? `Film #${movieId}` : null)
-    const posterPath = typeof movie === 'object' ? (movie?.poster_path || null) : null
-
-    if (!movieId || Number.isNaN(movieId)) {
-      throw new Error('invalid_movieId')
-    }
-
-    const response = await axios.post(`${API_URL}/api/favorites`, { movieId, title, posterPath }, {
-      headers: this.getAuthHeaders()
-    });
-    if (!response.data?.success) {
-      throw new Error(response.data?.error || 'Failed to add favorite');
-    }
-    return response.data;
+    const movieId = Number(typeof movie === 'number' ? movie : (movie?.id ?? movie?.movie_id ?? movie?.tmdb_id))
+    if (!Number.isSafeInteger(movieId) || movieId <= 0) throw new Error('Invalid movie identifier.')
+    return apiRequest('/api/favorites', {
+      method: 'POST',
+      csrf: true,
+      body: {
+        movieId,
+        title: typeof movie === 'object' ? (movie.title || movie.original_title) : `Movie #${movieId}`,
+        posterPath: typeof movie === 'object' ? movie.poster_path || null : null,
+      },
+    })
   }
 
-  async removeFavorite(movieId) {
-    const response = await axios.delete(`${API_URL}/api/favorites/${movieId}`, {
-      headers: this.getAuthHeaders()
-    });
-    if (!response.data?.success) {
-      throw new Error(response.data?.error || 'Failed to remove favorite');
-    }
-    return response.data;
+  removeFavorite(movieId) {
+    return apiRequest(`/api/favorites/${movieId}`, { method: 'DELETE', csrf: true })
   }
 
   async getFavoritesList() {
     try {
-      const { data: { user } } = await this.supabase?.auth?.getUser?.() || { data: { user: null } };
-      const uid = user?.id || null;
-      if (!uid) return [];
-      
-      const response = await axios.get(`${API_URL}/api/users/${uid}/favorites`, {
-        headers: this.getAuthHeaders()
-      });
-      
-      return response.data?.items || [];
+      return (await apiRequest('/api/users/me/favorites', { params: { page: 1, limit: 50 } })).items || []
     } catch (error) {
-      console.error('Error getting favorites list from DB:', error);
-      return [];
+      console.error('Unable to load favorite identifiers:', error)
+      return []
     }
   }
 
   async getMyFavoriteIds(page = 1, limit = 50) {
     try {
-      const { data: { user } } = await this.supabase?.auth?.getUser?.() || { data: { user: null } };
-      const uid = user?.id || null;
-      const token = this.getAuthToken();
-      if (!uid || !token) return { items: [], totalPages: 0 };
-      const response = await axios.get(`${API_URL}/api/users/${uid}/favorites`, {
-        params: { page, limit },
-        headers: this.getAuthHeaders()
-      });
-      return response.data || { items: [], totalPages: 0 };
+      return await apiRequest('/api/users/me/favorites', { params: { page, limit } })
     } catch (error) {
-      console.error('Error getting my favorites list:', error);
-      return { items: [], totalPages: 0 };
+      console.error('Unable to load favorites:', error)
+      return { items: [], totalPages: 0, currentPage: page }
     }
   }
 
-  async searchUsers(query, limit = 10) {
+  async searchUsers(search, limit = 10) {
     try {
-      const response = await axios.get(`${API_URL}/api/users/search`, {
-        params: { q: query, limit }
-      });
-      return Array.isArray(response.data) ? response.data : [];
+      const result = await apiRequest('/api/users/search', { params: { q: search, limit } })
+      return Array.isArray(result) ? result : []
     } catch (error) {
-      console.error('Error searching users:', error);
-      return [];
+      console.error('Unable to search users:', error)
+      return []
     }
   }
 
   async getPublicProfile(identifier) {
     try {
-      const response = await axios.get(`${API_URL}/api/users/public/${encodeURIComponent(identifier)}`);
-      return response.data;
+      return await apiRequest(`/api/users/public/${encodeURIComponent(identifier)}`)
     } catch (error) {
-      console.error('Error fetching public profile:', error);
-      return null;
+      if (error.status !== 404) console.error('Unable to load public profile:', error)
+      return null
     }
   }
 
-  // ===== Comments =====
   async upsertComment(movieId, content, movieTitle = null, posterPath = null) {
     try {
-      const response = await axios.post(`${API_URL}/api/comments`, { 
-        movieId, 
-        content,
-        movieTitle: movieTitle || `Film #${movieId}`,
-        posterPath 
-      }, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data?.success === true;
+      const result = await apiRequest('/api/comments', {
+        method: 'POST',
+        csrf: true,
+        body: { movieId, content, movieTitle: movieTitle || `Movie #${movieId}`, posterPath },
+      })
+      return result.success === true
     } catch (error) {
-      console.error('Error upserting comment:', error);
-      return false;
+      console.error('Unable to save comment:', error)
+      return false
     }
   }
 
   async listMyComments(page = 1, limit = 20) {
     try {
-      const response = await axios.get(`${API_URL}/api/users/me/comments`, {
-        params: { page, limit },
-        headers: this.getAuthHeaders()
-      });
-      return response.data || { comments: [], totalPages: 0 };
+      return await apiRequest('/api/users/me/comments', { params: { page, limit } })
     } catch (error) {
-      console.error('Error listing my comments:', error);
-      return { comments: [], totalPages: 0 };
+      console.error('Unable to load comments:', error)
+      return { comments: [], totalPages: 0, currentPage: page }
     }
   }
 
   async deleteComment(movieId) {
     try {
-      const response = await axios.delete(`${API_URL}/api/comments/${movieId}`, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data?.success === true;
+      return (await apiRequest(`/api/comments/${movieId}`, { method: 'DELETE', csrf: true })).success === true
     } catch (error) {
-      console.error('Error deleting comment:', error);
-      return false;
+      console.error('Unable to delete comment:', error)
+      return false
     }
   }
 
   async getPrivacy(identifier) {
     try {
-      const response = await axios.get(`${API_URL}/api/users/privacy/${encodeURIComponent(identifier)}`);
-      return Boolean(response.data?.isPublic);
+      return Boolean((await apiRequest(`/api/users/privacy/${encodeURIComponent(identifier)}`)).isPublic)
     } catch (error) {
-      console.error('Error fetching privacy:', error);
-      return true;
+      return true
     }
   }
 
-  // Public lists (subject to privacy / friendship handled server-side in future)
   async getUserFavorites(userId, page = 1) {
     try {
-      const response = await axios.get(`${API_URL}/api/users/${userId}/favorites`, { params: { page }, headers: this.getAuthHeaders() });
-      return response.data || { items: [], totalPages: 0 };
+      return await apiRequest(`/api/users/${userId}/favorites`, { params: { page } })
     } catch (error) {
-      console.error('Error fetching user favorites:', error);
-      return { items: [], totalPages: 0 };
+      return { items: [], totalPages: 0, currentPage: page }
     }
   }
 
   async getUserRatings(userId, page = 1) {
     try {
-      const response = await axios.get(`${API_URL}/api/users/${userId}/ratings`, { params: { page }, headers: this.getAuthHeaders() });
-      return response.data || { items: [], totalPages: 0 };
+      return await apiRequest(`/api/users/${userId}/ratings`, { params: { page } })
     } catch (error) {
-      console.error('Error fetching user ratings:', error);
-      return { items: [], totalPages: 0 };
+      return { items: [], totalPages: 0, currentPage: page }
     }
   }
 
-  // ===== Friendships =====
   async getFriendStatus(otherUserId) {
     try {
-      const response = await axios.get(`${API_URL}/api/friends/status/${otherUserId}`, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data?.status || 'none';
+      return (await apiRequest(`/api/friends/status/${otherUserId}`)).status || 'none'
     } catch (error) {
-      console.error('Error getting friend status:', error);
-      return 'none';
+      return 'none'
     }
   }
 
   async sendFriendRequest(toUserId) {
     try {
-      const response = await axios.post(`${API_URL}/api/friends/request`, { toUserId }, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data;
+      return await apiRequest('/api/friends/request', { method: 'POST', body: { toUserId }, csrf: true })
     } catch (error) {
-      console.error('Error sending friend request:', error);
-      return { success: false };
+      console.error('Unable to send friend request:', error)
+      return { success: false }
     }
   }
 
   async respondFriendRequest(payload) {
     try {
-      const response = await axios.post(`${API_URL}/api/friends/respond`, payload, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data;
+      return await apiRequest('/api/friends/respond', { method: 'POST', body: payload, csrf: true })
     } catch (error) {
-      console.error('Error responding friend request:', error);
-      return { success: false };
+      console.error('Unable to respond to friend request:', error)
+      return { success: false }
     }
   }
 
   async unfriend(otherUserId) {
     try {
-      const response = await axios.delete(`${API_URL}/api/friends/${otherUserId}`, {
-        headers: this.getAuthHeaders()
-      });
-      return response.data?.success === true;
+      return (await apiRequest(`/api/friends/${otherUserId}`, { method: 'DELETE', csrf: true })).success === true
     } catch (error) {
-      console.error('Error unfriending:', error);
-      return false;
+      return false
     }
   }
 
   async listFriends(userId) {
     try {
-      const url = userId ? `${API_URL}/api/friends/list/${userId}` : `${API_URL}/api/friends/list`;
-      const response = await axios.get(url, { headers: this.getAuthHeaders() });
-      return Array.isArray(response.data) ? response.data : [];
+      const result = await apiRequest(userId ? `/api/friends/list/${userId}` : '/api/friends/list')
+      return Array.isArray(result) ? result : []
     } catch (error) {
-      console.error('Error listing friends:', error);
-      return [];
+      return []
     }
   }
 
   async listIncomingRequests() {
     try {
-      const response = await axios.get(`${API_URL}/api/friends/requests`, { headers: this.getAuthHeaders() });
-      return Array.isArray(response.data) ? response.data : [];
+      const result = await apiRequest('/api/friends/requests')
+      return Array.isArray(result) ? result : []
     } catch (error) {
-      console.error('Error listing friend requests:', error);
-      return [];
+      return []
     }
   }
 }
 
-export const userService = new UserService();
+export const userService = new UserService()

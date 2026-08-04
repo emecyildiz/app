@@ -85,7 +85,7 @@ const MovieCard = ({ movie, showFavoriteButton = true }) => {
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <div className="absolute bottom-0 left-0 right-0 p-4">
               <p className="text-sm text-gray-300 line-clamp-3">
-                {overview || 'Açıklama bulunamadı'}
+                {overview || 'No overview available'}
               </p>
             </div>
           </div>
@@ -105,7 +105,7 @@ const MovieCard = ({ movie, showFavoriteButton = true }) => {
                 e.preventDefault()
                 e.stopPropagation()
                 if (!isAuthenticated) {
-                  toast.error('Favorilere eklemek için giriş yapın')
+                  toast.error('Sign in to add favorites.')
                   navigate('/login')
                   return
                 }
@@ -118,7 +118,7 @@ const MovieCard = ({ movie, showFavoriteButton = true }) => {
                     // Remove from favorites - verify with DB
                     await userService.removeFavorite(id)
                     removeFromFavorites(id)
-                    toast.success('Favorilerden kaldırıldı')
+                    toast.success('Removed from favorites.')
                   } else {
                     // Add to favorites - verify with DB
                     await userService.addFavorite(movie)
@@ -126,8 +126,8 @@ const MovieCard = ({ movie, showFavoriteButton = true }) => {
                     toast.success('Favorilere eklendi')
                   }
                 } catch (error) {
-                  console.error('Favori işlemi hatası:', error)
-                  toast.error('İşlem başarısız oldu')
+                  console.error('Favorite operation failed:', error)
+                  toast.error('The operation failed.')
                 } finally {
                   setIsLoadingFavorite(false)
                 }

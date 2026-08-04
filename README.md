@@ -1,204 +1,73 @@
 # Ratemet
 
-Film puanlama ve keşif platformu. Kullanıcılar film puanlayabilir, favori listelerini yönetebilir, arkadaşlarına film önerebilir ve TMDB API'den popüler, yeni ve en iyi filmleri keşfedebilir.
+Ratemet is a self-hosted movie discovery and social catalog application. Users can browse TMDB data, rate and comment on movies, maintain favorites and watch history, connect with other users, and exchange recommendations.
 
-## Özellikler
-- Supabase ile kullanıcı kimlik doğrulama (email/şifre, OTP)
-- Popüler/yeni/en iyi filmleri görüntüleme
-- Oyuncu kadrosu, video ve görseller ile detaylı film bilgileri
-- Favoriler, puanlama ve yorum sistemi
-- Arkadaşlık ve film öneri sistemi
-- Admin/moderatör yönetim paneli
+## Architecture
 
-## Teknoloji Stack
-- **Frontend:** React, Vite, Tailwind CSS, Zustand
-- **Backend:** Node.js (Express), Supabase (PostgreSQL + Auth)
-- **Harici API:** TMDB (The Movie Database)
+- React 18 and Vite frontend
+- Express 4 API
+- Self-hosted PostgreSQL 16
+- Cookie-based server sessions with CSRF protection
+- TMDB requests proxied by the backend so browser clients never receive the API credential
+- Resend-compatible transactional account email service
 
-## Proje Yapısı
-```
-app/
-├── src/              # Frontend React uygulaması
-├── backend/          # Express API sunucusu
-└── public/           # Statik dosyalar
-```
+Supabase, Vercel, and Render are not runtime dependencies.
 
-## Gereksinimler
-- Node.js 18+
-- Supabase projesi (URL ve anahtarlar)
-- TMDB API anahtarı
+## Local development
 
-## Kurulum
+Requirements: Node.js 18 or newer and Docker Desktop.
 
-### 1. Bağımlılıkları Yükleyin
+1. Copy `.env.example` to `.env`.
+2. Copy `backend/.env.example` to `backend/.env` and replace every placeholder secret.
+3. Start PostgreSQL from the repository root:
 
-**Frontend:**
-```bash
-npm install
-```
+   ```powershell
+   docker compose -f docker-compose.dev.yml up -d
+   ```
 
-**Backend:**
-```bash
-cd backend
-npm install
-```
+4. Install packages and run the database migrations:
 
-### 2. Environment Değişkenlerini Ayarlayın
+   ```powershell
+   npm install
+   Set-Location backend
+   npm install
+   npm run db:migrate
+   ```
 
-**Frontend (.env)** - Proje kök dizininde:
-```env
-# Uygulama Bilgileri
-VITE_APP_NAME=Ratemet
-VITE_APP_LOGO_URL=/brand/ratemet-logo.png
+5. Run the API and frontend in separate terminals:
 
-# Supabase Ayarları
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
+   ```powershell
+   npm run backend
+   npm run dev
+   ```
 
-# Backend API
-VITE_API_URL=http://localhost:8080
+The default frontend is `http://localhost:5173`; the API is `http://localhost:8080`; local PostgreSQL is exposed only on `127.0.0.1:5434`.
 
-# Activity Tracking
-VITE_ACTIVITY_TRACKING_ENABLED=true
-```
+## Required backend configuration
 
-**Backend (backend/.env):**
-```env
-# Server Ayarları
-PORT=8080
-ALLOWED_ORIGIN=http://localhost:3001,http://localhost:3002
-NODE_ENV=development
+- `DATABASE_URL`: PostgreSQL connection string
+- `IP_HASH_SECRET`: long random secret used to pseudonymize IP addresses
+- `TMDB_V4_TOKEN` or `TMDB_API_KEY`: server-side TMDB credential
+- `ALLOWED_ORIGIN`: comma-separated browser origins allowed to call the API
+- `APP_BASE_URL`: public frontend URL used in account emails
+- `SESSION_COOKIE_NAME`, `SESSION_TTL_DAYS`, and `AUTH_REQUIRE_EMAIL_VERIFICATION`
+- `RESEND_API_KEY` and `EMAIL_FROM` when account email delivery is enabled
 
-# Supabase Ayarları
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-SUPABASE_JWT_SECRET=your-jwt-secret
+See `backend/.env.example` for the full list. Never commit `.env` files or production secrets.
 
-# Database
-DATABASE_URL=postgresql://user:password@host:5432/postgres
+## Verification
 
-# TMDB API
-TMDB_API_KEY=your-tmdb-api-key
-TMDB_V4_TOKEN=your-v4-token
-TMDB_API_BASE_URL=https://api.themoviedb.org/3
-
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-```
-
-> **Not:** `.env.example` ve `backend/.env.example` dosyalarını referans alabilirsiniz.
-
-## Çalıştırma
-
-### Development Modu
-
-**Frontend (Port 3001):**
-```bash
-npm run dev
-```
-
-**Backend (Port 8080):**
-```bash
-cd backend
-npm run dev
-```
-
-veya ayrı terminal'de:
-```bash
-npm run backend
-```
-
-### Production Modu
-
-**Frontend Build:**
-```bash
+```powershell
 npm run build
-npm run preview
+Set-Location backend
+npm test
+npm audit --omit=dev
 ```
 
-**Backend Start:**
-```bash
-cd backend
-npm start
-```
+The integration test uses the local PostgreSQL database and covers registration, login, session and CSRF handling, profile updates, favorites, ratings, watch history, comments, friendships, recommendations, logout, and password reset.
 
-## API Endpoints
+## Deployment direction
 
-Backend varsayılan olarak `http://localhost:8080` adresinde çalışır:
+Production deployment uses the repository's `docker-compose.prod.yml` with three isolated services: PostgreSQL, the Express API, and a Caddy-hosted frontend gateway. Only the gateway joins the shared `emecworks-edge` Docker network, under the alias `ratemet-gateway`; the portfolio stack remains independent.
 
-- `POST /api/auth/login` - Kullanıcı girişi
-- `POST /api/auth/register` - Kayıt
-- `GET /api/movies` - Film listesi
-- `POST /api/ratings` - Film puanlama
-- `GET /api/recommendations` - Öneriler
-- Ve daha fazlası...
-
-## Veritabanı Kurulumu
-
-1. Supabase Dashboard'a gidin
-2. SQL Editor'da `templates/` klasöründeki SQL şemalarını çalıştırın
-3. RLS (Row Level Security) politikalarının aktif olduğundan emin olun
-
-## Önemli Notlar
-
-⚠️ **Güvenlik:**
-- Gerçek API anahtarlarını asla commit etmeyin
-- `.env` dosyaları `.gitignore`'da olmalı
-- Production'da güçlü şifreler kullanın
-
-## Canli (Production) Ortam
-
-### Vercel (Frontend)
-
-**Environment Variables:**
-```env
-VITE_API_URL=https://<render-servis-adi>.onrender.com
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-VITE_APP_NAME=Ratemet
-VITE_APP_LOGO_URL=/brand/ratemet-logo.svg
-VITE_TMDB_API_BASE_URL=https://api.themoviedb.org/3
-VITE_TMDB_LANGUAGE=tr-TR
-VITE_HTTP_TIMEOUT_MS=10000
-VITE_ACTIVITY_TRACKING_ENABLED=true
-```
-
-> Not: Rate limit ayarlari frontend icin degil, backend icindir.
-
-### Render (Backend)
-
-**Environment Variables:**
-```env
-NODE_ENV=production
-PORT=8080
-ALLOWED_ORIGIN=https://<vercel-proje-adi>.vercel.app
-DATABASE_URL=postgresql://user:password@host:5432/postgres
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-SUPABASE_JWT_SECRET=your-jwt-secret
-TMDB_API_KEY=your-tmdb-api-key
-TMDB_V4_TOKEN=your-v4-token
-TMDB_API_BASE_URL=https://api.themoviedb.org/3
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-
-# n8n Webhook (Hata Logları İçin - Opsiyonel)
-N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/backend-log
-```
-
-> **n8n Entegrasyonu:** Backend'de oluşan kritik hatalar otomatik olarak n8n webhook'una gönderilir. n8n'de bu logları işleyebilir, bildirim gönderebilir veya veritabanına kaydedebilirsiniz. URL'yi boş bırakırsanız sadece console'a log yazdırılır.
-
-📚 **Veri Kaynağı:**
-- Tüm film verileri TMDB API'den gelir
-- TMDB API anahtarı ücretsiz olarak edinilebilir: https://www.themoviedb.org/settings/api
-
-🔧 **Development:**
-- Frontend otomatik olarak yeniden yüklenir (Hot Reload)
-- Backend nodemon ile değişiklikleri izler
-- Her iki servisi de aynı anda çalıştırın
-
-## Lisans
-MIT
+See `deploy/README.md` and `env.production.example` for the VPS procedure, Cloudflare Tunnel route, secrets, backup, restore, and hosted-service retirement checklist. Do not remove the previous hosted data source until export/import verification and rollback testing are complete.

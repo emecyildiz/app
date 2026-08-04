@@ -84,7 +84,7 @@ export default function PublicProfile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen pt-20 flex items-center justify-center text-gray-400">Yükleniyor...</div>
+      <div className="min-h-screen pt-20 flex items-center justify-center text-gray-400">Loading...</div>
     )
   }
 
@@ -92,9 +92,9 @@ export default function PublicProfile() {
     return (
       <div className="min-h-screen pt-20 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-400 text-lg mb-4">Kullanıcı bulunamadı</p>
+          <p className="text-gray-400 text-lg mb-4">User not found</p>
           <Link to="/" className="btn btn-primary">
-            Ana Sayfa
+            Home
           </Link>
         </div>
       </div>
@@ -149,7 +149,7 @@ export default function PublicProfile() {
                   {profile.memberSince && (
                     <div className="flex items-center gap-2 text-gray-300">
                       <Calendar className="w-4 h-4" />
-                      <span>Üyelik: {new Date(profile.memberSince).toLocaleDateString('tr-TR')}</span>
+                      <span>Member since: {new Date(profile.memberSince).toLocaleDateString('en-US')}</span>
                     </div>
                   )}
                 </div>
@@ -160,12 +160,12 @@ export default function PublicProfile() {
                     {friendStatus === 'none' && (
                       <button onClick={handleSendRequest} disabled={busy} className="btn btn-primary">
                         <UserPlus className="w-4 h-4" />
-                        Arkadaş Ekle
+                        Add friend
                       </button>
                     )}
                     {friendStatus === 'pending_outgoing' && (
                       <button disabled className="btn btn-secondary opacity-70 cursor-not-allowed">
-                        İstek Gönderildi
+                        Request sent
                       </button>
                     )}
                     {friendStatus === 'pending_incoming' && (
@@ -184,18 +184,18 @@ export default function PublicProfile() {
                       <div className="flex gap-2">
                         <button onClick={() => setShowRecommendModal(true)} disabled={busy} className="btn btn-primary">
                           <Share2 className="w-4 h-4" />
-                          Öneri Gönder
+                          Send recommendation
                         </button>
                         <button onClick={handleUnfriend} disabled={busy} className="btn btn-secondary">
                           <UserMinus className="w-4 h-4" />
-                          Arkadaşlıktan Çıkar
+                          Remove friend
                         </button>
                       </div>
                     )}
                   </div>
                 )}
                 {!isAuthenticated && (
-                  <Link to="/login" className="btn btn-primary">Giriş yap</Link>
+                  <Link to="/login" className="btn btn-primary">Sign in</Link>
                 )}
               </div>
             </div>
@@ -212,7 +212,7 @@ export default function PublicProfile() {
           <div className="glass rounded-xl p-6 text-center">
             <Film className="w-8 h-8 text-primary-500 mx-auto mb-2" />
             <p className="text-3xl font-bold text-white mb-1">{profile.stats?.watchedMovies || 0}</p>
-            <p className="text-gray-400">Film İzlendi</p>
+            <p className="text-gray-400">Movies watched</p>
           </div>
           <div className="glass rounded-xl p-6 text-center">
             <Star className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
@@ -238,7 +238,7 @@ export default function PublicProfile() {
           toUser={{ avatar: profile.avatar, name: profile.name, username: profile.username }}
           onSuccess={() => {
             setShowRecommendModal(false)
-            toast.success('Öneri gönderildi')
+            toast.success('Recommendation sent.')
           }}
         />
       )}
