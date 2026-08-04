@@ -232,7 +232,7 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
                     type="text"
                     value={movieQuery}
                     onChange={(e) => handleMovieSearch(e.target.value)}
-                    placeholder="Film ara..."
+                    placeholder="Search films..."
                     className="input w-full"
                   />
                   {movieResults.length > 0 && (
@@ -255,7 +255,7 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
                               <div className="text-xs text-gray-400">{new Date(m.release_date).getFullYear()}</div>
                             )}
                           </div>
-                          <div className="text-xs text-gray-400">Ekle</div>
+                          <div className="text-xs text-gray-400">Add</div>
                         </button>
                       ))}
                     </div>

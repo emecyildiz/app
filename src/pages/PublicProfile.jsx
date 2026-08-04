@@ -107,7 +107,7 @@ export default function PublicProfile() {
         <div className="mb-6">
           <Link to="/" className="btn btn-ghost">
             <ArrowLeft className="w-4 h-4" />
-            Geri
+            Back
           </Link>
         </div>
         <motion.div
@@ -217,12 +217,12 @@ export default function PublicProfile() {
           <div className="glass rounded-xl p-6 text-center">
             <Star className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
             <p className="text-3xl font-bold text-white mb-1">{profile.stats?.ratings || 0}</p>
-            <p className="text-gray-400">Puan Verildi</p>
+            <p className="text-gray-400">Ratings</p>
           </div>
           <div className="glass rounded-xl p-6 text-center">
             <Heart className="w-8 h-8 text-red-500 mx-auto mb-2" />
             <p className="text-3xl font-bold text-white mb-1">{profile.stats?.favorites || 0}</p>
-            <p className="text-gray-400">Favori</p>
+            <p className="text-gray-400">Favorites</p>
           </div>
         </motion.div>
 

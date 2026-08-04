@@ -27,7 +27,7 @@ const MobileBottomNav = () => {
       : 'grid-cols-3'
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-[60] h-16 border-t border-white/10 bg-[#0d0e0c]/95 pb-safe backdrop-blur-md sm:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-[60] h-16 border-t border-white/10 bg-[#0d0e0c]/95 pb-safe shadow-[0_-12px_30px_rgba(0,0,0,.24)] backdrop-blur-xl sm:hidden">
       <div className={`grid h-16 w-full ${gridColumns}`}>
         {items.map(({ path, label, icon: Icon }) => {
           const isActive = path === '/'

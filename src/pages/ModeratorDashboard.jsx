@@ -182,7 +182,7 @@ export default function ModeratorDashboard() {
                   <p className="text-white font-medium">{profile?.name || user?.email?.split('@')[0]}</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm">E-posta</p>
+                  <p className="text-gray-400 text-sm">Email</p>
                   <p className="text-white font-medium">{user?.email}</p>
                 </div>
                 <div>
@@ -192,7 +192,7 @@ export default function ModeratorDashboard() {
                 <div>
                   <p className="text-gray-400 text-sm">Last sign-in</p>
                   <p className="text-white font-medium">
-                    {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('tr-TR') : 'Bilinmiyor'}
+                    {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('en-US') : 'Unknown'}
                   </p>
                 </div>
               </div>
@@ -242,7 +242,7 @@ export default function ModeratorDashboard() {
                   <thead>
                     <tr className="border-b border-gray-800">
                       <th className="text-left p-4 text-gray-400 font-medium">User</th>
-                      <th className="text-left p-4 text-gray-400 font-medium">E-posta</th>
+                      <th className="text-left p-4 text-gray-400 font-medium">Email</th>
                       <th className="text-left p-4 text-gray-400 font-medium">Rol</th>
                       <th className="text-left p-4 text-gray-400 font-medium">Registration date</th>
                       <th className="text-left p-4 text-gray-400 font-medium">Actions</th>
@@ -294,7 +294,7 @@ export default function ModeratorDashboard() {
                             </span>
                           </td>
                           <td className="p-4 text-gray-300">
-                            {new Date(userItem.memberSince).toLocaleDateString('tr-TR')}
+                            {new Date(userItem.memberSince).toLocaleDateString('en-US')}
                           </td>
                           <td className="p-4">
                             <div className="flex items-center gap-2">
@@ -311,7 +311,7 @@ export default function ModeratorDashboard() {
                                   className="text-red-500 hover:text-red-400 text-sm flex items-center gap-1"
                                 >
                                   <TrashIcon className="w-4 h-4" />
-                                  Sil
+                                  Delete
                                 </button>
                               )}
                             </div>
@@ -347,7 +347,7 @@ export default function ModeratorDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">
-                      Ad Soyad
+                      Full name
                     </label>
                     <input
                       type="text"
@@ -357,7 +357,7 @@ export default function ModeratorDashboard() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">
-                      E-posta
+                      Email
                     </label>
                     <input
                       type="email"
@@ -444,7 +444,7 @@ export default function ModeratorDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">
-                      Ad Soyad
+                      Full name
                     </label>
                     <input
                       type="text"
@@ -456,7 +456,7 @@ export default function ModeratorDashboard() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">
-                      E-posta
+                      Email
                     </label>
                     <input
                       type="email"

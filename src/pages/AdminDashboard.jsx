@@ -355,11 +355,11 @@ export default function AdminDashboard() {
                     <div>
                       <p className="text-gray-400 text-sm">Last sign-in</p>
                       <p className="text-white font-medium">
-                        {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('tr-TR') : 'Bilinmiyor'}
+                        {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('en-US') : 'Unknown'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-400 text-sm">Admin E-posta</p>
+                      <p className="text-gray-400 text-sm">Admin email</p>
                       <p className="text-white font-medium">{user.email}</p>
                     </div>
                     <div>
@@ -383,7 +383,7 @@ export default function AdminDashboard() {
                       <thead>
                         <tr className="border-b border-gray-800">
                           <th className="text-left p-4 text-gray-400 font-medium">User</th>
-                          <th className="text-left p-4 text-gray-400 font-medium">E-posta</th>
+                          <th className="text-left p-4 text-gray-400 font-medium">Email</th>
                           <th className="text-left p-4 text-gray-400 font-medium">Rol</th>
                           <th className="text-left p-4 text-gray-400 font-medium">Registration date</th>
                           <th className="text-left p-4 text-gray-400 font-medium">Actions</th>
@@ -427,16 +427,16 @@ export default function AdminDashboard() {
                                 </span>
                               </td>
                               <td className="p-4 text-gray-300">
-                                {user.created_at ? new Date(user.created_at).toLocaleDateString('tr-TR') : 'Bilinmiyor'}
+                                {user.created_at ? new Date(user.created_at).toLocaleDateString('en-US') : 'Unknown'}
                               </td>
                               <td className="p-4">
                                 <div className="flex items-center gap-2">
                                   <button
                                     onClick={() => handlePromoteToModerator(user.id, user.name || user.username)}
                                     className="text-green-500 hover:text-green-400 text-sm font-medium"
-                                    title="Moderator Yap"
+                                    title="Promote to moderator"
                                   >
-                                    ⬆️ Moderator Yap
+                                    Promote to moderator
                                   </button>
                                   <button
                                     onClick={() => handleEditUser(user)}
@@ -448,7 +448,7 @@ export default function AdminDashboard() {
                                     onClick={() => handleDeleteUser(user.id)}
                                     className="text-red-500 hover:text-red-400 text-sm"
                                   >
-                                    Sil
+                                    Delete
                                   </button>
                                 </div>
                               </td>
@@ -471,18 +471,18 @@ export default function AdminDashboard() {
                     className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
                   >
                     <UserPlusIcon className="w-5 h-5" />
-                    Moderator Ekle
+                    Add moderator
                   </button>
                 </div>
 
                 {showAddModerator && (
                   <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-                    <h3 className="text-lg font-semibold text-white mb-4">Yeni Moderator Ekle</h3>
+                    <h3 className="text-lg font-semibold text-white mb-4">Add a new moderator</h3>
                     <form onSubmit={handleAddModerator} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-400 mb-2">
-                            Ad Soyad
+                            Full name
                           </label>
                           <input
                             type="text"
@@ -506,7 +506,7 @@ export default function AdminDashboard() {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-400 mb-2">
-                            E-posta
+                            Email
                           </label>
                           <input
                             type="email"
@@ -541,7 +541,7 @@ export default function AdminDashboard() {
                           type="submit"
                           className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
                         >
-                          Ekle
+                          Add
                         </button>
                       </div>
                     </form>
@@ -554,7 +554,7 @@ export default function AdminDashboard() {
                       <thead>
                         <tr className="border-b border-gray-800">
                           <th className="text-left p-4 text-gray-400 font-medium">Moderator</th>
-                          <th className="text-left p-4 text-gray-400 font-medium">E-posta</th>
+                          <th className="text-left p-4 text-gray-400 font-medium">Email</th>
                           <th className="text-left p-4 text-gray-400 font-medium">Registration date</th>
                           <th className="text-left p-4 text-gray-400 font-medium">Actions</th>
                         </tr>
@@ -592,7 +592,7 @@ export default function AdminDashboard() {
                               </td>
                               <td className="p-4 text-gray-300">{moderator.email}</td>
                               <td className="p-4 text-gray-300">
-                                {moderator.created_at ? new Date(moderator.created_at).toLocaleDateString('tr-TR') : 'Bilinmiyor'}
+                                {moderator.created_at ? new Date(moderator.created_at).toLocaleDateString('en-US') : 'Unknown'}
                               </td>
                               <td className="p-4">
                                 <div className="flex items-center gap-3">
@@ -632,7 +632,7 @@ export default function AdminDashboard() {
                       </label>
                       <input
                         type="text"
-                        defaultValue="Film Sitesi"
+                        defaultValue="Ratemet movie journal"
                         className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600"
                       />
                     </div>
@@ -704,7 +704,7 @@ export default function AdminDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">
-                    Ad Soyad
+                    Full name
                   </label>
                   <input
                     type="text"
@@ -716,7 +716,7 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">
-                    E-posta
+                    Email
                   </label>
                   <input
                     type="email"

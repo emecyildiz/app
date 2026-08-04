@@ -158,7 +158,7 @@ export default function AdminUserEdit() {
               <div className="mt-6 space-y-3">
                 <div>
                   <p className="text-gray-400 text-sm">Joined</p>
-                  <p className="text-white">{new Date(userData.memberSince).toLocaleDateString('tr-TR')}</p>
+                  <p className="text-white">{new Date(userData.memberSince).toLocaleDateString('en-US')}</p>
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm">User ID</p>
@@ -171,13 +171,13 @@ export default function AdminUserEdit() {
           {/* Edit Form */}
           <div className="lg:col-span-2">
             <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-              <h3 className="text-xl font-semibold text-white mb-6">Profil Bilgileri</h3>
+              <h3 className="text-xl font-semibold text-white mb-6">Profile details</h3>
               
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">
-                      Ad Soyad
+                      Full name
                     </label>
                     <input
                       type="text"
@@ -203,7 +203,7 @@ export default function AdminUserEdit() {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">
-                      E-posta
+                      Email
                     </label>
                     <input
                       type="email"
@@ -232,7 +232,7 @@ export default function AdminUserEdit() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">
-                    Biyografi
+                    Biography
                   </label>
                   <textarea
                     name="bio"

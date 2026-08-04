@@ -243,7 +243,7 @@ const Profile = () => {
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: User },
-    { id: 'favorites', label: 'Favorilerim', icon: Heart },
+    { id: 'favorites', label: 'My favorites', icon: Heart },
     { id: 'ratings', label: 'My ratings', icon: Star },
     { id: 'comments', label: 'My comments', icon: MessageSquare },
     { id: 'recommendations', label: 'Recommendations', icon: Share2 },
@@ -629,7 +629,7 @@ const Profile = () => {
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                 <Star className="w-4 h-4 text-yellow-400" />
                 <span className="text-white font-semibold">{stats.ratings}</span>
-                <span className="text-gray-400 text-sm">Puan</span>
+                <span className="text-gray-400 text-sm">Ratings</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                 <MessageSquare className="w-4 h-4 text-blue-400" />
@@ -639,7 +639,7 @@ const Profile = () => {
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                 <Heart className="w-4 h-4 text-red-400" />
                 <span className="text-white font-semibold">{stats.favorites}</span>
-                <span className="text-gray-400 text-sm">Favori</span>
+                <span className="text-gray-400 text-sm">Favorites</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 transition-colors">
                 <Calendar className="w-4 h-4 text-blue-400" />
@@ -657,7 +657,7 @@ const Profile = () => {
           <div className="mb-6 flex items-center justify-between">
             <button onClick={() => navigate('/profile/overview')} className="btn btn-ghost">
               <ArrowLeft className="w-4 h-4" />
-              <span>Geri</span>
+              <span>Back</span>
             </button>
             <h2 className="text-xl font-bold text-white">{tabs.find(t => t.id === activeTab)?.label || ''}</h2>
             <div className="w-12" />
@@ -712,7 +712,7 @@ const Profile = () => {
             {activeTab === 'favorites' && (
               <div>
                 <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
-                  <h2 className="text-2xl font-bold text-white">Favori Filmlerim ({filteredFavorites.length}/{favoriteMovies.length})</h2>
+                  <h2 className="text-2xl font-bold text-white">My favorite films ({filteredFavorites.length}/{favoriteMovies.length})</h2>
                   <div className="flex items-center gap-3">
                     <select
                       value={selectedGenreId}
@@ -813,7 +813,7 @@ const Profile = () => {
                             }}
                             className="absolute top-3 right-3 btn btn-secondary btn-sm"
                           >
-                            Sil
+                            Delete
                           </button>
                           {rating.comment && (
                             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
@@ -856,7 +856,7 @@ const Profile = () => {
                     {myComments.map((c) => (
                       <div key={c.id} className="glass rounded-xl p-4">
                         <div className="flex gap-4">
-                          {/* Film Posteri */}
+                          {/* Movie poster */}
                           {c.movie && (
                             <a 
                               href={`/movie/${c.movie_id}`}
@@ -864,7 +864,7 @@ const Profile = () => {
                             >
                               <img
                                 src={c.movie.poster_path ? `https://image.tmdb.org/t/p/w92${c.movie.poster_path}` : '/placeholder-movie.png'}
-                                alt={c.movie.title || 'Film'}
+                                alt={c.movie.title || 'Movie'}
                                 className="w-16 h-24 object-cover rounded-lg shadow-lg group-hover:scale-105 transition-transform"
                               />
                             </a>
@@ -877,16 +877,16 @@ const Profile = () => {
                                 href={`/movie/${c.movie_id}`}
                                 className="text-primary-400 hover:text-primary-300 font-semibold mb-2 transition-colors"
                               >
-                                {c.movie.title || `Film #${c.movie_id}`}
+                                {c.movie.title || `Movie #${c.movie_id}`}
                               </a>
                             )}
                             <div className="text-gray-300 whitespace-pre-wrap flex-1">{c.content}</div>
                             <div className="text-xs text-gray-500 mt-2">
-                              {new Date(c.created_at).toLocaleString('tr-TR')}
+                              {new Date(c.created_at).toLocaleString('en-US')}
                             </div>
                           </div>
 
-                          {/* Sil Butonu */}
+                          {/* Delete button */}
                           <button
                             className="btn btn-secondary btn-sm self-start"
                             onClick={async () => {
@@ -897,7 +897,7 @@ const Profile = () => {
                               }
                             }}
                           >
-                            Sil
+                            Delete
                           </button>
                         </div>
                       </div>
@@ -926,7 +926,7 @@ const Profile = () => {
                   <h2 className="text-2xl font-bold text-white mb-4">Incoming requests</h2>
                   <div className="glass rounded-xl p-4">
                     {requests.length === 0 ? (
-                      <p className="text-gray-400 text-center py-6">Bekleyen istek yok</p>
+                      <p className="text-gray-400 text-center py-6">No pending requests</p>
                     ) : (
                       <ul className="divide-y divide-white/10">
                         {requests.map((r) => (
@@ -1014,7 +1014,7 @@ const Profile = () => {
                                     <div className="text-white text-sm font-medium">{item.movie_title || rec.title}</div>
                                 <div className="text-xs text-gray-400 mt-1">Kimden: {rec.from_user?.name || rec.from_user?.username || `@${rec.from_user_id}`}</div>
                                     {rec.note && <div className="text-xs text-gray-400 mt-1">{rec.note}</div>}
-                                    <div className="text-[11px] text-gray-500 mt-1">{new Date(rec.created_at).toLocaleString('tr-TR')}</div>
+                                    <div className="text-[11px] text-gray-500 mt-1">{new Date(rec.created_at).toLocaleString('en-US')}</div>
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <button
@@ -1032,7 +1032,7 @@ const Profile = () => {
                                           setReceivedRecommendations(prev => prev.filter(r => r.id !== rec.id))
                                         }
                                       }}
-                                    >Sil</button>
+                                    >Delete</button>
                                   </div>
                                 </div>
                               ))
@@ -1063,7 +1063,7 @@ const Profile = () => {
                                     <div className="text-white text-sm font-medium">{item.movie_title || rec.title}</div>
                                     <div className="text-xs text-gray-400 mt-1">Kimden: {rec.from_user?.name || rec.from_user?.username || `@${rec.from_user_id}`}</div>
                                     {rec.note && <div className="text-xs text-gray-400 mt-1">{rec.note}</div>}
-                                    <div className="text-[11px] text-gray-500 mt-1">{new Date(rec.created_at).toLocaleString('tr-TR')}</div>
+                                    <div className="text-[11px] text-gray-500 mt-1">{new Date(rec.created_at).toLocaleString('en-US')}</div>
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <button
@@ -1081,7 +1081,7 @@ const Profile = () => {
                                           setReceivedRecommendations(prev => prev.filter(r => r.id !== rec.id))
                                         }
                                       }}
-                                    >Sil</button>
+                                    >Delete</button>
                                   </div>
                                 </div>
                               ))
@@ -1118,7 +1118,7 @@ const Profile = () => {
                                   <div className="text-white text-sm font-medium">{item.movie_title || rec.title}</div>
                                   <div className="text-xs text-gray-400 mt-1">Kime: {rec.to_user?.name || rec.to_user?.username || `@${rec.to_user_id}`}</div>
                                   {rec.note && <div className="text-xs text-gray-400 mt-1">{rec.note}</div>}
-                                  <div className="text-[11px] text-gray-500 mt-1">{new Date(rec.created_at).toLocaleString('tr-TR')}</div>
+                                  <div className="text-[11px] text-gray-500 mt-1">{new Date(rec.created_at).toLocaleString('en-US')}</div>
                                 </div>
                               </div>
                             ))
@@ -1136,7 +1136,7 @@ const Profile = () => {
                 <h2 className="text-2xl font-bold text-white mb-6">Account settings</h2>
                 <div className="space-y-6">
                   <div className="glass rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-white mb-4">E-posta Bildirimleri</h3>
+                    <h3 className="text-lg font-semibold text-white mb-4">Email notifications</h3>
                     <div className="space-y-3">
                       <label className="flex items-center justify-between">
                         <span className="text-gray-300">Receive notifications about new movies</span>
@@ -1225,7 +1225,7 @@ const Profile = () => {
                 disabled={isLoading}
                 className="flex-1 btn bg-red-600 hover:bg-red-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isLoading ? 'Siliniyor...' : 'Evet, Sil'}
+                {isLoading ? 'Deleting…' : 'Yes, delete'}
               </button>
             </div>
           </motion.div>
@@ -1254,7 +1254,7 @@ const Profile = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Ad Soyad
+                    Full name
                   </label>
                   <input
                     type="text"
@@ -1299,7 +1299,7 @@ const Profile = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  E-posta
+                  Email
                 </label>
                 <input
                   type="email"
@@ -1312,18 +1312,18 @@ const Profile = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Biyografi
+                  Biography
                 </label>
                 <textarea
                   {...register('bio', {
                     maxLength: {
                       value: 200,
-                      message: 'Biyografi en fazla 200 karakter olabilir',
+                      message: 'Biography must not exceed 200 characters.',
                     },
                   })}
                   rows={3}
                   className="input"
-                  placeholder="Kendinizden bahsedin..."
+                  placeholder="Tell people a little about yourself..."
                 />
                 {errors.bio && (
                   <p className="mt-1 text-sm text-red-400">{errors.bio.message}</p>

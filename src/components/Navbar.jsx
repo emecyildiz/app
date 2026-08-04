@@ -19,10 +19,10 @@ import {
   Users,
   X,
 } from 'lucide-react'
-import { APP_NAME } from '../config/appConfig'
 import recommendationService from '../services/recommendationService'
 import { userService } from '../services/userService'
 import { useAuthStore } from '../store/newAuthStore'
+import BrandMark from './BrandMark'
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -147,14 +147,14 @@ const Navbar = () => {
   }
 
   return (
-    <header className={`fixed inset-x-0 top-0 z-50 border-b transition-colors duration-300 ${isScrolled ? 'border-white/10 bg-[#0d0e0c]/95 backdrop-blur-xl' : 'border-white/[0.07] bg-[#0d0e0c]/90'}`}>
+    <header className={`fixed inset-x-0 top-0 z-50 border-b transition duration-300 ${isScrolled ? 'border-white/10 bg-[#0d0e0c]/95 shadow-[0_14px_40px_rgba(0,0,0,.24)] backdrop-blur-xl' : 'border-white/[0.07] bg-[#0d0e0c]/90'}`}>
       <nav aria-label="Primary navigation" className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between px-5 sm:px-8 lg:px-12">
-        <Link to="/" className="group flex items-center gap-3" aria-label={`${APP_NAME} home`}>
-          <img src="/brand/ratemet-logo.svg" alt="" className="h-8 w-auto sm:h-9" />
+        <div className="flex items-center gap-3">
+          <BrandMark />
           <span className="hidden border-l border-white/10 pl-3 font-mono text-[9px] uppercase tracking-[0.2em] text-[#77756f] xl:block">
             Film journal<br />and catalog
           </span>
-        </Link>
+        </div>
 
         <div className="hidden items-center gap-7 md:flex">
           <div className="flex items-center gap-1">
