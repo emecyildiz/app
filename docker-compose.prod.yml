@@ -1,0 +1,79 @@
+name: ratemet
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ratemet
+      POSTGRES_USER: ratemet
+      POSTGRES_PASSWORD: ${RATEMET_POSTGRES_PASSWORD:?Set RATEMET_POSTGRES_PASSWORD}
+    volumes:
+      - ratemet_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ratemet -d ratemet"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - ratemet-internal
+
+  api:
+    build:
+      context: ./backend
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      PGHOST: db
+      PGPORT: 5432
+      PGDATABASE: ratemet
+      PGUSER: ratemet
+      PGPASSWORD: ${RATEMET_POSTGRES_PASSWORD:?Set RATEMET_POSTGRES_PASSWORD}
+      DATABASE_SSL: "false"
+      DATABASE_POOL_MAX: ${RATEMET_DATABASE_POOL_MAX:-10}
+      TMDB_V4_TOKEN: ${RATEMET_TMDB_V4_TOKEN:-}
+      TMDB_API_KEY: ${RATEMET_TMDB_API_KEY:-}
+      TMDB_LANGUAGE: ${RATEMET_TMDB_LANGUAGE:-en-US}
+      APP_BASE_URL: https://ratemet.emecworks.com
+      ALLOWED_ORIGIN: https://ratemet.emecworks.com
+      TRUST_PROXY_HOPS: 2
+      SESSION_COOKIE_NAME: ratemet_session
+      SESSION_TTL_DAYS: ${RATEMET_SESSION_TTL_DAYS:-14}
+      AUTH_REQUIRE_EMAIL_VERIFICATION: ${RATEMET_AUTH_REQUIRE_EMAIL_VERIFICATION:-true}
+      IP_HASH_SECRET: ${RATEMET_IP_HASH_SECRET:?Set RATEMET_IP_HASH_SECRET}
+      RESEND_API_KEY: ${RATEMET_RESEND_API_KEY:-}
+      EMAIL_FROM: ${RATEMET_EMAIL_FROM:-Ratemet <accounts@notify.emecworks.com>}
+      N8N_WEBHOOK_URL: ${RATEMET_N8N_WEBHOOK_URL:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      ratemet-internal:
+      ratemet-egress:
+        gw_priority: 1
+
+  web:
+    build:
+      context: .
+    ports:
+      - "127.0.0.1:${RATEMET_DIAGNOSTIC_PORT:-8091}:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      ratemet-internal:
+      emecworks-edge:
+        aliases:
+          - ratemet-gateway
+
+volumes:
+  ratemet_postgres_data:
+
+networks:
+  ratemet-internal:
+    internal: true
+  ratemet-egress:
+  emecworks-edge:
+    external: true

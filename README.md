@@ -68,4 +68,6 @@ The integration test uses the local PostgreSQL database and covers registration,
 
 ## Deployment direction
 
-Production deployment is intended for Docker on the Emecworks VPS behind its existing reverse proxy and Cloudflare routing. The production PostgreSQL database must use a persistent volume and independent encrypted backups. Do not remove the previous hosted data source until export/import verification and rollback testing are complete.
+Production deployment uses the repository's `docker-compose.prod.yml` with three isolated services: PostgreSQL, the Express API, and a Caddy-hosted frontend gateway. Only the gateway joins the shared `emecworks-edge` Docker network, under the alias `ratemet-gateway`; the portfolio stack remains independent.
+
+See `deploy/README.md` and `env.production.example` for the VPS procedure, Cloudflare Tunnel route, secrets, backup, restore, and hosted-service retirement checklist. Do not remove the previous hosted data source until export/import verification and rollback testing are complete.

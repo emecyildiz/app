@@ -12,6 +12,8 @@ backend/dist/
 .env*.local
 backend/.env
 backend/.env.local
+.env.production
+*.env.production
 
 # Logs
 *.log
@@ -30,6 +32,7 @@ Thumbs.db
 
 # Coverage
 coverage/
+backups/
 node_modules/
 .env
 *.log

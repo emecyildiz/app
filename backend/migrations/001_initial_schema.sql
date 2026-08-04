@@ -24,7 +24,7 @@ CREATE TABLE profiles (
     name varchar(120) NOT NULL,
     bio varchar(1000),
     location varchar(120),
-    avatar_url varchar(2048),
+    avatar_url text,
     social_links jsonb NOT NULL DEFAULT '{}'::jsonb,
     last_active_at timestamptz,
     created_at timestamptz NOT NULL DEFAULT now(),

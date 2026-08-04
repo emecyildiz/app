@@ -3,6 +3,58 @@ import { Camera, X, Upload } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
 
+const AVATAR_SIZE = 256
+const MAX_AVATAR_DATA_URL_LENGTH = 48_000
+
+const createCompressedPreview = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader()
+
+  reader.onerror = () => reject(new Error('The image could not be read.'))
+  reader.onload = () => {
+    const image = new Image()
+
+    image.onerror = () => reject(new Error('The selected file is not a valid image.'))
+    image.onload = () => {
+      const canvas = document.createElement('canvas')
+      const context = canvas.getContext('2d')
+
+      if (!context) {
+        reject(new Error('Image processing is not supported by this browser.'))
+        return
+      }
+
+      const sourceSize = Math.min(image.naturalWidth, image.naturalHeight)
+      const sourceX = (image.naturalWidth - sourceSize) / 2
+      const sourceY = (image.naturalHeight - sourceSize) / 2
+
+      canvas.width = AVATAR_SIZE
+      canvas.height = AVATAR_SIZE
+      context.drawImage(
+        image,
+        sourceX,
+        sourceY,
+        sourceSize,
+        sourceSize,
+        0,
+        0,
+        AVATAR_SIZE,
+        AVATAR_SIZE
+      )
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.72)
+      if (dataUrl.length > MAX_AVATAR_DATA_URL_LENGTH) {
+        reject(new Error('The processed image is still too large. Please choose a simpler image.'))
+        return
+      }
+
+      resolve(dataUrl)
+    }
+    image.src = reader.result
+  }
+
+  reader.readAsDataURL(file)
+})
+
 const AvatarUpload = ({ currentAvatar, onUpload, size = 'large' }) => {
   const [preview, setPreview] = useState(null)
   const [isUploading, setIsUploading] = useState(false)
@@ -14,28 +66,28 @@ const AvatarUpload = ({ currentAvatar, onUpload, size = 'large' }) => {
     large: 'w-40 h-40'
   }
 
-  const handleFileSelect = (e) => {
+  const handleFileSelect = async (e) => {
     const file = e.target.files[0]
     if (!file) return
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file.')
       return
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast.error('The file must be smaller than 5 MB.')
       return
     }
 
-    // Create preview
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setPreview(reader.result)
+    try {
+      setPreview(await createCompressedPreview(file))
+    } catch (error) {
+      toast.error(error.message || 'The image could not be processed.')
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
     }
-    reader.readAsDataURL(file)
   }
 
   const handleUpload = async () => {
@@ -43,8 +95,6 @@ const AvatarUpload = ({ currentAvatar, onUpload, size = 'large' }) => {
 
     setIsUploading(true)
     try {
-      // In a real app, you would upload to a server here
-      // For now, we'll just use the base64 preview
       await onUpload(preview)
       setPreview(null)
     } catch (error) {

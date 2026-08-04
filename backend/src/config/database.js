@@ -2,14 +2,14 @@ const { Pool } = require('pg');
 
 const connectionString = process.env.DATABASE_URL;
 
-if (!connectionString) {
-  throw new Error('DATABASE_URL is required.');
+if (!connectionString && !process.env.PGHOST) {
+  throw new Error('DATABASE_URL or PostgreSQL PG* connection settings are required.');
 }
 
 const useSsl = String(process.env.DATABASE_SSL || '').toLowerCase() === 'true';
 
 const pool = new Pool({
-  connectionString,
+  ...(connectionString ? { connectionString } : {}),
   ssl: useSsl ? { rejectUnauthorized: true } : false,
   max: Number.parseInt(process.env.DATABASE_POOL_MAX || '10', 10),
   idleTimeoutMillis: 30_000,
