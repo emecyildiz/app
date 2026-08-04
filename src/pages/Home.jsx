@@ -6,7 +6,7 @@ import { useAuthStore } from '../store/newAuthStore'
 
 const Home = () => {
   const { isAuthenticated, user, profile } = useAuthStore()
-  const displayName = profile?.name || user?.email?.split('@')[0] || 'Hoş geldin'
+  const displayName = profile?.name || user?.email?.split('@')[0] || 'Welcome'
   
   const containerRef = useRef(null)
   const [tilt, setTilt] = useState({ x: 0, y: 0 })
@@ -27,47 +27,47 @@ const Home = () => {
   const features = [
     {
       icon: Film,
-      title: 'Geniş Film ve Dizi Arşivi',
-      description: 'TMDB entegrasyonu ile genişleyen bir film ve dizi kataloğu',
+      title: 'Extensive movie catalog',
+      description: 'An expanding movie catalog powered by TMDB',
       gradient: 'from-purple-500 to-pink-500',
     },
     {
       icon: Sparkles,
-      title: 'Akıllı Öneriler',
-      description: 'Yapay zeka destekli kişiselleştirilmiş film önerileri',
+      title: 'Smart recommendations',
+      description: 'Personalized movie recommendations',
       gradient: 'from-blue-500 to-cyan-500',
     },
     {
       icon: Heart,
       title: 'Favori Listeler',
-      description: 'İzlediklerinizi ve izlemek istediklerinizi organize edin',
+      description: 'Organize what you watched and what you want to watch',
       gradient: 'from-red-500 to-rose-500',
     },
     {
       icon: Users,
       title: 'Sosyal Platform',
-      description: 'Film tutkunlarıyla paylaşımda bulun ve öneriler alın',
+      description: 'Share with movie enthusiasts and receive recommendations',
       gradient: 'from-green-500 to-emerald-500',
     },
     {
       icon: TrendingUp,
-      title: 'Güncel Trendler',
-      description: 'En popüler ve trend olan filmleri anında keşfedin',
+      title: 'Current trends',
+      description: 'Discover popular and trending movies',
       gradient: 'from-orange-500 to-amber-500',
     },
     {
       icon: Shield,
-      title: 'Güvenli & Hızlı',
-      description: 'Verileriniz güvende, yıldırım hızında performans',
+      title: 'Secure and fast',
+      description: 'Protected data and responsive performance',
       gradient: 'from-indigo-500 to-blue-500',
     },
   ]
 
   const stats = [
-    { icon: Film, value: 'Geniş Arşiv', label: 'Film & Dizi', color: 'text-purple-400' },
-    { icon: Users, value: 'Büyüyen Topluluk', label: 'Kullanıcı', color: 'text-blue-400' },
-    { icon: Star, value: 'Yüksek Memnuniyet', label: 'Topluluk Puanları', color: 'text-yellow-400' },
-    { icon: Clock, value: 'Her Zaman Erişim', label: 'Erişim', color: 'text-green-400' },
+    { icon: Film, value: 'Extensive catalog', label: 'Movies', color: 'text-purple-400' },
+    { icon: Users, value: 'Growing community', label: 'Users', color: 'text-blue-400' },
+    { icon: Star, value: 'Community driven', label: 'Community ratings', color: 'text-yellow-400' },
+    { icon: Clock, value: 'Always available', label: 'Access', color: 'text-green-400' },
   ]
 
   const categories = [
@@ -121,17 +121,17 @@ const Home = () => {
                 className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-purple-300 mb-6"
               >
                 <Sparkles className="w-4 h-4" />
-                <span className="font-medium">Hoş geldin, {displayName}!</span>
+                <span className="font-medium">Welcome, {displayName}!</span>
               </motion.div>
 
               <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-white mb-6 leading-tight">
-                Kaldığın Yerden{' '}
+                Continue where you left off{' '}
                 <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
                   Devam Et
                 </span>
               </h1>
               <p className="text-xl md:text-2xl text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed">
-                Son trend filmleri keşfet, favorilerine ekle ve toplulukla etkileşime geç.
+                Discover trending movies, save favorites, and connect with the community.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
@@ -141,7 +141,7 @@ const Home = () => {
                     className="btn bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-10 py-4 text-lg font-semibold rounded-xl shadow-lg shadow-purple-500/30"
                   >
                     <PlayCircle className="w-5 h-5" />
-                    Filmleri Keşfet
+                    Explore movies
                   </Link>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -159,7 +159,7 @@ const Home = () => {
               <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400">
                 <div className="flex items-center gap-2">
                   <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                  <span>Güncel Puanlar</span>
+                  <span>Current ratings</span>
                 </div>
                 <div className="w-1 h-1 rounded-full bg-gray-600" />
                 <div className="flex items-center gap-2">
@@ -169,7 +169,7 @@ const Home = () => {
                 <div className="w-1 h-1 rounded-full bg-gray-600" />
                 <div className="flex items-center gap-2">
                   <Heart className="w-4 h-4 text-red-400" />
-                  <span>Kişisel Listeler</span>
+                  <span>Personal lists</span>
                 </div>
               </div>
             </motion.div>
@@ -193,15 +193,15 @@ const Home = () => {
               </motion.div>
 
               <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-white mb-6 leading-tight">
-                Film Tutkunları İçin{' '}
+                For movie enthusiasts{' '}
                 <br className="hidden md:block" />
                 <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-                  Özel Platform
+                  A focused platform
                 </span>
               </h1>
               <p className="text-xl md:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto leading-relaxed">
-                Geniş bir katalogdan favorilerini keşfet, yapay zeka destekli öneriler al 
-                ve film tutkunlarıyla deneyimlerini paylaş.
+                Discover favorites from an extensive catalog, receive recommendations,
+                and share your experience with other movie enthusiasts.
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
@@ -211,7 +211,7 @@ const Home = () => {
                     className="btn bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-10 py-4 text-lg font-semibold rounded-xl shadow-lg shadow-purple-500/30"
                   >
                     <UserPlus className="w-5 h-5" />
-                    Ücretsiz Başla
+                    Get started
                   </Link>
                 </motion.div>
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -220,7 +220,7 @@ const Home = () => {
                     className="btn glass border border-white/20 text-white px-10 py-4 text-lg font-semibold rounded-xl"
                   >
                     <Search className="w-5 h-5" />
-                    Filmleri Keşfet
+                    Explore movies
                   </Link>
                 </motion.div>
               </div>
@@ -229,17 +229,17 @@ const Home = () => {
               <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
                 <div className="flex items-center gap-2 text-gray-400">
                   <Zap className="w-4 h-4 text-yellow-400" />
-                  <span>Anlık Erişim</span>
+                  <span>Instant access</span>
                 </div>
                 <div className="w-1 h-1 rounded-full bg-gray-600" />
                 <div className="flex items-center gap-2 text-gray-400">
                   <Shield className="w-4 h-4 text-green-400" />
-                  <span>Güvenli Altyapı</span>
+                  <span>Secure infrastructure</span>
                 </div>
                 <div className="w-1 h-1 rounded-full bg-gray-600" />
                 <div className="flex items-center gap-2 text-gray-400">
                   <Award className="w-4 h-4 text-blue-400" />
-                  <span>Tamamen Ücretsiz</span>
+                  <span>Free to use</span>
                 </div>
               </div>
             </motion.div>
@@ -306,11 +306,11 @@ const Home = () => {
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
               Her Zevke Uygun{' '}
               <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                İçerikler
+                Catalog
               </span>
             </h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Aksiyon dolu maceralardan duygusal dramalara kadar her türden film seni bekliyor
+              Find movies across genres, from action-packed adventures to thoughtful dramas
             </p>
           </motion.div>
 
@@ -356,7 +356,7 @@ const Home = () => {
           >
             <div className="inline-block mb-4">
               <span className="text-sm font-semibold text-blue-400 uppercase tracking-wider">
-                Özellikler
+                Features
               </span>
             </div>
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
@@ -367,7 +367,7 @@ const Home = () => {
               ?
             </h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Modern teknoloji ve kullanıcı odaklı tasarımla film deneyiminizi bir üst seviyeye taşıyoruz
+              A focused movie experience built with modern technology and user-centered design
             </p>
           </motion.div>
 
@@ -441,10 +441,10 @@ const Home = () => {
                     </div>
                     
                     <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-6">
-                      Bugün Ne İzlemek İstersin?
+                      What would you like to watch today?
                     </h2>
                     <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto">
-                      En trend filmler, editörün seçtikleri ve senin için özel öneriler seni bekliyor.
+                      Trending movies and personal recommendations are ready to explore.
                     </p>
                     
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -453,7 +453,7 @@ const Home = () => {
                         className="btn bg-white text-purple-600 hover:bg-gray-100 px-12 py-4 text-lg font-bold rounded-xl shadow-xl inline-flex items-center gap-3"
                       >
                         <PlayCircle className="w-6 h-6" />
-                        Filmleri Keşfet
+                        Explore movies
                       </Link>
                     </motion.div>
                     
@@ -461,17 +461,17 @@ const Home = () => {
                     <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-white/80 text-sm">
                       <div className="flex items-center gap-2">
                         <Star className="w-4 h-4 fill-white" />
-                        <span>Geniş film arşivi</span>
+                        <span>Extensive movie catalog</span>
                       </div>
                       <div className="w-1 h-1 rounded-full bg-white/50" />
                       <div className="flex items-center gap-2">
                         <Users className="w-4 h-4" />
-                        <span>Büyüyen topluluk</span>
+                        <span>Growing community</span>
                       </div>
                       <div className="w-1 h-1 rounded-full bg-white/50" />
                       <div className="flex items-center gap-2">
                         <Heart className="w-4 h-4" />
-                        <span>Her Gün Yeni İçerik</span>
+                        <span>Fresh movie data</span>
                       </div>
                     </div>
                   </motion.div>
@@ -499,16 +499,16 @@ const Home = () => {
                     <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
                       <Award className="w-4 h-4 text-white" />
                       <span className="text-sm text-white font-medium">
-                        Tamamen Ücretsiz
+                        Free to use
                       </span>
                     </div>
                     
                     <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-6">
-                      Film Dünyasına Katıl!
+                      Join the movie community
                     </h2>
                     <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto">
-                      Geniş film arşivi, kişiselleştirilmiş öneriler ve sosyal özellikler seni bekliyor. 
-                      Hemen kayıt ol, keşfetmeye başla!
+                      An extensive movie catalog, recommendations, and social features are ready.
+                      Create an account and start exploring.
                     </p>
                     
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -518,7 +518,7 @@ const Home = () => {
                           className="btn bg-white text-purple-600 hover:bg-gray-100 px-10 py-4 text-lg font-bold rounded-xl shadow-xl inline-flex items-center gap-3"
                         >
                           <Sparkles className="w-5 h-5" />
-                          Ücretsiz Kayıt Ol
+                          Create a free account
                         </Link>
                       </motion.div>
                       <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -527,7 +527,7 @@ const Home = () => {
                           className="btn bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/20 px-10 py-4 text-lg font-bold rounded-xl inline-flex items-center gap-3"
                         >
                           <Film className="w-5 h-5" />
-                          Filmleri İncele
+                          Browse movies
                         </Link>
                       </motion.div>
                     </div>
@@ -536,17 +536,17 @@ const Home = () => {
                     <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-white/80 text-sm">
                       <div className="flex items-center gap-2">
                         <Shield className="w-4 h-4" />
-                        <span>SSL Güvenli</span>
+                        <span>Secure connection</span>
                       </div>
                       <div className="w-1 h-1 rounded-full bg-white/50" />
                       <div className="flex items-center gap-2">
                         <Users className="w-4 h-4" />
-                        <span>Büyüyen topluluk</span>
+                        <span>Growing community</span>
                       </div>
                       <div className="w-1 h-1 rounded-full bg-white/50" />
                       <div className="flex items-center gap-2">
                         <Star className="w-4 h-4" />
-                        <span>Topluluk puanları</span>
+                        <span>Community ratings</span>
                       </div>
                     </div>
                   </motion.div>

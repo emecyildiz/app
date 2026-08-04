@@ -20,13 +20,13 @@ const AvatarUpload = ({ currentAvatar, onUpload, size = 'large' }) => {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error('Lütfen bir resim dosyası seçin')
+      toast.error('Please select an image file.')
       return
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Dosya boyutu 5MB\'dan küçük olmalıdır')
+      toast.error('The file must be smaller than 5 MB.')
       return
     }
 
@@ -48,7 +48,7 @@ const AvatarUpload = ({ currentAvatar, onUpload, size = 'large' }) => {
       await onUpload(preview)
       setPreview(null)
     } catch (error) {
-      toast.error('Fotoğraf yüklenirken hata oluştu')
+      toast.error('The photo could not be uploaded.')
     } finally {
       setIsUploading(false)
     }
@@ -94,7 +94,7 @@ const AvatarUpload = ({ currentAvatar, onUpload, size = 'large' }) => {
             exit={{ opacity: 0, scale: 0.9 }}
             className="absolute top-full left-0 right-0 mt-4 p-4 bg-dark-200 rounded-lg shadow-xl"
           >
-            <p className="text-sm text-gray-300 mb-3">Yeni fotoğraf önizlemesi</p>
+            <p className="text-sm text-gray-300 mb-3">New photo preview</p>
             <div className="flex gap-2">
               <button
                 onClick={handleUpload}
@@ -104,12 +104,12 @@ const AvatarUpload = ({ currentAvatar, onUpload, size = 'large' }) => {
                 {isUploading ? (
                   <span className="flex items-center gap-2">
                     <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-                    Yükleniyor...
+                    Uploading...
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
                     <Upload className="w-4 h-4" />
-                    Yükle
+                    Upload
                   </span>
                 )}
               </button>

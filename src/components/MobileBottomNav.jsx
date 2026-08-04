@@ -63,13 +63,13 @@ const MobileBottomNav = () => {
   const items = [
     { path: '/', label: 'Ana', icon: Home },
     { path: '/movies', label: 'Filmler', icon: Film },
-    { path: '/about', label: 'Hakkında', icon: Info },
+    { path: '/about', label: 'About', icon: Info },
     ...(isAuthenticated ? [
       { path: '/profile', label: 'Profil', icon: User },
-      ...(profile?.role === 'ADMIN' ? [{ path: '/admin', label: 'Yönetim', icon: Shield }] : []),
+      ...(profile?.role === 'ADMIN' ? [{ path: '/admin', label: 'Admin', icon: Shield }] : []),
       ...(profile?.role === 'MODERATOR' ? [{ path: '/moderator', label: 'Kontrol', icon: Eye }] : []),
     ] : [
-      { path: '/login', label: 'Giris', icon: LogIn },
+      { path: '/login', label: 'Sign in', icon: LogIn },
       { path: '/register', label: 'Kayit Ol', icon: UserPlus },
     ]),
   ]

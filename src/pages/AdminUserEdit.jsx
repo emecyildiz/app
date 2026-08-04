@@ -52,7 +52,7 @@ export default function AdminUserEdit() {
         }
       } catch (error) {
         console.error('Error loading user data:', error)
-        toast.error('Kullanıcı verileri yüklenirken hata oluştu')
+        toast.error('User data could not be loaded.')
       }
     }
 
@@ -63,12 +63,12 @@ export default function AdminUserEdit() {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-400 mb-4">Kullanıcı bulunamadı</p>
+          <p className="text-gray-400 mb-4">User not found</p>
           <button
             onClick={() => navigate('/admin')}
             className="text-red-600 hover:text-red-500"
           >
-            Admin paneline dön
+            Back to admin
           </button>
         </div>
       </div>
@@ -118,9 +118,9 @@ export default function AdminUserEdit() {
             className="flex items-center gap-2 text-gray-400 hover:text-white mb-4 transition-colors"
           >
             <ArrowLeftIcon className="w-5 h-5" />
-            Admin Paneline Dön
+            Back to admin
           </button>
-          <h1 className="text-3xl font-bold text-white">Kullanıcı Düzenle</h1>
+          <h1 className="text-3xl font-bold text-white">User Edit</h1>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -140,10 +140,10 @@ export default function AdminUserEdit() {
                     ? userData.name.split(' ').map(word => 
                         word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
                       ).join(' ')
-                    : 'İsimsiz Kullanıcı'}
+                    : 'Unnamed user'}
                 </h2>
                 <p className="text-gray-400 mb-2 whitespace-nowrap">
-                  @{userData.username?.replace('@', '') || 'kullanici'}
+                  @{userData.username?.replace('@', '') || 'username'}
                 </p>
                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
                   userData.role === 'ADMIN' 
@@ -152,16 +152,16 @@ export default function AdminUserEdit() {
                     ? 'bg-blue-900/50 text-blue-400'
                     : 'bg-gray-800 text-gray-400'
                 }`}>
-                  {userData.role === 'ADMIN' ? 'Admin' : userData.role === 'MODERATOR' ? 'Moderatör' : 'Kullanıcı'}
+                  {userData.role === 'ADMIN' ? 'Admin' : userData.role === 'MODERATOR' ? 'Moderator' : 'User'}
                 </span>
               </div>
               <div className="mt-6 space-y-3">
                 <div>
-                  <p className="text-gray-400 text-sm">Katılım Tarihi</p>
+                  <p className="text-gray-400 text-sm">Joined</p>
                   <p className="text-white">{new Date(userData.memberSince).toLocaleDateString('tr-TR')}</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm">Kullanıcı ID</p>
+                  <p className="text-gray-400 text-sm">User ID</p>
                   <p className="text-white font-mono text-sm">{userData.id}</p>
                 </div>
               </div>
@@ -190,7 +190,7 @@ export default function AdminUserEdit() {
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">
-                      Kullanıcı Adı
+                      Username
                     </label>
                     <input
                       type="text"
@@ -224,7 +224,7 @@ export default function AdminUserEdit() {
                       name="location"
                       value={formData.location}
                       onChange={handleChange}
-                      placeholder="Örn: İstanbul, Türkiye"
+                      placeholder="For example: London, United Kingdom"
                       className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600"
                     />
                   </div>
@@ -239,13 +239,13 @@ export default function AdminUserEdit() {
                     value={formData.bio}
                     onChange={handleChange}
                     rows="4"
-                    placeholder="Kullanıcı hakkında kısa bilgi..."
+                    placeholder="A short biography..."
                     className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600"
                   />
                 </div>
 
                 <div>
-                  <h4 className="text-lg font-medium text-white mb-4">Sosyal Medya Bağlantıları</h4>
+                  <h4 className="text-lg font-medium text-white mb-4">Social links</h4>
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-400 mb-2">
@@ -256,7 +256,7 @@ export default function AdminUserEdit() {
                         name="social.twitter"
                         value={formData.socialLinks.twitter}
                         onChange={handleChange}
-                        placeholder="https://twitter.com/kullaniciadi"
+                        placeholder="https://twitter.com/username"
                         className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600"
                       />
                     </div>
@@ -270,7 +270,7 @@ export default function AdminUserEdit() {
                         name="social.instagram"
                         value={formData.socialLinks.instagram}
                         onChange={handleChange}
-                        placeholder="https://instagram.com/kullaniciadi"
+                        placeholder="https://instagram.com/username"
                         className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600"
                       />
                     </div>
@@ -284,7 +284,7 @@ export default function AdminUserEdit() {
                         name="social.letterboxd"
                         value={formData.socialLinks.letterboxd}
                         onChange={handleChange}
-                        placeholder="https://letterboxd.com/kullaniciadi"
+                        placeholder="https://letterboxd.com/username"
                         className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600"
                       />
                     </div>
@@ -297,14 +297,14 @@ export default function AdminUserEdit() {
                     onClick={() => navigate('/admin')}
                     className="px-6 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
                   >
-                    İptal
+                    Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={loading}
                     className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {loading ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
+                    {loading ? 'Saving...' : 'Save changes'}
                   </button>
                 </div>
               </form>

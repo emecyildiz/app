@@ -19,7 +19,7 @@ export const useMovieStore = create((set, get) => ({
   setError: (error) => set({ error }),
   clearError: () => set({ error: null }),
 
-  // Film listesi yükle
+  // Load a movie list.
   loadMovies: async (type = 'popular', page = 1) => {
     set({ loading: true, error: null })
     try {
@@ -49,7 +49,7 @@ export const useMovieStore = create((set, get) => ({
     }
   },
 
-  // Film detayı yükle
+  // Load movie details.
   loadMovieDetails: async (movieId) => {
     set({ loading: true, error: null })
     try {
@@ -81,18 +81,18 @@ export const useMovieStore = create((set, get) => ({
     }
   },
 
-  // Kategorileri yükle
+  // Load genres.
   loadGenres: async () => {
     try {
       const response = await tmdbService.getGenres()
       set({ genres: response.genres || [] })
     } catch (error) {
-      console.error('Kategoriler yüklenemedi:', error)
+      console.error('Genres could not be loaded:', error)
       set({ genres: [] })
     }
   },
 
-  // Kategoriye göre filmler
+  // Load movies by genre.
   loadMoviesByGenre: async (genreId, page = 1) => {
     set({ loading: true, error: null, selectedGenre: genreId })
     try {
@@ -108,7 +108,7 @@ export const useMovieStore = create((set, get) => ({
     }
   },
 
-  // Sayfa değiştir
+  // Change the active page.
   changePage: (page) => {
     const { searchQuery, selectedGenre } = get()
     if (searchQuery) {
@@ -126,12 +126,12 @@ export const useMovieStore = create((set, get) => ({
     get().loadMovies('popular', 1)
   },
 
-  // Kategori seçimini temizle
+  // Clear the selected genre.
   clearGenreFilter: () => {
     set({ selectedGenre: null })
     get().loadMovies('popular', 1)
   },
 
-  // Film detayını temizle
+  // Clear movie details.
   clearCurrentMovie: () => set({ currentMovie: null })
 }))

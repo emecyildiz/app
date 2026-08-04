@@ -109,23 +109,23 @@ const Navbar = () => {
   }, [location.pathname, safeIsAuthenticated])
 
   const navLinks = [
-    { path: '/', label: 'Ana Sayfa', icon: Home },
+    { path: '/', label: 'Home', icon: Home },
     { path: '/movies', label: 'Filmler', icon: Film },
-    { path: '/about', label: 'Hakkında', icon: Info },
+    { path: '/about', label: 'About', icon: Info },
     ...(safeIsAuthenticated ? [{ path: '/profile', label: 'Profil', icon: User }] : []),
     ...(safeIsAuthenticated && profile?.role === 'ADMIN' ? [{ path: '/admin', label: 'Admin Panel', icon: Shield }] : []),
-    ...(safeIsAuthenticated && profile?.role === 'MODERATOR' ? [{ path: '/moderator', label: 'Moderatör Paneli', icon: Shield }] : []),
+    ...(safeIsAuthenticated && profile?.role === 'MODERATOR' ? [{ path: '/moderator', label: 'Moderator panel', icon: Shield }] : []),
   ]
 
   const isProfileRoute = location.pathname.startsWith('/profile')
   const profileTabs = [
-    { id: 'overview', label: 'Genel Bakış', icon: User },
+    { id: 'overview', label: 'Overview', icon: User },
     { id: 'favorites', label: 'Favorilerim', icon: Heart },
     { id: 'ratings', label: 'Puanlar', icon: Star },
-    { id: 'comments', label: 'Yorumlar', icon: MessageSquare },
-    { id: 'recommendations', label: 'Öneriler', icon: Share2, dot: hasNewRec },
-    { id: 'friends', label: 'Arkadaşlar', icon: Users },
-    { id: 'settings', label: 'Ayarlar', icon: Settings },
+    { id: 'comments', label: 'Comments', icon: MessageSquare },
+    { id: 'recommendations', label: 'Recommendations', icon: Share2, dot: hasNewRec },
+    { id: 'friends', label: 'Friends', icon: Users },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ]
 
   return (
@@ -176,7 +176,7 @@ const Navbar = () => {
                 <input
                   value={query}
                   onChange={handleSearchChange}
-                  placeholder="Kullanıcı ara..."
+                  placeholder="Search users..."
                   className="bg-transparent outline-none text-sm text-white placeholder:text-gray-400 w-full"
                 />
                 <button type="submit" className="text-xs px-2 py-1 bg-primary-500/20 text-primary-300 rounded">Ara</button>
@@ -204,7 +204,7 @@ const Navbar = () => {
               )}
               {query && !isSearching && results.length === 0 && (
                 <div className="absolute mt-2 w-full glass-dark rounded-lg border border-white/10 p-3 text-sm text-gray-400 z-50">
-                  Sonuç yok
+                  No results
                 </div>
               )}
             </div>
@@ -217,7 +217,7 @@ const Navbar = () => {
                     <Link
                       to="/profile/recommendations"
                       className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors"
-                      title="Öneriler"
+                      title="Recommendations"
                     >
                       <Share2 className="w-5 h-5" />
                     </Link>
@@ -239,7 +239,7 @@ const Navbar = () => {
                       <span className="px-2 py-0.5 text-xs bg-red-600 text-white rounded-full">Admin</span>
                     )}
                     {profile?.role === 'MODERATOR' && (
-                      <span className="px-2 py-0.5 text-xs bg-blue-600 text-white rounded-full">Moderatör</span>
+                      <span className="px-2 py-0.5 text-xs bg-blue-600 text-white rounded-full">Moderator</span>
                     )}
                   </Link>
                   <button
@@ -247,19 +247,19 @@ const Navbar = () => {
                     className="btn btn-ghost"
                   >
                     <LogOut className="w-4 h-4" />
-                    <span>Çıkış</span>
+                    <span>Sign out</span>
                   </button>
-                  {/* Force sign-out butonu kaldırıldı */}
+                  {/* The legacy forced sign-out button was removed. */}
                 </>
               ) : (
                 <>
                   <Link to="/login" className="btn btn-ghost">
                     <LogIn className="w-4 h-4" />
-                    <span>Giriş</span>
+                    <span>Sign in</span>
                   </Link>
                   <Link to="/register" className="btn btn-primary">
                     <UserPlus className="w-4 h-4" />
-                    <span>Kayıt Ol</span>
+                    <span>Register</span>
                   </Link>
                 </>
               )}
@@ -340,7 +340,7 @@ const Navbar = () => {
                     <input
                       value={query}
                       onChange={handleSearchChange}
-                      placeholder="Kullanıcı ara..."
+                      placeholder="Search users..."
                       className="bg-transparent outline-none text-sm text-white placeholder:text-gray-400 w-full"
                     />
                     <button type="submit" className="text-xs px-2 py-1 bg-primary-500/20 text-primary-300 rounded">Ara</button>
@@ -368,7 +368,7 @@ const Navbar = () => {
                   )}
                   {query && !isSearching && results.length === 0 && (
                     <div className="absolute mt-2 w-full glass-dark rounded-lg border border-white/10 p-3 text-sm text-gray-400 z-50">
-                      Sonuç yok
+                      No results
                     </div>
                   )}
                 </div>
@@ -398,7 +398,7 @@ const Navbar = () => {
                       className="w-full btn btn-ghost justify-start"
                     >
                       <LogOut className="w-4 h-4" />
-                      <span>Çıkış Yap</span>
+                      <span>Sign out</span>
                     </button>
                   </>
                 ) : (
@@ -409,7 +409,7 @@ const Navbar = () => {
                       className="w-full btn btn-ghost justify-start"
                     >
                       <LogIn className="w-4 h-4" />
-                      <span>Giriş Yap</span>
+                      <span>Sign in</span>
                     </Link>
                     <Link
                       to="/register"
@@ -417,7 +417,7 @@ const Navbar = () => {
                       className="w-full btn btn-primary justify-start"
                     >
                       <UserPlus className="w-4 h-4" />
-                      <span>Kayıt Ol</span>
+                      <span>Register</span>
                     </Link>
                   </>
                 )}

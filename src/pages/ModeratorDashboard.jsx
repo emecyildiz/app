@@ -45,7 +45,7 @@ export default function ModeratorDashboard() {
         setUsers(usersData || [])
       } catch (error) {
         console.error('Error loading moderator data:', error)
-        toast.error('Veriler yüklenirken hata oluştu!')
+        toast.error('Data could not be loaded.')
       } finally {
         setLoading(false)
       }
@@ -70,7 +70,7 @@ export default function ModeratorDashboard() {
     e.preventDefault()
     
     if (!editForm.name || !editForm.email) {
-      toast.error('Lütfen gerekli alanları doldurun!')
+      toast.error('Please complete all required fields.')
       return
     }
 
@@ -81,24 +81,24 @@ export default function ModeratorDashboard() {
       // Reload data after updating user
       const usersData = await userService.getAllUsers()
       setUsers(usersData || [])
-      toast.success('Kullanıcı başarıyla güncellendi!')
+      toast.success('User updated.')
     } catch (error) {
       console.error('Error updating user:', error)
-      toast.error('Kullanıcı güncellenirken hata oluştu!')
+      toast.error('The user could not be updated.')
     }
   }
 
   const handleDeleteUser = async (userId) => {
-    if (window.confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?')) {
+    if (window.confirm('Are you sure you want to delete this user?')) {
       try {
         await userService.deleteUser(userId)
         // Reload data after deleting user
         const usersData = await userService.getAllUsers()
         setUsers(usersData || [])
-        toast.success('Kullanıcı başarıyla silindi!')
+        toast.success('User deleted.')
       } catch (error) {
         console.error('Error deleting user:', error)
-        toast.error('Kullanıcı silinirken hata oluştu!')
+        toast.error('The user could not be deleted.')
       }
     }
   }
@@ -108,8 +108,8 @@ export default function ModeratorDashboard() {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Moderatör Paneli</h1>
-          <p className="text-gray-400">Kullanıcı yönetimi ve hesap kontrolü</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Moderator Paneli</h1>
+          <p className="text-gray-400">User management and account controls</p>
         </div>
 
         {/* Stats Cards */}
@@ -117,7 +117,7 @@ export default function ModeratorDashboard() {
           <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Toplam Kullanıcı</p>
+                <p className="text-gray-400 text-sm">Toplam User</p>
                 <p className="text-3xl font-bold text-white mt-1">{users.filter(u => u.role === 'USER').length}</p>
               </div>
               <UsersIcon className="w-12 h-12 text-blue-600" />
@@ -127,7 +127,7 @@ export default function ModeratorDashboard() {
           <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Moderatör Yetkisi</p>
+                <p className="text-gray-400 text-sm">Moderator Yetkisi</p>
                 <p className="text-3xl font-bold text-white mt-1">✓</p>
               </div>
               <ShieldCheckIcon className="w-12 h-12 text-purple-600" />
@@ -146,7 +146,7 @@ export default function ModeratorDashboard() {
                   : 'border-transparent text-gray-400 hover:text-white'
               }`}
             >
-              Genel Bakış
+              Overview
             </button>
             <button
               onClick={() => setActiveTab('users')}
@@ -156,7 +156,7 @@ export default function ModeratorDashboard() {
                   : 'border-transparent text-gray-400 hover:text-white'
               }`}
             >
-              Kullanıcı Yönetimi
+              User management
             </button>
             <button
               onClick={() => setActiveTab('profile')}
@@ -166,7 +166,7 @@ export default function ModeratorDashboard() {
                   : 'border-transparent text-gray-400 hover:text-white'
               }`}
             >
-              Profil Ayarları
+              Profile settings
             </button>
           </nav>
         </div>
@@ -175,10 +175,10 @@ export default function ModeratorDashboard() {
         {activeTab === 'overview' && (
           <div className="space-y-6">
             <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-              <h2 className="text-xl font-semibold text-white mb-4">Moderatör Özeti</h2>
+              <h2 className="text-xl font-semibold text-white mb-4">Moderator summary</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-gray-400 text-sm">Moderatör Adı</p>
+                  <p className="text-gray-400 text-sm">Moderator name</p>
                   <p className="text-white font-medium">{profile?.name || user?.email?.split('@')[0]}</p>
                 </div>
                 <div>
@@ -187,10 +187,10 @@ export default function ModeratorDashboard() {
                 </div>
                 <div>
                   <p className="text-gray-400 text-sm">Yetki Seviyesi</p>
-                  <p className="text-blue-500 font-medium">{profile?.role === 'ADMIN' ? 'Admin' : 'Moderatör'}</p>
+                  <p className="text-blue-500 font-medium">{profile?.role === 'ADMIN' ? 'Admin' : 'Moderator'}</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-sm">Son Giriş</p>
+                  <p className="text-gray-400 text-sm">Last sign-in</p>
                   <p className="text-white font-medium">
                     {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('tr-TR') : 'Bilinmiyor'}
                   </p>
@@ -199,7 +199,7 @@ export default function ModeratorDashboard() {
             </div>
 
             <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-              <h2 className="text-xl font-semibold text-white mb-4">Hızlı İşlemler</h2>
+              <h2 className="text-xl font-semibold text-white mb-4">Quick actions</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <button
                   onClick={() => setActiveTab('users')}
@@ -208,8 +208,8 @@ export default function ModeratorDashboard() {
                   <div className="flex items-center gap-3">
                     <UsersIcon className="w-6 h-6" />
                     <div>
-                      <p className="font-medium">Kullanıcıları Yönet</p>
-                      <p className="text-sm opacity-90">Tüm kullanıcıları listele ve düzenle</p>
+                      <p className="font-medium">Manage users</p>
+                      <p className="text-sm opacity-90">List and edit user accounts</p>
                     </div>
                   </div>
                 </button>
@@ -220,8 +220,8 @@ export default function ModeratorDashboard() {
                   <div className="flex items-center gap-3">
                     <CogIcon className="w-6 h-6" />
                     <div>
-                      <p className="font-medium">Profil Ayarları</p>
-                      <p className="text-sm opacity-90">Moderatör profilini düzenle</p>
+                      <p className="font-medium">Profile settings</p>
+                      <p className="text-sm opacity-90">Edit the moderator profile</p>
                     </div>
                   </div>
                 </button>
@@ -234,28 +234,28 @@ export default function ModeratorDashboard() {
           <div className="space-y-6">
             <div className="bg-gray-900 rounded-lg border border-gray-800">
               <div className="p-6 border-b border-gray-800">
-                <h2 className="text-xl font-semibold text-white">Kullanıcı Yönetimi</h2>
-                <p className="text-gray-400 mt-1">Normal kullanıcı hesaplarını görüntüle ve yönet</p>
+                <h2 className="text-xl font-semibold text-white">User management</h2>
+                <p className="text-gray-400 mt-1">View and manage standard user accounts</p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-800">
-                      <th className="text-left p-4 text-gray-400 font-medium">Kullanıcı</th>
+                      <th className="text-left p-4 text-gray-400 font-medium">User</th>
                       <th className="text-left p-4 text-gray-400 font-medium">E-posta</th>
                       <th className="text-left p-4 text-gray-400 font-medium">Rol</th>
-                      <th className="text-left p-4 text-gray-400 font-medium">Kayıt Tarihi</th>
-                      <th className="text-left p-4 text-gray-400 font-medium">İşlemler</th>
+                      <th className="text-left p-4 text-gray-400 font-medium">Registration date</th>
+                      <th className="text-left p-4 text-gray-400 font-medium">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {loading ? (
                       <tr>
-                        <td colSpan="5" className="p-4 text-center text-gray-400">Yükleniyor...</td>
+                        <td colSpan="5" className="p-4 text-center text-gray-400">Loading...</td>
                       </tr>
                     ) : users.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="p-4 text-center text-gray-400">Henüz normal kullanıcı bulunamadı.</td>
+                        <td colSpan="5" className="p-4 text-center text-gray-400">No standard users found.</td>
                       </tr>
                     ) : (
                       users.map((userItem) => (
@@ -273,10 +273,10 @@ export default function ModeratorDashboard() {
                                     ? userItem.name.split(' ').map(word => 
                                         word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
                                       ).join(' ')
-                                    : 'İsimsiz Kullanıcı'}
+                                    : 'Unnamed user'}
                                 </p>
                                 <p className="text-gray-400 text-sm whitespace-nowrap">
-                                  @{userItem.username?.replace('@', '') || 'kullanici'}
+                                  @{userItem.username?.replace('@', '') || 'username'}
                                 </p>
                               </div>
                             </div>
@@ -290,7 +290,7 @@ export default function ModeratorDashboard() {
                                 ? 'bg-blue-900/50 text-blue-400'
                                 : 'bg-gray-800 text-gray-400'
                             }`}>
-                              {userItem.role === 'ADMIN' ? 'Admin' : userItem.role === 'MODERATOR' ? 'Moderatör' : 'Kullanıcı'}
+                              {userItem.role === 'ADMIN' ? 'Admin' : userItem.role === 'MODERATOR' ? 'Moderator' : 'User'}
                             </span>
                           </td>
                           <td className="p-4 text-gray-300">
@@ -303,7 +303,7 @@ export default function ModeratorDashboard() {
                                 className="text-green-500 hover:text-green-400 text-sm flex items-center gap-1"
                               >
                                 <PencilIcon className="w-4 h-4" />
-                                Düzenle
+                                Edit
                               </button>
                               {userItem.role === 'USER' && (
                                 <button
@@ -329,7 +329,7 @@ export default function ModeratorDashboard() {
         {activeTab === 'profile' && (
           <div className="space-y-6">
             <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-              <h2 className="text-xl font-semibold text-white mb-4">Moderatör Profil Ayarları</h2>
+              <h2 className="text-xl font-semibold text-white mb-4">Moderator Profile settings</h2>
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
                   <div className="w-20 h-20 rounded-full bg-blue-700 flex items-center justify-center">
@@ -340,7 +340,7 @@ export default function ModeratorDashboard() {
                   <div>
                     <h3 className="text-lg font-medium text-white">{profile?.name || user?.email?.split('@')[0]}</h3>
                     <p className="text-gray-400">{user?.email}</p>
-                    <p className="text-blue-500 text-sm">Moderatör</p>
+                    <p className="text-blue-500 text-sm">Moderator</p>
                   </div>
                 </div>
                 
@@ -367,7 +367,7 @@ export default function ModeratorDashboard() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">
-                      Kullanıcı Adı
+                      Username
                     </label>
                     <input
                       type="text"
@@ -389,7 +389,7 @@ export default function ModeratorDashboard() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">
-                    Hakkında
+                    About
                   </label>
                   <textarea
                     defaultValue={user.bio}
@@ -400,7 +400,7 @@ export default function ModeratorDashboard() {
                 
                 <div className="pt-4">
                   <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
-                    Profili Güncelle
+                    Profili Update
                   </button>
                 </div>
               </div>
@@ -413,7 +413,7 @@ export default function ModeratorDashboard() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-gray-900 rounded-lg p-6 w-full max-w-2xl mx-4 border border-gray-800">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold text-white">Kullanıcı Detayları</h3>
+                <h3 className="text-xl font-semibold text-white">User details</h3>
                 <button
                   onClick={() => setShowUserDetails(false)}
                   className="text-gray-400 hover:text-white"
@@ -435,7 +435,7 @@ export default function ModeratorDashboard() {
                         ? selectedUser.name.split(' ').map(word => 
                             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
                           ).join(' ')
-                        : 'İsimsiz Kullanıcı'}
+                        : 'Unnamed user'}
                     </h4>
                     <p className="text-gray-400">{selectedUser.email}</p>
                   </div>
@@ -468,7 +468,7 @@ export default function ModeratorDashboard() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-2">
-                      Kullanıcı Adı
+                      Username
                     </label>
                     <input
                       type="text"
@@ -492,7 +492,7 @@ export default function ModeratorDashboard() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">
-                    Hakkında
+                    About
                   </label>
                   <textarea
                     value={editForm.bio}
@@ -508,13 +508,13 @@ export default function ModeratorDashboard() {
                     onClick={() => setShowUserDetails(false)}
                     className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
                   >
-                    İptal
+                    Cancel
                   </button>
                   <button
                     type="submit"
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                   >
-                    Güncelle
+                    Update
                   </button>
                 </div>
               </form>
@@ -524,4 +524,4 @@ export default function ModeratorDashboard() {
       </div>
     </div>
   )
-} 
+}

@@ -45,7 +45,7 @@ const MovieDetail = () => {
       loadMovieDetails(id)
       loadSimilarMovies(id)
       loadUserRating(id)
-      // Sayfanın en üstüne scroll et
+      // Scroll to the top of the page.
       window.scrollTo(0, 0)
     }
 
@@ -59,9 +59,9 @@ const MovieDetail = () => {
     setLoadingSimilar(true)
     try {
       const response = await tmdbService.getSimilarMovies(movieId, 1)
-      setSimilarMovies(response.results.slice(0, 6)) // İlk 6 film
+      setSimilarMovies(response.results.slice(0, 6)) // First six movies.
     } catch (error) {
-      console.error('Benzer filmler yüklenemedi:', error)
+      console.error('Similar movies could not be loaded:', error)
     } finally {
       setLoadingSimilar(false)
     }
@@ -77,7 +77,7 @@ const MovieDetail = () => {
         setUserComment(rating.comment || '')
       }
     } catch (error) {
-      console.error('Kullanıcı puanı yüklenemedi:', error)
+      console.error('The user rating could not be loaded:', error)
     }
   }
 
@@ -119,7 +119,7 @@ const MovieDetail = () => {
 
   const handleRateMovie = async () => {
     if (!isAuthenticated) {
-      toast.error('Puan vermek için giriş yapın')
+      toast.error('Sign in to rate this movie.')
       navigate('/login')
       return
     }
@@ -139,19 +139,19 @@ const MovieDetail = () => {
             ) 
           } catch {}
         }
-        // Mevcut kullanıcı puanını güncelle
+        // Update the current user rating.
         setExistingUserRating({
           rating: userRating,
           comment: userComment,
           movie_id: id
         })
-        toast.success('Film puanınız kaydedildi!')
+        toast.success('Your rating was saved.')
         setShowRatingModal(false)
       } else {
         toast.error(translateError(result.error) || 'Puan kaydedilemedi')
       }
     } catch (error) {
-      toast.error('Bir hata oluştu')
+      toast.error('Something went wrong.')
     } finally {
       setRatingLoading(false)
     }
@@ -169,11 +169,11 @@ const MovieDetail = () => {
     return (
       <div className="min-h-screen pt-20 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Film Bulunamadı</h2>
-          <p className="text-gray-400 mb-6">{error || 'Film yüklenemedi'}</p>
+          <h2 className="text-2xl font-bold text-white mb-4">Movie not found</h2>
+          <p className="text-gray-400 mb-6">{error || 'The movie could not be loaded.'}</p>
           <Link to="/movies" className="btn btn-primary">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Filmler Sayfasına Dön
+            Back to movies
           </Link>
         </div>
       </div>
@@ -317,7 +317,7 @@ const MovieDetail = () => {
                       className="btn btn-primary inline-flex items-center gap-2"
                     >
                       <Play className="w-4 h-4" />
-                      Fragman İzle
+                      Watch trailer
                     </a>
                   )}
 
@@ -325,7 +325,7 @@ const MovieDetail = () => {
                   <button
                     onClick={() => {
                       if (!isAuthenticated) {
-                        toast.error('Puan vermek için giriş yapın')
+                        toast.error('Sign in to rate this movie.')
                         navigate('/login')
                         return
                       }
@@ -338,19 +338,19 @@ const MovieDetail = () => {
                     }`}
                   >
                     <Star className={`w-4 h-4 ${existingUserRating ? 'fill-current' : ''}`} />
-                    {existingUserRating ? `Puanlandı (${existingUserRating.rating}/10)` : 'Puanla'}
+                    {existingUserRating ? `Rated (${existingUserRating.rating}/10)` : 'Rate'}
                   </button>
 
                   {/* Favorite Button */}
                   <button
                     onClick={async () => {
                       if (!isAuthenticated) {
-                        toast.error('Favorilere eklemek için giriş yapın')
+                        toast.error('Sign in to add favorites.')
                         navigate('/login')
                         return
                       }
                       if (!currentMovieId || Number.isNaN(currentMovieId)) {
-                        toast.error('Geçersiz film bilgisi')
+                        toast.error('Invalid movie information.')
                         return
                       }
 
@@ -358,15 +358,15 @@ const MovieDetail = () => {
                         if (isMovieFavorited) {
                           await userService.removeFavorite(currentMovieId)
                           removeFromFavorites(currentMovieId)
-                          toast.success('Favorilerden çıkarıldı')
+                          toast.success('Removed from favorites.')
                         } else {
                           await userService.addFavorite(currentMovie)
                           addToFavorites(currentMovie)
                           toast.success('Favorilere eklendi')
                         }
                       } catch (error) {
-                        console.error('Favori işlemi hatası:', error)
-                        toast.error('Favori işlemi başarısız oldu')
+                        console.error('Favorite operation failed:', error)
+                        toast.error('The favorite could not be updated.')
                       }
                     }}
                     className={`btn inline-flex items-center gap-2 ${
@@ -383,7 +383,7 @@ const MovieDetail = () => {
                   <button
                     onClick={() => {
                       if (!isAuthenticated) {
-                        toast.error('Film önermek için giriş yapın')
+                        toast.error('Sign in to recommend a movie.')
                         navigate('/login')
                         return
                       }
@@ -392,7 +392,7 @@ const MovieDetail = () => {
                     className="btn btn-secondary inline-flex items-center gap-2"
                   >
                     <Share2 className="w-4 h-4" />
-                    Arkadaşına Öner
+                    Recommend to a friend
                   </button>
                 </div>
               </motion.div>
@@ -413,7 +413,7 @@ const MovieDetail = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-8"
               >
-                <h2 className="text-2xl font-bold text-white mb-4">Özet</h2>
+                <h2 className="text-2xl font-bold text-white mb-4">Overview</h2>
                 <p className="text-gray-300 leading-relaxed">{overview}</p>
               </motion.div>
             )}
@@ -474,21 +474,21 @@ const MovieDetail = () => {
               <div className="space-y-4">
                 {budget > 0 && (
                   <div>
-                    <h4 className="text-gray-400 text-sm font-medium">Bütçe</h4>
+                    <h4 className="text-gray-400 text-sm font-medium">Budget</h4>
                     <p className="text-white">{formatBudget(budget)}</p>
                   </div>
                 )}
 
                 {revenue > 0 && (
                   <div>
-                    <h4 className="text-gray-400 text-sm font-medium">Hasılat</h4>
+                    <h4 className="text-gray-400 text-sm font-medium">Revenue</h4>
                     <p className="text-white">{formatRevenue(revenue)}</p>
                   </div>
                 )}
 
                 {credits?.crew && (
                   <div>
-                    <h4 className="text-gray-400 text-sm font-medium mb-2">Yönetmen</h4>
+                    <h4 className="text-gray-400 text-sm font-medium mb-2">Director</h4>
                     {credits.crew
                       .filter(person => person.job === 'Director')
                       .slice(0, 3)
@@ -541,7 +541,7 @@ const MovieDetail = () => {
               {/* Rating Stars */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-3">
-                  Puanınız (10 üzerinden)
+                  Your rating (out of 10)
                 </label>
                 <div className="flex gap-1.5 flex-wrap">
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((star) => (
@@ -565,14 +565,14 @@ const MovieDetail = () => {
               {/* Comment (optional) */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Yorumunuz (İsteğe bağlı)
+                  Your comment (optional)
                 </label>
                 <textarea
                   value={userComment}
                   onChange={(e) => setUserComment(e.target.value)}
                   rows={3}
                   className="input w-full"
-                  placeholder="Film hakkında düşüncelerinizi paylaşın..."
+                  placeholder="Share your thoughts about the movie..."
                   maxLength={500}
                 />
                 <div className="mt-2 flex gap-2">
@@ -580,24 +580,24 @@ const MovieDetail = () => {
                     type="button"
                     onClick={async () => {
                       if (!isAuthenticated) {
-                        toast.error('Yorum yapmak için giriş yapın')
+                        toast.error('Sign in to comment.')
                         navigate('/login')
                         return
                       }
                       const text = userComment.trim()
                       if (!text) {
-                        toast.error('Yorum boş olamaz')
+                        toast.error('The comment cannot be empty.')
                         return
                       }
                       setRatingLoading(true)
                       try {
                         const result = await movieService.upsertComment(id, text, currentMovie)
                         if (result.success) {
-                          toast.success('Yorum kaydedildi')
+                          toast.success('Comment saved.')
                           setUserComment('')
                           setShowRatingModal(false)
                         } else {
-                          toast.error(translateError(result.error) || 'Yorum kaydedilemedi')
+                          toast.error(translateError(result.error) || 'The comment could not be saved.')
                         }
                       } finally {
                         setRatingLoading(false)
@@ -606,7 +606,7 @@ const MovieDetail = () => {
                     className="btn btn-secondary btn-sm"
                     disabled={ratingLoading}
                   >
-                    Sadece Yorumu Kaydet
+                    Save comment only
                   </button>
                 </div>
               </div>
@@ -619,14 +619,14 @@ const MovieDetail = () => {
                   className="flex-1 btn btn-secondary"
                   disabled={ratingLoading}
                 >
-                  İptal
+                  Cancel
                 </button>
                 <button
                   onClick={handleRateMovie}
                   className="flex-1 btn btn-primary"
                   disabled={ratingLoading || userRating === 0}
                 >
-                  {ratingLoading ? 'Kaydediliyor...' : 'Kaydet'}
+                  {ratingLoading ? 'Saving...' : 'Save'}
                 </button>
               </div>
             </div>
@@ -641,7 +641,7 @@ const MovieDetail = () => {
         movie={currentMovie}
         onSuccess={() => {
           setShowRecommendModal(false)
-          toast.success('Film önerisi gönderildi')
+          toast.success('Movie recommendation sent.')
         }}
       />
     </div>

@@ -85,7 +85,7 @@ export default function AdminDashboard() {
         });
       } catch (error) {
         console.error('Error loading admin data:', error);
-        toast.error('Veriler yüklenirken hata oluştu!');
+        toast.error('Data could not be loaded.');
       } finally {
         setLoading(false);
       }
@@ -104,11 +104,11 @@ export default function AdminDashboard() {
           ...prev,
           realTimeActiveUsers: stats.realTimeActiveUsers || 0
         }))
-        toast.success('Aktif kullanıcı sayısı güncellendi!')
+        toast.success('Active user count refreshed.')
       }
     } catch (error) {
       console.error('Error refreshing active users:', error)
-      toast.error('Aktif kullanıcı sayısı güncellenirken hata oluştu!')
+      toast.error('The active user count could not be refreshed.')
     } finally {
       setRefreshingStats(false)
     }
@@ -118,7 +118,7 @@ export default function AdminDashboard() {
     e.preventDefault()
     
     if (!moderatorForm.email || !moderatorForm.password || !moderatorForm.name) {
-      toast.error('Lütfen tüm alanları doldurun!')
+      toast.error('Please complete all fields.')
       return
     }
 
@@ -134,16 +134,16 @@ export default function AdminDashboard() {
         ])
         setUsers(usersData)
         setModerators(moderatorsData)
-        toast.success('Moderatör başarıyla eklendi!')
+        toast.success('Moderator added.')
       }
     } catch (error) {
-      console.error('Moderatör ekleme hatası:', error)
-      toast.error(error.response?.data?.error || 'Moderatör eklenirken hata oluştu')
+      console.error('Moderator creation failed:', error)
+      toast.error(error.response?.data?.error || 'The moderator could not be added.')
     }
   }
 
   const handleRemoveModerator = async (moderatorId) => {
-    if (window.confirm('Bu moderatörü kaldırmak istediğinizden emin misiniz? Kullanıcı normal USER rolüne düşürülecektir.')) {
+    if (window.confirm('Remove this moderator and return the account to the USER role?')) {
       try {
         const result = await userService.removeModerator(moderatorId)
         if (result.success) {
@@ -154,17 +154,17 @@ export default function AdminDashboard() {
           ])
           setUsers(usersData)
           setModerators(moderatorsData)
-          toast.success('Moderatör başarıyla kaldırıldı ve normal kullanıcı rolüne düşürüldü!')
+          toast.success('Moderator access removed.')
         }
       } catch (error) {
-        console.error('Moderatör kaldırma hatası:', error)
-        toast.error(error.response?.data?.error || 'Moderatör kaldırılırken hata oluştu')
+        console.error('Moderator removal failed:', error)
+        toast.error(error.response?.data?.error || 'The moderator could not be removed.')
       }
     }
   }
 
   const handlePromoteToModerator = async (userId, userName) => {
-    if (window.confirm(`${userName} kullanıcısını moderatör yapmak istediğinizden emin misiniz?`)) {
+    if (window.confirm(`${userName} should be promoted to moderator?`)) {
       try {
         const result = await userService.promoteToModerator(userId)
         if (result.success) {
@@ -175,17 +175,17 @@ export default function AdminDashboard() {
           ])
           setUsers(usersData)
           setModerators(moderatorsData)
-          toast.success(`${userName} başarıyla moderatör yapıldı!`)
+          toast.success(`${userName} was promoted to moderator.`)
         }
       } catch (error) {
-        console.error('Moderatör yapma hatası:', error)
-        toast.error(error.response?.data?.error || 'Kullanıcı moderatör yapılırken hata oluştu')
+        console.error('Moderator promotion failed:', error)
+        toast.error(error.response?.data?.error || 'The user could not be promoted.')
       }
     }
   }
 
   const handleDeleteUser = async (userId) => {
-    if (window.confirm('Bu kullanıcıyı silmek istediğinizden emin misiniz?')) {
+    if (window.confirm('Are you sure you want to delete this user?')) {
       try {
         await userService.deleteUser(userId)
         // Reload data after deleting user
@@ -195,10 +195,10 @@ export default function AdminDashboard() {
         ])
         setUsers(usersData)
         setModerators(moderatorsData)
-        toast.success('Kullanıcı başarıyla silindi!')
+        toast.success('User deleted.')
       } catch (error) {
         console.error('Error deleting user:', error)
-        toast.error('Kullanıcı silinirken hata oluştu!')
+        toast.error('The user could not be deleted.')
       }
     }
   }
@@ -219,7 +219,7 @@ export default function AdminDashboard() {
     e.preventDefault()
     
     if (!editForm.name || !editForm.email) {
-      toast.error('Lütfen gerekli alanları doldurun!')
+      toast.error('Please complete all required fields.')
       return
     }
 
@@ -234,7 +234,7 @@ export default function AdminDashboard() {
       ])
       setUsers(usersData)
       setModerators(moderatorsData)
-      toast.success('Kullanıcı başarıyla güncellendi!')
+      toast.success('User updated.')
     }
   }
 
@@ -244,12 +244,12 @@ export default function AdminDashboard() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">Admin Paneli</h1>
-          <p className="text-gray-400">Sistem yönetimi ve kullanıcı kontrolü</p>
+          <p className="text-gray-400">System administration and user controls</p>
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="text-white text-lg">Veriler yükleniyor...</div>
+            <div className="text-white text-lg">Loading data...</div>
           </div>
         ) : (
           <>
@@ -258,7 +258,7 @@ export default function AdminDashboard() {
               <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm">Toplam Kullanıcı</p>
+                    <p className="text-gray-400 text-sm">Toplam User</p>
                     <p className="text-3xl font-bold text-white mt-1">{dashboardStats.totalUsers}</p>
                   </div>
                   <UsersIcon className="w-12 h-12 text-red-600" />
@@ -268,7 +268,7 @@ export default function AdminDashboard() {
               <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm">Moderatörler</p>
+                    <p className="text-gray-400 text-sm">Moderatorler</p>
                     <p className="text-3xl font-bold text-white mt-1">{dashboardStats.totalModerators}</p>
                   </div>
                   <ShieldCheckIcon className="w-12 h-12 text-blue-600" />
@@ -278,7 +278,7 @@ export default function AdminDashboard() {
               <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-gray-400 text-sm">Aktif Kullanıcılar (Son 24 Saat)</p>
+                    <p className="text-gray-400 text-sm">Aktif Userlar (Son 24 Saat)</p>
                     <p className="text-3xl font-bold text-white mt-1">{dashboardStats.activeUsers}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <button
@@ -307,7 +307,7 @@ export default function AdminDashboard() {
                       : 'border-transparent text-gray-400 hover:text-white'
                   }`}
                 >
-                  Genel Bakış
+                  Overview
                 </button>
                 <button
                   onClick={() => setActiveTab('users')}
@@ -317,7 +317,7 @@ export default function AdminDashboard() {
                       : 'border-transparent text-gray-400 hover:text-white'
                   }`}
                 >
-                  Kullanıcılar
+                  Userlar
                 </button>
                 <button
                   onClick={() => setActiveTab('moderators')}
@@ -327,7 +327,7 @@ export default function AdminDashboard() {
                       : 'border-transparent text-gray-400 hover:text-white'
                   }`}
                 >
-                  Moderatörler
+                  Moderatorler
                 </button>
                 <button
                   onClick={() => setActiveTab('settings')}
@@ -337,7 +337,7 @@ export default function AdminDashboard() {
                       : 'border-transparent text-gray-400 hover:text-white'
                   }`}
                 >
-                  Ayarlar
+                  Settings
                 </button>
               </nav>
             </div>
@@ -346,14 +346,14 @@ export default function AdminDashboard() {
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-                  <h2 className="text-xl font-semibold text-white mb-4">Sistem Özeti</h2>
+                  <h2 className="text-xl font-semibold text-white mb-4">System summary</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-gray-400 text-sm">Sistem Durumu</p>
                       <p className="text-green-500 font-medium">Aktif</p>
                     </div>
                     <div>
-                      <p className="text-gray-400 text-sm">Son Giriş</p>
+                      <p className="text-gray-400 text-sm">Last sign-in</p>
                       <p className="text-white font-medium">
                         {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('tr-TR') : 'Bilinmiyor'}
                       </p>
@@ -375,25 +375,25 @@ export default function AdminDashboard() {
               <div className="space-y-6">
                 <div className="bg-gray-900 rounded-lg border border-gray-800">
                   <div className="p-6 border-b border-gray-800">
-                    <h2 className="text-xl font-semibold text-white">Normal Kullanıcılar</h2>
-                    <p className="text-gray-400 mt-1">Sadece USER rolündeki kullanıcıları görüntüle ve yönet</p>
+                    <h2 className="text-xl font-semibold text-white">Normal Userlar</h2>
+                    <p className="text-gray-400 mt-1">View and manage accounts with the USER role</p>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
                         <tr className="border-b border-gray-800">
-                          <th className="text-left p-4 text-gray-400 font-medium">Kullanıcı</th>
+                          <th className="text-left p-4 text-gray-400 font-medium">User</th>
                           <th className="text-left p-4 text-gray-400 font-medium">E-posta</th>
                           <th className="text-left p-4 text-gray-400 font-medium">Rol</th>
-                          <th className="text-left p-4 text-gray-400 font-medium">Kayıt Tarihi</th>
-                          <th className="text-left p-4 text-gray-400 font-medium">İşlemler</th>
+                          <th className="text-left p-4 text-gray-400 font-medium">Registration date</th>
+                          <th className="text-left p-4 text-gray-400 font-medium">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {users.filter(user => user.role === 'USER').length === 0 ? (
                           <tr>
                             <td colSpan="5" className="p-8 text-center text-gray-400">
-                              Henüz normal kullanıcı bulunamadı
+                              No standard users found
                             </td>
                           </tr>
                         ) : (
@@ -412,10 +412,10 @@ export default function AdminDashboard() {
                                         ? user.name.split(' ').map(word => 
                                             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
                                           ).join(' ')
-                                        : 'İsimsiz Kullanıcı'}
+                                        : 'Unnamed user'}
                                     </p>
                                     <p className="text-gray-400 text-sm whitespace-nowrap">
-                                      @{user.username?.replace('@', '') || 'kullanici'}
+                                      @{user.username?.replace('@', '') || 'username'}
                                     </p>
                                   </div>
                                 </div>
@@ -423,7 +423,7 @@ export default function AdminDashboard() {
                               <td className="p-4 text-gray-300">{user.email}</td>
                               <td className="p-4">
                                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-800 text-gray-400">
-                                  Kullanıcı
+                                  User
                                 </span>
                               </td>
                               <td className="p-4 text-gray-300">
@@ -434,15 +434,15 @@ export default function AdminDashboard() {
                                   <button
                                     onClick={() => handlePromoteToModerator(user.id, user.name || user.username)}
                                     className="text-green-500 hover:text-green-400 text-sm font-medium"
-                                    title="Moderatör Yap"
+                                    title="Moderator Yap"
                                   >
-                                    ⬆️ Moderatör Yap
+                                    ⬆️ Moderator Yap
                                   </button>
                                   <button
                                     onClick={() => handleEditUser(user)}
                                     className="text-blue-500 hover:text-blue-400 text-sm"
                                   >
-                                    Düzenle
+                                    Edit
                                   </button>
                                   <button
                                     onClick={() => handleDeleteUser(user.id)}
@@ -465,19 +465,19 @@ export default function AdminDashboard() {
             {activeTab === 'moderators' && (
               <div className="space-y-6">
                 <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-semibold text-white">Moderatör Yönetimi</h2>
+                  <h2 className="text-xl font-semibold text-white">Moderator management</h2>
                   <button
                     onClick={() => setShowAddModerator(!showAddModerator)}
                     className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
                   >
                     <UserPlusIcon className="w-5 h-5" />
-                    Moderatör Ekle
+                    Moderator Ekle
                   </button>
                 </div>
 
                 {showAddModerator && (
                   <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-                    <h3 className="text-lg font-semibold text-white mb-4">Yeni Moderatör Ekle</h3>
+                    <h3 className="text-lg font-semibold text-white mb-4">Yeni Moderator Ekle</h3>
                     <form onSubmit={handleAddModerator} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -494,7 +494,7 @@ export default function AdminDashboard() {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-400 mb-2">
-                            Kullanıcı Adı
+                            Username
                           </label>
                           <input
                             type="text"
@@ -518,7 +518,7 @@ export default function AdminDashboard() {
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-400 mb-2">
-                            Şifre
+                            Password
                           </label>
                           <input
                             type="password"
@@ -535,7 +535,7 @@ export default function AdminDashboard() {
                           onClick={() => setShowAddModerator(false)}
                           className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
                         >
-                          İptal
+                          Cancel
                         </button>
                         <button
                           type="submit"
@@ -553,17 +553,17 @@ export default function AdminDashboard() {
                     <table className="w-full">
                       <thead>
                         <tr className="border-b border-gray-800">
-                          <th className="text-left p-4 text-gray-400 font-medium">Moderatör</th>
+                          <th className="text-left p-4 text-gray-400 font-medium">Moderator</th>
                           <th className="text-left p-4 text-gray-400 font-medium">E-posta</th>
-                          <th className="text-left p-4 text-gray-400 font-medium">Kayıt Tarihi</th>
-                          <th className="text-left p-4 text-gray-400 font-medium">İşlemler</th>
+                          <th className="text-left p-4 text-gray-400 font-medium">Registration date</th>
+                          <th className="text-left p-4 text-gray-400 font-medium">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {moderators.length === 0 ? (
                           <tr>
                             <td colSpan="4" className="p-8 text-center text-gray-400">
-                              Henüz moderatör eklenmemiş
+                              No moderators found
                             </td>
                           </tr>
                         ) : (
@@ -582,7 +582,7 @@ export default function AdminDashboard() {
                                         ? moderator.name.split(' ').map(word => 
                                             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
                                           ).join(' ')
-                                        : 'İsimsiz Moderatör'}
+                                        : 'Unnamed moderator'}
                                     </p>
                                     <p className="text-gray-400 text-sm whitespace-nowrap">
                                       @{moderator.username?.replace('@', '') || 'moderator'}
@@ -600,12 +600,12 @@ export default function AdminDashboard() {
                                     onClick={() => handleEditUser(moderator)}
                                     className="text-blue-500 hover:text-blue-400 text-sm"
                                   >
-                                    Düzenle
+                                    Edit
                                   </button>
                                   <button
                                     onClick={() => handleRemoveModerator(moderator.id)}
                                     className="text-orange-500 hover:text-orange-400 text-sm font-medium"
-                                    title="Moderatörü kaldır ve normal kullanıcı yap"
+                                    title="Remove moderator access"
                                   >
                                     ⬇️ Demote
                                   </button>
@@ -624,11 +624,11 @@ export default function AdminDashboard() {
             {activeTab === 'settings' && (
               <div className="space-y-6">
                 <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-                  <h2 className="text-xl font-semibold text-white mb-4">Sistem Ayarları</h2>
+                  <h2 className="text-xl font-semibold text-white mb-4">System settings</h2>
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-400 mb-2">
-                        Site Başlığı
+                        Site title
                       </label>
                       <input
                         type="text"
@@ -638,17 +638,17 @@ export default function AdminDashboard() {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-400 mb-2">
-                        Site Açıklaması
+                        Site description
                       </label>
                       <textarea
-                        defaultValue="Film tutkunları için özel bir platform"
+                        defaultValue="A focused platform for movie enthusiasts"
                         rows="3"
                         className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-400 mb-2">
-                        Bakım Modu
+                        Maintenance mode
                       </label>
                       <div className="flex items-center gap-3">
                         <input
@@ -657,13 +657,13 @@ export default function AdminDashboard() {
                           className="w-4 h-4 text-red-600 bg-gray-800 border-gray-600 rounded focus:ring-red-600"
                         />
                         <label htmlFor="maintenance" className="text-gray-300">
-                          Bakım modunu etkinleştir
+                          Enable maintenance mode
                         </label>
                       </div>
                     </div>
                     <div className="pt-4">
                       <button className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
-                        Ayarları Kaydet
+                        Save settings
                       </button>
                     </div>
                   </div>
@@ -679,7 +679,7 @@ export default function AdminDashboard() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-900 rounded-lg p-6 w-full max-w-2xl mx-4 border border-gray-800">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-white">Kullanıcı Düzenle</h3>
+              <h3 className="text-xl font-semibold text-white">User Edit</h3>
               <button
                 onClick={() => setShowEditUser(false)}
                 className="text-gray-400 hover:text-white"
@@ -696,7 +696,7 @@ export default function AdminDashboard() {
                   </span>
                 </div>
                 <div>
-                  <h4 className="text-lg font-medium text-white">{selectedUser.name || 'İsimsiz Kullanıcı'}</h4>
+                  <h4 className="text-lg font-medium text-white">{selectedUser.name || 'Unnamed user'}</h4>
                   <p className="text-gray-400">{selectedUser.email}</p>
                 </div>
               </div>
@@ -728,7 +728,7 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-400 mb-2">
-                    Kullanıcı Adı
+                    Username
                   </label>
                   <input
                     type="text"
@@ -752,7 +752,7 @@ export default function AdminDashboard() {
               
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">
-                  Hakkında
+                  About
                 </label>
                 <textarea
                   value={editForm.bio}
@@ -768,13 +768,13 @@ export default function AdminDashboard() {
                   onClick={() => setShowEditUser(false)}
                   className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
                 >
-                  İptal
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                 >
-                  Güncelle
+                  Update
                 </button>
               </div>
             </form>

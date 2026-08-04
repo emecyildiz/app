@@ -107,7 +107,7 @@ const Movies = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Hata Oluştu</h2>
+          <h2 className="text-2xl font-bold text-white mb-4">Something went wrong</h2>
           <p className="text-gray-400 mb-4">{error}</p>
           <button
             onClick={() => loadMovies('popular')}
@@ -194,9 +194,9 @@ const Movies = () => {
               {/* Tabs */}
               <div className="flex gap-2 mb-6">
                 {[
-                  { key: 'popular', label: 'Popüler' },
+                  { key: 'popular', label: 'Popular' },
                   { key: 'latest', label: 'En Yeni' },
-                  { key: 'topRated', label: 'En Çok Oy Alan' }
+                  { key: 'topRated', label: 'Top rated' }
                 ].map(tab => (
                   <button
                     key={tab.key}
@@ -231,7 +231,7 @@ const Movies = () => {
                       </button>
                     ))
                   ) : (
-                    <p className="text-gray-400 text-sm">Kategoriler yükleniyor...</p>
+                    <p className="text-gray-400 text-sm">Loading genres...</p>
                   )}
                 </div>
               </div>
@@ -258,7 +258,7 @@ const Movies = () => {
                 ))
               ) : (
                 <div className="col-span-full text-center py-20">
-                  <p className="text-gray-400">Film bulunamadı</p>
+                  <p className="text-gray-400">No movies found</p>
                 </div>
               )}
             </motion.div>
@@ -272,11 +272,11 @@ const Movies = () => {
                   className="btn btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft className="w-4 h-4" />
-                  Önceki
+                  Previous
                 </button>
                 
                 <span className="text-white">
-                  Sayfa {currentPage} / {totalPages}
+                  Page {currentPage} / {totalPages}
                 </span>
                 
                 <button
@@ -293,9 +293,9 @@ const Movies = () => {
             {/* No Results */}
             {movies && movies.length === 0 && !loading && (
               <div className="text-center py-20">
-                <h3 className="text-2xl font-bold text-white mb-4">Sonuç Bulunamadı</h3>
+                <h3 className="text-2xl font-bold text-white mb-4">No results found</h3>
                 <p className="text-gray-400 mb-6">
-                  Arama kriterlerinize uygun film bulunamadı.
+                  No movies matched your search.
                 </p>
                 <button
                   onClick={clearSearch}

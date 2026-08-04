@@ -15,18 +15,18 @@ const Footer = () => {
                                             <img src="/brand/ratemet-logo.svg" alt={APP_NAME} className="h-10 w-auto" />
             </Link>
             <p className="text-gray-400 text-sm">
-              Film tutkunları için modern bir değerlendirme platformu.
-              Kataloğu keşfet, yorumları incele, favorilerini oluştur.
+              A modern catalog and rating platform for movie enthusiasts.
+              Discover titles, read opinions, and build your own collections.
             </p>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-white font-semibold mb-4">Hızlı Bağlantılar</h3>
+            <h3 className="text-white font-semibold mb-4">Quick links</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/" className="text-gray-400 hover:text-primary-400 transition-colors">
-                  Ana Sayfa
+                  Home
                 </Link>
               </li>
               <li>
@@ -36,7 +36,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link to="/about" className="text-gray-400 hover:text-primary-400 transition-colors">
-                  Hakkında
+                  About
                 </Link>
               </li>
               <li>
@@ -81,7 +81,7 @@ const Footer = () => {
 
           {/* Social Links */}
           <div>
-            <h3 className="text-white font-semibold mb-4">İletişim</h3>
+            <h3 className="text-white font-semibold mb-4">Contact</h3>
             <div className="flex gap-4">
               <a
                 href="https://github.com/emecyildiz"
@@ -106,7 +106,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-dark-500 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-gray-400 text-sm">
-            © {currentYear} {APP_NAME}. Tüm hakları saklıdır.
+            © {currentYear} {APP_NAME}. All rights reserved.
           </p>
           <p className="text-gray-400 text-sm flex items-center gap-1">
             Made with <Heart className="w-4 h-4 text-primary-500" /> by {APP_NAME} Team
