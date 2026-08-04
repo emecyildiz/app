@@ -138,6 +138,80 @@ test('registration, login, session, CSRF rotation, and logout work together', as
   assert.equal(updatedSession.status, 200);
   assert.equal((await updatedSession.json()).user.username, 'updated_viewer');
 
+  const favorite = await request('/api/favorites', {
+    method: 'POST',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({ movieId: 550, title: 'Fight Club', posterPath: '/poster.jpg' }),
+  });
+  assert.equal(favorite.status, 200);
+
+  const favorites = await request(`/api/users/${loginBody.user.id}/favorites`, {
+    headers: { Cookie: cookie },
+  });
+  assert.equal(favorites.status, 200);
+  assert.deepEqual((await favorites.json()).items, [550]);
+
+  const rating = await request('/api/ratings', {
+    method: 'POST',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({ movieId: 550, rating: 8.5, comment: 'A test rating.', movie: { id: 550, title: 'Fight Club' } }),
+  });
+  assert.equal(rating.status, 200);
+
+  const watched = await request('/api/watched', {
+    method: 'POST',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({ movieId: 550 }),
+  });
+  assert.equal(watched.status, 200);
+
+  const comment = await request('/api/comments', {
+    method: 'POST',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({ movieId: 550, movieTitle: 'Fight Club', content: 'A separate test comment.' }),
+  });
+  assert.equal(comment.status, 200);
+
+  const stats = await request('/api/users/stats', { headers: { Cookie: cookie } });
+  assert.equal(stats.status, 200);
+  assert.deepEqual(
+    Object.fromEntries(Object.entries(await stats.json()).filter(([key]) => ['favoritesCount', 'ratingsCount', 'watchedMovies', 'commentsCount'].includes(key))),
+    { watchedMovies: 1, ratingsCount: 1, commentsCount: 1, favoritesCount: 1 },
+  );
+
+  const recipientRegistration = await request('/api/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({
+      email: 'recipient@example.com',
+      username: 'recipient_user',
+      name: 'Recipient User',
+      password: 'SecurePass123',
+    }),
+  });
+  assert.equal(recipientRegistration.status, 201);
+  const recipientResult = await query('SELECT id FROM users WHERE email = $1', ['recipient@example.com']);
+  const recipientId = recipientResult.rows[0].id;
+
+  const friendRequest = await request('/api/friends/request', {
+    method: 'POST',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({ toUserId: recipientId }),
+  });
+  assert.equal(friendRequest.status, 200);
+
+  const recommendation = await request('/api/recommendations', {
+    method: 'POST',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({ toUserId: recipientId, title: 'Watch this', note: 'A test recommendation.', movieIds: [550] }),
+  });
+  assert.equal(recommendation.status, 201);
+
+  const sentRecommendations = await request('/api/recommendations?type=sent', { headers: { Cookie: cookie } });
+  assert.equal(sentRecommendations.status, 200);
+  const sentBody = await sentRecommendations.json();
+  assert.equal(sentBody.length, 1);
+  assert.equal(sentBody[0].items[0].movie_id, 550);
+
   const rejectedLogout = await request('/api/auth/logout', {
     method: 'POST',
     headers: { Cookie: cookie, 'x-csrf-token': 'invalid-token' },

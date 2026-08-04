@@ -1,72 +1,33 @@
-import axios from 'axios';
-import { API_BASE_URL } from '../config/appConfig';
+import { apiRequest } from './apiClient'
 
 class RecommendationService {
-  constructor() {
-    this.baseURL = `${API_BASE_URL}/api/recommendations`;
+  createRecommendation(toUserId, title, note, movieIds) {
+    return apiRequest('/api/recommendations', {
+      method: 'POST',
+      csrf: true,
+      body: { toUserId, title, note, movieIds },
+    })
   }
 
-  // Read auth token from sessionStorage (same pattern as userService)
-  getAuthToken() {
-    return sessionStorage.getItem('auth-token');
+  getRecommendations(type = 'received', status = null) {
+    return apiRequest('/api/recommendations', { params: { type, status } })
   }
 
-  getAuthHeaders() {
-    const token = this.getAuthToken();
-    return {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    };
+  getRecommendationById(id) {
+    return apiRequest(`/api/recommendations/${id}`)
   }
 
-  async createRecommendation(toUserId, title, note, movieIds) {
-    const response = await axios.post(
-      this.baseURL,
-      { toUserId, title, note, movieIds },
-      { headers: this.getAuthHeaders() }
-    );
-    return response.data;
+  respondToRecommendation(id, status) {
+    return apiRequest(`/api/recommendations/${id}/respond`, {
+      method: 'POST',
+      csrf: true,
+      body: { status },
+    })
   }
 
-  async getRecommendations(type = 'received', status = null) {
-    const params = { type };
-    if (status) params.status = status;
-    const response = await axios.get(this.baseURL, { 
-      params, 
-      headers: this.getAuthHeaders(),
-      timeout: 15000, // 15s timeout
-    });
-    return response.data;
-  }
-
-  async getRecommendationById(id) {
-    const response = await axios.get(`${this.baseURL}/${id}`, { headers: this.getAuthHeaders() });
-    return response.data;
-  }
-
-  async respondToRecommendation(id, status) {
-    const response = await axios.post(
-      `${this.baseURL}/${id}/respond`,
-      { status },
-      { headers: this.getAuthHeaders() }
-    );
-    return response.data;
-  }
-
-  async deleteRecommendation(id) {
-    // Try DELETE first, fallback to POST /delete
-    try {
-      const response = await axios.delete(`${this.baseURL}/${id}`, {
-        headers: this.getAuthHeaders(),
-      });
-      return response.data;
-    } catch (e) {
-      const response = await axios.post(`${this.baseURL}/${id}/delete`, {}, {
-        headers: this.getAuthHeaders(),
-      });
-      return response.data;
-    }
+  deleteRecommendation(id) {
+    return apiRequest(`/api/recommendations/${id}`, { method: 'DELETE', csrf: true })
   }
 }
 
-export default new RecommendationService();
+export default new RecommendationService()

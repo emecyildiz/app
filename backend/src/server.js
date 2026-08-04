@@ -25,6 +25,7 @@ const crypto = require('crypto');
 const axios = require('axios');
 const supabase = require('./config/supabase');
 const authRouter = require('./routes/auth');
+const dataRouter = require('./routes/data');
 
 const app = express();
 app.use(express.json());
@@ -235,6 +236,7 @@ app.use((req, res, next) => {
 });
 
 app.use('/api/auth', authRouter);
+app.use('/api', dataRouter);
 
 // TMDB API setup
 const TMDB_API_KEY = process.env.TMDB_API_KEY;

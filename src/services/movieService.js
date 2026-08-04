@@ -1,295 +1,109 @@
-import { supabase } from '../config/supabase'
-import { addCsrfHeader } from '../utils/csrfToken'
+import { apiRequest } from './apiClient'
 
 class MovieService {
-  constructor() {
-    this.supabase = supabase
-  }
-
-  // Ensure a movie row exists to satisfy FK on ratings.movie_id
   async ensureMovieRow(movie) {
-    try {
-      if (!movie || !movie.id) return
-      // Prefer backend endpoint to bypass RLS
-      const headers = await addCsrfHeader({
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${sessionStorage.getItem('auth-token') || ''}`
-      })
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/movies/ensure`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ 
-          id: movie.id, 
-          title: movie.title || movie.original_title || `Film #${movie.id}`,
-          posterPath: movie.poster_path || null 
-        })
-      })
-      if (!response.ok) {
-        const t = await response.text().catch(() => '')
-        throw new Error(`ensure failed: ${response.status} ${t}`)
-      }
-    } catch (e) {
-      // Soft fail: do not block rating if movie upsert has minor issues
-      console.error('ensureMovieRow error:', e)
-    }
+    if (!movie?.id) return null
+    return apiRequest('/api/movies/ensure', {
+      method: 'POST',
+      csrf: true,
+      body: {
+        id: movie.id,
+        title: movie.title || movie.original_title || `Movie #${movie.id}`,
+        posterPath: movie.poster_path || null,
+      },
+    })
   }
 
-  // Upsert only the comment into ratings table (no rating required)
   async upsertComment(movieId, comment, movie = null) {
     try {
-      const { data: { user } } = await this.supabase.auth.getUser()
-      if (!user) throw new Error('Kullanıcı girişi yapılmamış')
-
-      if (movie) {
-        await this.ensureMovieRow(movie)
-      }
-
-      // Check existing rating row
-      const { data: existing } = await this.supabase
-        .from('ratings')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('movie_id', movieId)
-        .maybeSingle()
-
-      if (existing && existing.id) {
-        const { error } = await this.supabase
-          .from('ratings')
-          .update({ comment, updated_at: new Date().toISOString() })
-          .eq('id', existing.id)
-        if (error) throw error
-        return { success: true }
-      } else {
-        const { error } = await this.supabase
-          .from('ratings')
-          .insert({ user_id: user.id, movie_id: movieId, comment })
-        if (error) throw error
-        return { success: true }
-      }
-    } catch (e) {
-      console.error('Yorum kaydedilirken hata:', e)
-      return { success: false, error: e.message }
+      await apiRequest(`/api/ratings/${movieId}/comment`, {
+        method: 'PATCH',
+        csrf: true,
+        body: { comment, movie: movie ? { ...movie, id: movieId } : { id: movieId } },
+      })
+      return { success: true }
+    } catch (error) {
+      console.error('Unable to save the rating comment:', error)
+      return { success: false, error: error.message }
     }
   }
 
-  // Kullanıcının film puanlarını getir
   async getMyRatings(page = 1, limit = 20) {
     try {
-      const { data: { user } } = await this.supabase.auth.getUser()
-      if (!user) throw new Error('Kullanıcı girişi yapılmamış')
-
-      const from = (page - 1) * limit
-      const to = from + limit - 1
-
-      const { data, error, count } = await this.supabase
-        .from('ratings')
-        .select(`
-          *,
-          movie:movies(*)
-        `, { count: 'exact' })
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .range(from, to)
-
-      if (error) throw error
-
-      return {
-        ratings: data || [],
-        totalPages: Math.ceil((count || 0) / limit),
-        currentPage: page
-      }
+      return await apiRequest('/api/ratings/me', { params: { page, limit } })
     } catch (error) {
-      console.error('Film puanları yüklenirken hata:', error)
+      console.error('Unable to load ratings:', error)
       return { ratings: [], totalPages: 0, currentPage: page }
     }
   }
 
-  // Film puanla
   async rateMovie(movieId, rating, comment = '', movie = null) {
     try {
-      const { data: { user } } = await this.supabase.auth.getUser()
-      if (!user) throw new Error('Kullanıcı girişi yapılmamış')
-
-      // Ensure movie exists in movies table to satisfy FK
-      if (movie) {
-        await this.ensureMovieRow(movie)
-      }
-
-      // Önce mevcut puanı kontrol et
-      const { data: existingRating } = await this.supabase
-        .from('ratings')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('movie_id', movieId)
-        .maybeSingle()
-
-      if (existingRating) {
-        // Mevcut puanı güncelle
-        const { data, error } = await this.supabase
-          .from('ratings')
-          .update({
-            rating,
-            comment,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingRating.id)
-          .select()
-          .single()
-
-        if (error) throw error
-        return { success: true, data }
-      } else {
-        // Yeni puan ekle
-        const { data, error } = await this.supabase
-          .from('ratings')
-          .upsert({
-            user_id: user.id,
-            movie_id: movieId,
-            rating,
-            comment
-          }, { onConflict: 'user_id,movie_id' })
-          .select()
-          .single()
-
-        if (error) throw error
-        return { success: true, data }
-      }
+      return await apiRequest('/api/ratings', {
+        method: 'POST',
+        csrf: true,
+        body: { movieId, rating, comment, movie: movie ? { ...movie, id: movieId } : { id: movieId } },
+      })
     } catch (error) {
-      console.error('Film puanlanırken hata:', error)
+      console.error('Unable to save rating:', error)
       return { success: false, error: error.message }
     }
   }
 
-  // Film yorumunu sil
   async deleteRating(movieId) {
     try {
-      const { data: { user } } = await this.supabase.auth.getUser()
-      if (!user) throw new Error('Kullanıcı girişi yapılmamış')
-
-      const { error } = await this.supabase
-        .from('ratings')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('movie_id', movieId)
-
-      if (error) throw error
+      await apiRequest(`/api/ratings/${movieId}`, { method: 'DELETE', csrf: true })
       return { success: true }
     } catch (error) {
-      console.error('Film puanı silinirken hata:', error)
       return { success: false, error: error.message }
     }
   }
 
-  // Kullanıcının izlediği filmleri getir
   async getWatchedMovies(page = 1, limit = 20) {
     try {
-      const { data: { user } } = await this.supabase.auth.getUser()
-      if (!user) throw new Error('Kullanıcı girişi yapılmamış')
-
-      const from = (page - 1) * limit
-      const to = from + limit - 1
-
-      const { data, error, count } = await this.supabase
-        .from('watched_movies')
-        .select(`
-          *,
-          movie:movies(*)
-        `, { count: 'exact' })
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .range(from, to)
-
-      if (error) throw error
-
-      return {
-        movies: data || [],
-        totalPages: Math.ceil((count || 0) / limit),
-        currentPage: page
-      }
+      return await apiRequest('/api/watched', { params: { page, limit } })
     } catch (error) {
-      console.error('İzlenen filmler yüklenirken hata:', error)
+      console.error('Unable to load watched movies:', error)
       return { movies: [], totalPages: 0, currentPage: page }
     }
   }
 
-  // Film izlendi olarak işaretle
-  async markAsWatched(movieId) {
+  async markAsWatched(movieId, movie = null) {
     try {
-      const { data: { user } } = await this.supabase.auth.getUser()
-      if (!user) throw new Error('Kullanıcı girişi yapılmamış')
-
-      const { data, error } = await this.supabase
-        .from('watched_movies')
-        .upsert({
-          user_id: user.id,
-          movie_id: movieId
-          // created_at otomatik eklenir
-        })
-        .select()
-        .single()
-
-      if (error) throw error
-      return { success: true, data }
+      return await apiRequest('/api/watched', {
+        method: 'POST',
+        csrf: true,
+        body: { movieId, movie: movie ? { ...movie, id: movieId } : { id: movieId } },
+      })
     } catch (error) {
-      console.error('Film izlendi olarak işaretlenirken hata:', error)
       return { success: false, error: error.message }
     }
   }
 
-  // Film izlenmedi olarak işaretle
   async markAsUnwatched(movieId) {
     try {
-      const { data: { user } } = await this.supabase.auth.getUser()
-      if (!user) throw new Error('Kullanıcı girişi yapılmamış')
-
-      const { error } = await this.supabase
-        .from('watched_movies')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('movie_id', movieId)
-
-      if (error) throw error
+      await apiRequest(`/api/watched/${movieId}`, { method: 'DELETE', csrf: true })
       return { success: true }
     } catch (error) {
-      console.error('Film izlenmedi olarak işaretlenirken hata:', error)
       return { success: false, error: error.message }
     }
   }
 
-  // Izlenen film ID'lerini getir (hızlı kontrol için)
   async getWatchedIds() {
     try {
-      const { data: { user } } = await this.supabase.auth.getUser()
-      if (!user) throw new Error('Kullanıcı girişi yapılmamış')
-      const { data, error } = await this.supabase
-        .from('watched_movies')
-        .select('movie_id')
-        .eq('user_id', user.id)
-      if (error) throw error
-      return new Set((data || []).map(r => Number(r.movie_id)))
-    } catch (e) {
-      console.error('Watched ids fetch error:', e)
+      const result = await apiRequest('/api/watched/ids')
+      return new Set((result.items || []).map(Number))
+    } catch (error) {
+      console.error('Unable to load watched movie identifiers:', error)
       return new Set()
     }
   }
 
-  // Kullanıcının belirli bir filme verdiği puanı getir
   async getUserRating(movieId) {
     try {
-      const { data: { user } } = await this.supabase.auth.getUser()
-      if (!user) return null
-
-      const { data, error } = await this.supabase
-        .from('ratings')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('movie_id', movieId)
-        .maybeSingle()
-
-      if (error) throw error
-      return data
+      return (await apiRequest(`/api/ratings/movie/${movieId}`)).rating
     } catch (error) {
-      console.error('Kullanıcı puanı getirilirken hata:', error)
+      if (error.status !== 401) console.error('Unable to load rating:', error)
       return null
     }
   }
