@@ -49,7 +49,17 @@ Do not add Cloudflare Access authentication to this public application. The app 
 
 ## Backup and restore
 
-Install `deploy/ratemet-backup.sh` as `/usr/local/sbin/ratemet-backup`, make it executable, and schedule it with the host's existing backup timer or cron. The default destination is `/var/backups/emecworks/ratemet` and the default retention is 14 days.
+Install the backup script and its systemd units:
+
+```bash
+sudo install -m 0750 deploy/ratemet-backup.sh /usr/local/sbin/ratemet-backup
+sudo install -m 0644 deploy/ratemet-backup.service /etc/systemd/system/ratemet-backup.service
+sudo install -m 0644 deploy/ratemet-backup.timer /etc/systemd/system/ratemet-backup.timer
+sudo systemctl daemon-reload
+sudo systemctl enable --now ratemet-backup.timer
+```
+
+The default destination is `/var/backups/emecworks/ratemet` and the default retention is 14 days. The timer runs daily at 02:40 UTC with a randomized delay of up to 30 minutes.
 
 Test a backup manually:
 

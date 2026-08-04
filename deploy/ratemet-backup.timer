@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the Ratemet PostgreSQL backup daily
+
+[Timer]
+OnCalendar=*-*-* 02:40:00 UTC
+RandomizedDelaySec=30m
+Persistent=true
+Unit=ratemet-backup.service
+
+[Install]
+WantedBy=timers.target

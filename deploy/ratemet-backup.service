@@ -1,0 +1,17 @@
+[Unit]
+Description=Create a Ratemet PostgreSQL backup
+Requires=docker.service
+After=docker.service
+ConditionPathExists=/etc/emecworks/ratemet.env
+ConditionPathExists=/opt/emecworks/ratemet/docker-compose.prod.yml
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/ratemet-backup
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/backups/emecworks/ratemet
