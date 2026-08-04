@@ -24,6 +24,7 @@ const xss = require('xss');
 const crypto = require('crypto');
 const axios = require('axios');
 const supabase = require('./config/supabase');
+const authRouter = require('./routes/auth');
 
 const app = express();
 app.use(express.json());
@@ -230,6 +231,8 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+app.use('/api/auth', authRouter);
 
 // TMDB API setup
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
@@ -1993,8 +1996,12 @@ app.use(async (err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log('Environment:', process.env.NODE_ENV);
-  console.log('Supabase URL:', process.env.SUPABASE_URL ? 'Set' : 'Missing');
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('Supabase URL:', process.env.SUPABASE_URL ? 'Set' : 'Missing');
+  });
+}
+
+module.exports = app;
