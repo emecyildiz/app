@@ -7,11 +7,9 @@ process.env.DATABASE_URL = process.env.TEST_DATABASE_URL
 process.env.DATABASE_SSL = 'false';
 process.env.AUTH_REQUIRE_EMAIL_VERIFICATION = 'false';
 process.env.IP_HASH_SECRET = 'integration-test-secret';
-process.env.SUPABASE_URL = 'https://example.supabase.co';
-process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
 process.env.ALLOWED_ORIGIN = 'http://localhost:3001';
 
-const app = require('../src/server');
+const app = require(process.env.TEST_SERVER_ENTRY || '../src/server');
 const { pool, query } = require('../src/config/database');
 const { hashToken } = require('../src/auth/tokens');
 
@@ -198,6 +196,13 @@ test('registration, login, session, CSRF rotation, and logout work together', as
     body: JSON.stringify({ toUserId: recipientId }),
   });
   assert.equal(friendRequest.status, 200);
+
+  const repeatedFriendRequest = await request('/api/friends/request', {
+    method: 'POST',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({ toUserId: recipientId }),
+  });
+  assert.equal(repeatedFriendRequest.status, 200);
 
   const recommendation = await request('/api/recommendations', {
     method: 'POST',

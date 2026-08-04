@@ -46,7 +46,7 @@ export default function AdminDashboard() {
     realTimeActiveUsers: 0
   })
 
-  // Redirect if not admin (use profile.role from Supabase)
+  // Redirect users who do not have the administrator role.
   if (!profile || profile.role !== 'ADMIN') {
     return <Navigate to="/" replace />
   }
