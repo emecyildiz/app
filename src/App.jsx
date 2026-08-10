@@ -29,7 +29,6 @@ const VerifyEmail = lazy(() => import('./pages/VerifyEmail'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
-const AdminUserEdit = lazy(() => import('./pages/AdminUserEdit'))
 const ModeratorDashboard = lazy(() => import('./pages/ModeratorDashboard'))
 
 
@@ -175,9 +174,7 @@ function App() {
             path="admin/user/:userId"
             element={
               <AdminRoute>
-                <Suspense fallback={<LoadingSpinner fullScreen />}>
-                  <AdminUserEdit />
-                </Suspense>
+                <Navigate to="/admin" replace />
               </AdminRoute>
             }
           />

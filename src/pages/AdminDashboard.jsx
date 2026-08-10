@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '../store/newAuthStore'
 import { userService } from '../services/userService'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { 
-  UserGroupIcon, 
   UserPlusIcon, 
   CogIcon,
   ChartBarIcon,
@@ -12,11 +11,11 @@ import {
   ArrowPathIcon
 } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
+import { MetricStrip, WorkspacePage, WorkspacePanel, WorkspaceTabs } from '../components/WorkspaceUI'
 
 export default function AdminDashboard() {
   const authStore = useAuthStore()
   const { user, profile, updateUserProfile } = authStore
-  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('overview')
   const [showAddModerator, setShowAddModerator] = useState(false)
   const [showEditUser, setShowEditUser] = useState(false)
@@ -46,13 +45,13 @@ export default function AdminDashboard() {
     realTimeActiveUsers: 0
   })
 
-  // Redirect users who do not have the administrator role.
-  if (!profile || profile.role !== 'ADMIN') {
-    return <Navigate to="/" replace />
-  }
-
   // Load data on component mount
   useEffect(() => {
+    if (profile?.role !== 'ADMIN') {
+      setLoading(false)
+      return
+    }
+
     const loadData = async () => {
       setLoading(true)
       try {
@@ -92,7 +91,12 @@ export default function AdminDashboard() {
     };
 
     loadData();
-  }, []);
+  }, [profile?.role]);
+
+  // Keep every hook unconditional, then enforce the role boundary.
+  if (!profile || profile.role !== 'ADMIN') {
+    return <Navigate to="/" replace />
+  }
 
   // Manual refresh function for active users
   const refreshActiveUsers = async () => {
@@ -238,14 +242,20 @@ export default function AdminDashboard() {
     }
   }
 
+  const adminTabs = [
+    { id: 'overview', label: 'Overview', icon: ChartBarIcon },
+    { id: 'users', label: 'Members', icon: UsersIcon },
+    { id: 'moderators', label: 'Moderators', icon: ShieldCheckIcon },
+    { id: 'settings', label: 'Operations', icon: CogIcon },
+  ]
+
   return (
-    <div className="min-h-screen bg-black">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Admin Paneli</h1>
-          <p className="text-gray-400">System administration and user controls</p>
-        </div>
+    <WorkspacePage
+      eyebrow="Control room"
+      title="Administration"
+      description="Review account health, manage member access, and keep privileged roles explicit."
+      badge="Administrator access"
+    >
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
@@ -253,140 +263,53 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <>
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-400 text-sm">Toplam User</p>
-                    <p className="text-3xl font-bold text-white mt-1">{dashboardStats.totalUsers}</p>
-                  </div>
-                  <UsersIcon className="w-12 h-12 text-red-600" />
-                </div>
-              </div>
+            <MetricStrip items={[
+              { label: 'Members', value: dashboardStats.totalUsers, icon: UsersIcon },
+              { label: 'Moderators', value: dashboardStats.totalModerators, icon: ShieldCheckIcon },
+              { label: 'Active in 30d', value: dashboardStats.activeUsers, icon: ChartBarIcon },
+              { label: 'Active now', value: dashboardStats.realTimeActiveUsers, icon: ArrowPathIcon, note: 'Live estimate' },
+            ]} />
 
-              <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-400 text-sm">Moderatorler</p>
-                    <p className="text-3xl font-bold text-white mt-1">{dashboardStats.totalModerators}</p>
-                  </div>
-                  <ShieldCheckIcon className="w-12 h-12 text-blue-600" />
-                </div>
-              </div>
-
-              <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-gray-400 text-sm">Aktif Userlar (Son 24 Saat)</p>
-                    <p className="text-3xl font-bold text-white mt-1">{dashboardStats.activeUsers}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <button
-                        onClick={refreshActiveUsers}
-                        disabled={refreshingStats}
-                        className="flex items-center gap-2 px-3 py-1 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white text-xs rounded-lg transition-colors"
-                      >
-                        <ArrowPathIcon className={`w-3 h-3 ${refreshingStats ? 'animate-spin' : ''}`} />
-                        Yenile
-                      </button>
-                    </div>
-                  </div>
-                  <ChartBarIcon className="w-12 h-12 text-green-600" />
-                </div>
-              </div>
-            </div>
-
-            {/* Tabs */}
-            <div className="border-b border-gray-800 mb-6">
-              <nav className="flex space-x-8">
-                <button
-                  onClick={() => setActiveTab('overview')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === 'overview'
-                      ? 'border-red-600 text-red-600'
-                      : 'border-transparent text-gray-400 hover:text-white'
-                  }`}
-                >
-                  Overview
-                </button>
-                <button
-                  onClick={() => setActiveTab('users')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === 'users'
-                      ? 'border-red-600 text-red-600'
-                      : 'border-transparent text-gray-400 hover:text-white'
-                  }`}
-                >
-                  Userlar
-                </button>
-                <button
-                  onClick={() => setActiveTab('moderators')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === 'moderators'
-                      ? 'border-red-600 text-red-600'
-                      : 'border-transparent text-gray-400 hover:text-white'
-                  }`}
-                >
-                  Moderatorler
-                </button>
-                <button
-                  onClick={() => setActiveTab('settings')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === 'settings'
-                      ? 'border-red-600 text-red-600'
-                      : 'border-transparent text-gray-400 hover:text-white'
-                  }`}
-                >
-                  Settings
-                </button>
-              </nav>
-            </div>
+            <WorkspaceTabs items={adminTabs} active={activeTab} onChange={setActiveTab} label="Administration sections" />
 
             {/* Content */}
             {activeTab === 'overview' && (
-              <div className="space-y-6">
-                <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-                  <h2 className="text-xl font-semibold text-white mb-4">System summary</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-gray-400 text-sm">Sistem Durumu</p>
-                      <p className="text-green-500 font-medium">Aktif</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Last sign-in</p>
-                      <p className="text-white font-medium">
-                        {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('en-US') : 'Unknown'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Admin email</p>
-                      <p className="text-white font-medium">{user.email}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Sistem Versiyonu</p>
-                      <p className="text-white font-medium">v1.0.0</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <WorkspacePanel
+                eyebrow="System summary"
+                title="Account operations"
+                description="A concise view of the current privileged session and member activity."
+                className="mt-8"
+                action={
+                  <button onClick={refreshActiveUsers} disabled={refreshingStats} className="ui-button-secondary min-h-10 px-4">
+                    <ArrowPathIcon className={`h-4 w-4 ${refreshingStats ? 'animate-spin' : ''}`} />
+                    Refresh activity
+                  </button>
+                }
+              >
+                <dl className="grid sm:grid-cols-3">
+                  <SummaryItem label="Service state" value="Operational" accent />
+                  <SummaryItem label="Administrator" value={user?.email} />
+                  <SummaryItem label="Last sign-in" value={user?.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('en-US') : 'Unknown'} />
+                </dl>
+              </WorkspacePanel>
             )}
 
             {activeTab === 'users' && (
-              <div className="space-y-6">
-                <div className="bg-gray-900 rounded-lg border border-gray-800">
-                  <div className="p-6 border-b border-gray-800">
-                    <h2 className="text-xl font-semibold text-white">Normal Userlar</h2>
-                    <p className="text-gray-400 mt-1">View and manage accounts with the USER role</p>
-                  </div>
+              <div className="mt-8">
+                <WorkspacePanel
+                  eyebrow="Directory"
+                  title="Standard members"
+                  description="Review accounts with the USER role. Privileged accounts are managed separately."
+                >
                   <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="workspace-table">
                       <thead>
-                        <tr className="border-b border-gray-800">
-                          <th className="text-left p-4 text-gray-400 font-medium">User</th>
-                          <th className="text-left p-4 text-gray-400 font-medium">Email</th>
-                          <th className="text-left p-4 text-gray-400 font-medium">Rol</th>
-                          <th className="text-left p-4 text-gray-400 font-medium">Registration date</th>
-                          <th className="text-left p-4 text-gray-400 font-medium">Actions</th>
+                        <tr>
+                          <th>Member</th>
+                          <th>Email</th>
+                          <th>Role</th>
+                          <th>Registered</th>
+                          <th>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -398,10 +321,10 @@ export default function AdminDashboard() {
                           </tr>
                         ) : (
                           users.filter(user => user.role === 'USER').map((user) => (
-                            <tr key={user.id} className="border-b border-gray-800 hover:bg-gray-800/50">
+                            <tr key={user.id}>
                               <td className="p-4">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
+                                  <div className="flex h-10 w-10 items-center justify-center border border-white/10 bg-[#1c1d19]">
                                     <span className="text-white font-medium text-sm">
                                       {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
                                     </span>
@@ -422,7 +345,7 @@ export default function AdminDashboard() {
                               </td>
                               <td className="p-4 text-gray-300">{user.email}</td>
                               <td className="p-4">
-                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-800 text-gray-400">
+                                <span className="role-badge">
                                   User
                                 </span>
                               </td>
@@ -433,20 +356,20 @@ export default function AdminDashboard() {
                                 <div className="flex items-center gap-2">
                                   <button
                                     onClick={() => handlePromoteToModerator(user.id, user.name || user.username)}
-                                    className="text-green-500 hover:text-green-400 text-sm font-medium"
+                                    className="table-action text-emerald-300"
                                     title="Promote to moderator"
                                   >
                                     Promote to moderator
                                   </button>
                                   <button
                                     onClick={() => handleEditUser(user)}
-                                    className="text-blue-500 hover:text-blue-400 text-sm"
+                                    className="table-action"
                                   >
                                     Edit
                                   </button>
                                   <button
                                     onClick={() => handleDeleteUser(user.id)}
-                                    className="text-red-500 hover:text-red-400 text-sm"
+                                    className="table-action text-[#f48a79]"
                                   >
                                     Delete
                                   </button>
@@ -458,17 +381,20 @@ export default function AdminDashboard() {
                       </tbody>
                     </table>
                   </div>
-                </div>
+                </WorkspacePanel>
               </div>
             )}
 
             {activeTab === 'moderators' && (
-              <div className="space-y-6">
+              <div className="mt-8 space-y-6">
                 <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-semibold text-white">Moderator management</h2>
+                  <div>
+                    <p className="ui-eyebrow text-[#e85d4a]">Privileged access</p>
+                    <h2 className="mt-1 font-display text-2xl text-[#f3efe6]">Moderator management</h2>
+                  </div>
                   <button
                     onClick={() => setShowAddModerator(!showAddModerator)}
-                    className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    className="ui-button-primary min-h-10 px-4"
                   >
                     <UserPlusIcon className="w-5 h-5" />
                     Add moderator
@@ -476,55 +402,48 @@ export default function AdminDashboard() {
                 </div>
 
                 {showAddModerator && (
-                  <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-                    <h3 className="text-lg font-semibold text-white mb-4">Add a new moderator</h3>
+                  <div className="ui-surface p-5 sm:p-6">
+                    <h3 className="font-display text-2xl text-[#f3efe6]">Add a new moderator</h3>
+                    <p className="mt-2 text-sm text-[#77756f]">Create this role only for a person who needs account-review access.</p>
                     <form onSubmit={handleAddModerator} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-400 mb-2">
-                            Full name
-                          </label>
+                          <label className="ui-field-label">Display name</label>
                           <input
                             type="text"
                             value={moderatorForm.name}
                             onChange={(e) => setModeratorForm({ ...moderatorForm, name: e.target.value })}
-                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600"
+                            className="input"
                             required
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-400 mb-2">
-                            Username
-                          </label>
+                          <label className="ui-field-label">Public username</label>
                           <input
                             type="text"
                             value={moderatorForm.username}
                             onChange={(e) => setModeratorForm({ ...moderatorForm, username: e.target.value })}
-                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600"
+                            className="input"
                             required
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-400 mb-2">
-                            Email
-                          </label>
+                          <label className="ui-field-label">Email</label>
                           <input
                             type="email"
                             value={moderatorForm.email}
                             onChange={(e) => setModeratorForm({ ...moderatorForm, email: e.target.value })}
-                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600"
+                            className="input"
                             required
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-400 mb-2">
-                            Password
-                          </label>
+                          <label className="ui-field-label">Temporary password</label>
                           <input
                             type="password"
                             value={moderatorForm.password}
                             onChange={(e) => setModeratorForm({ ...moderatorForm, password: e.target.value })}
-                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600"
+                            className="input"
                             required
                           />
                         </div>
@@ -533,13 +452,13 @@ export default function AdminDashboard() {
                         <button
                           type="button"
                           onClick={() => setShowAddModerator(false)}
-                          className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                            className="ui-button-secondary min-h-10 px-4"
                         >
                           Cancel
                         </button>
                         <button
                           type="submit"
-                          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                            className="ui-button-primary min-h-10 px-4"
                         >
                           Add
                         </button>
@@ -548,15 +467,15 @@ export default function AdminDashboard() {
                   </div>
                 )}
 
-                <div className="bg-gray-900 rounded-lg border border-gray-800">
+                <div className="ui-surface">
                   <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="workspace-table">
                       <thead>
-                        <tr className="border-b border-gray-800">
-                          <th className="text-left p-4 text-gray-400 font-medium">Moderator</th>
-                          <th className="text-left p-4 text-gray-400 font-medium">Email</th>
-                          <th className="text-left p-4 text-gray-400 font-medium">Registration date</th>
-                          <th className="text-left p-4 text-gray-400 font-medium">Actions</th>
+                        <tr>
+                          <th>Moderator</th>
+                          <th>Email</th>
+                          <th>Registered</th>
+                          <th>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -568,10 +487,10 @@ export default function AdminDashboard() {
                           </tr>
                         ) : (
                           moderators.map((moderator) => (
-                            <tr key={moderator.id} className="border-b border-gray-800 hover:bg-gray-800/50">
+                            <tr key={moderator.id}>
                               <td className="p-4">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 rounded-full bg-blue-700 flex items-center justify-center">
+                                  <div className="flex h-10 w-10 items-center justify-center border border-[#e85d4a]/25 bg-[#e85d4a]/[0.08]">
                                     <span className="text-white font-medium text-sm">
                                       {moderator.name ? moderator.name.charAt(0).toUpperCase() : 'M'}
                                     </span>
@@ -598,16 +517,16 @@ export default function AdminDashboard() {
                                 <div className="flex items-center gap-3">
                                   <button
                                     onClick={() => handleEditUser(moderator)}
-                                    className="text-blue-500 hover:text-blue-400 text-sm"
+                                    className="table-action"
                                   >
                                     Edit
                                   </button>
                                   <button
                                     onClick={() => handleRemoveModerator(moderator.id)}
-                                    className="text-orange-500 hover:text-orange-400 text-sm font-medium"
+                                    className="table-action text-amber-300"
                                     title="Remove moderator access"
                                   >
-                                    ⬇️ Demote
+                                    Demote
                                   </button>
                                 </div>
                               </td>
@@ -622,67 +541,39 @@ export default function AdminDashboard() {
             )}
 
             {activeTab === 'settings' && (
-              <div className="space-y-6">
-                <div className="bg-gray-900 rounded-lg p-6 border border-gray-800">
-                  <h2 className="text-xl font-semibold text-white mb-4">System settings</h2>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-400 mb-2">
-                        Site title
-                      </label>
-                      <input
-                        type="text"
-                        defaultValue="Ratemet movie journal"
-                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-400 mb-2">
-                        Site description
-                      </label>
-                      <textarea
-                        defaultValue="A focused platform for movie enthusiasts"
-                        rows="3"
-                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-red-600"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-400 mb-2">
-                        Maintenance mode
-                      </label>
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          id="maintenance"
-                          className="w-4 h-4 text-red-600 bg-gray-800 border-gray-600 rounded focus:ring-red-600"
-                        />
-                        <label htmlFor="maintenance" className="text-gray-300">
-                          Enable maintenance mode
-                        </label>
-                      </div>
-                    </div>
-                    <div className="pt-4">
-                      <button className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
-                        Save settings
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <WorkspacePanel
+                eyebrow="Deployment policy"
+                title="Operational boundaries"
+                description="Production settings are versioned and deployed with the application. This page intentionally avoids browser-only controls that appear to save but do nothing."
+                className="mt-8"
+              >
+                <dl className="grid sm:grid-cols-3">
+                  <SummaryItem label="Environment" value="Production" accent />
+                  <SummaryItem label="Public origin" value="ratemet.emecworks.com" />
+                  <SummaryItem label="Account storage" value="PostgreSQL" />
+                </dl>
+                <p className="border-t border-white/10 px-5 py-4 text-sm leading-6 text-[#77756f] sm:px-6">
+                  Runtime configuration, maintenance mode, and public metadata must be changed in the versioned deployment configuration and reviewed before release.
+                </p>
+              </WorkspacePanel>
             )}
           </>
         )}
-      </div>
 
-      {/* User Edit Modal */}
+      {/* User edit modal */}
       {showEditUser && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-900 rounded-lg p-6 w-full max-w-2xl mx-4 border border-gray-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-4 backdrop-blur-sm">
+          <div className="ui-surface max-h-[90vh] w-full max-w-2xl overflow-y-auto p-5 sm:p-6">
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-semibold text-white">User Edit</h3>
+              <div>
+                <p className="ui-eyebrow text-[#e85d4a]">Account record</p>
+                <h3 className="mt-1 font-display text-2xl text-[#f3efe6]">Edit member</h3>
+              </div>
               <button
+                type="button"
+                aria-label="Close user editor"
                 onClick={() => setShowEditUser(false)}
-                className="text-gray-400 hover:text-white"
+                className="table-action px-2 py-1"
               >
                 ✕
               </button>
@@ -690,75 +581,65 @@ export default function AdminDashboard() {
             
             <form onSubmit={handleUpdateUser} className="space-y-4">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-full bg-gray-700 flex items-center justify-center">
+                <div className="flex h-16 w-16 items-center justify-center border border-white/10 bg-[#1c1d19]">
                   <span className="text-white font-medium text-lg">
                     {selectedUser.name ? selectedUser.name.charAt(0).toUpperCase() : 'U'}
                   </span>
                 </div>
                 <div>
-                  <h4 className="text-lg font-medium text-white">{selectedUser.name || 'Unnamed user'}</h4>
-                  <p className="text-gray-400">{selectedUser.email}</p>
+                  <h4 className="font-display text-xl text-[#f3efe6]">{selectedUser.name || 'Unnamed user'}</h4>
+                  <p className="text-sm text-[#77756f]">{selectedUser.email}</p>
                 </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">
-                    Full name
-                  </label>
+                  <label className="ui-field-label">Full name</label>
                   <input
                     type="text"
                     value={editForm.name}
                     onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-600"
+                    className="input"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">
-                    Email
-                  </label>
+                  <label className="ui-field-label">Email</label>
                   <input
                     type="email"
                     value={editForm.email}
                     onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-600"
+                    className="input"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">
-                    Username
-                  </label>
+                  <label className="ui-field-label">Username</label>
                   <input
                     type="text"
                     value={editForm.username}
                     onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-600"
+                    className="input"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">
-                    Konum
-                  </label>
+                  <label className="ui-field-label">Location</label>
                   <input
                     type="text"
                     value={editForm.location}
                     onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-600"
+                    className="input"
                   />
                 </div>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">
-                  About
-                </label>
+                <label className="ui-field-label">About</label>
                 <textarea
                   value={editForm.bio}
                   onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
                   rows="3"
-                  className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-600"
+                  className="input"
                 />
               </div>
               
@@ -766,13 +647,13 @@ export default function AdminDashboard() {
                 <button
                   type="button"
                   onClick={() => setShowEditUser(false)}
-                  className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                  className="ui-button-secondary min-h-10 px-4"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  className="ui-button-primary min-h-10 px-4"
                 >
                   Update
                 </button>
@@ -781,6 +662,17 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+    </WorkspacePage>
+  )
+}
+
+function SummaryItem({ label, value, accent = false }) {
+  return (
+    <div className="border-b border-white/10 px-5 py-5 last:border-b-0 sm:border-b-0 sm:border-r sm:last:border-r-0 sm:px-6">
+      <dt className="ui-eyebrow">{label}</dt>
+      <dd className={`mt-2 break-words text-sm font-medium ${accent ? 'text-emerald-300' : 'text-[#d8d2c7]'}`}>
+        {value || 'Unavailable'}
+      </dd>
     </div>
   )
 }

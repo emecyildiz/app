@@ -179,6 +179,38 @@
   .social-link {
     @apply p-2 rounded-full bg-white/5 hover:bg-white/10 transition-all duration-200;
   }
+
+  .workspace-table {
+    @apply w-full min-w-[760px] text-left text-sm;
+  }
+
+  .workspace-table thead {
+    @apply border-b border-white/10 bg-[#10110f];
+  }
+
+  .workspace-table th {
+    @apply px-5 py-4 font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-[#77756f];
+  }
+
+  .workspace-table td {
+    @apply border-b border-white/[0.07] px-5 py-4 text-[#aaa79f];
+  }
+
+  .workspace-table tbody tr {
+    @apply transition hover:bg-white/[0.025];
+  }
+
+  .workspace-table tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
+  .role-badge {
+    @apply inline-flex border border-white/10 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-[#918e86];
+  }
+
+  .table-action {
+    @apply inline-flex items-center gap-1 text-sm font-medium text-[#aaa79f] transition hover:text-[#f3efe6];
+  }
 }
 
 @layer utilities {
