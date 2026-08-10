@@ -1,559 +1,178 @@
 import { motion } from 'framer-motion'
-import { useRef, useState } from 'react'
+import { ArrowRight, Bookmark, Film, Search, Star, Users } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { Film, UserPlus, PlayCircle, User, Star, Heart, TrendingUp, Sparkles, Zap, Shield, Award, Users, Clock, Search } from 'lucide-react'
 import { useAuthStore } from '../store/newAuthStore'
+
+const genres = [
+  { name: 'Action', slug: 'action', number: '01' },
+  { name: 'Comedy', slug: 'comedy', number: '02' },
+  { name: 'Drama', slug: 'drama', number: '03' },
+  { name: 'Science fiction', slug: 'science-fiction', number: '04' },
+  { name: 'Horror', slug: 'horror', number: '05' },
+  { name: 'Romance', slug: 'romance', number: '06' },
+]
+
+const pillars = [
+  {
+    icon: Search,
+    number: '01 / Discover',
+    title: 'Find the next film worth your time.',
+    description: 'Explore a current catalog, move between genres, and keep discovery focused instead of endless.',
+  },
+  {
+    icon: Star,
+    number: '02 / Reflect',
+    title: 'Rate what you watched.',
+    description: 'Turn viewing history into a useful record with ratings, comments, and a clear personal archive.',
+  },
+  {
+    icon: Users,
+    number: '03 / Exchange',
+    title: 'Share recommendations with people.',
+    description: 'Follow other film enthusiasts and send recommendations without the noise of a general social feed.',
+  },
+]
 
 const Home = () => {
   const { isAuthenticated, user, profile } = useAuthStore()
-  const displayName = profile?.name || user?.email?.split('@')[0] || 'Welcome'
-  
-  const containerRef = useRef(null)
-  const [tilt, setTilt] = useState({ x: 0, y: 0 })
-
-  const handleMouseMove = (e) => {
-    const el = containerRef.current
-    if (!el) return
-    const rect = el.getBoundingClientRect()
-    const relX = (e.clientX - rect.left) / rect.width
-    const relY = (e.clientY - rect.top) / rect.height
-    const rotateY = (relX - 0.5) * 12 // left/right
-    const rotateX = (0.5 - relY) * 8 // up/down
-    setTilt({ x: rotateX, y: rotateY })
-  }
-
-  const resetTilt = () => setTilt({ x: 0, y: 0 })
-
-  const features = [
-    {
-      icon: Film,
-      title: 'Extensive movie catalog',
-      description: 'An expanding movie catalog powered by TMDB',
-      gradient: 'from-purple-500 to-pink-500',
-    },
-    {
-      icon: Sparkles,
-      title: 'Smart recommendations',
-      description: 'Personalized movie recommendations',
-      gradient: 'from-blue-500 to-cyan-500',
-    },
-    {
-      icon: Heart,
-      title: 'Favori Listeler',
-      description: 'Organize what you watched and what you want to watch',
-      gradient: 'from-red-500 to-rose-500',
-    },
-    {
-      icon: Users,
-      title: 'Sosyal Platform',
-      description: 'Share with movie enthusiasts and receive recommendations',
-      gradient: 'from-green-500 to-emerald-500',
-    },
-    {
-      icon: TrendingUp,
-      title: 'Current trends',
-      description: 'Discover popular and trending movies',
-      gradient: 'from-orange-500 to-amber-500',
-    },
-    {
-      icon: Shield,
-      title: 'Secure and fast',
-      description: 'Protected data and responsive performance',
-      gradient: 'from-indigo-500 to-blue-500',
-    },
-  ]
-
-  const stats = [
-    { icon: Film, value: 'Extensive catalog', label: 'Movies', color: 'text-purple-400' },
-    { icon: Users, value: 'Growing community', label: 'Users', color: 'text-blue-400' },
-    { icon: Star, value: 'Community driven', label: 'Community ratings', color: 'text-yellow-400' },
-    { icon: Clock, value: 'Always available', label: 'Access', color: 'text-green-400' },
-  ]
-
-  const categories = [
-    { name: 'Aksiyon', slug: 'action', emoji: '💥', gradient: 'from-red-600 to-orange-600' },
-    { name: 'Komedi', slug: 'comedy', emoji: '😂', gradient: 'from-yellow-500 to-amber-500' },
-    { name: 'Drama', slug: 'drama', emoji: '🎭', gradient: 'from-purple-600 to-pink-600' },
-    { name: 'Bilim Kurgu', slug: 'science-fiction', emoji: '🚀', gradient: 'from-blue-600 to-cyan-600' },
-    { name: 'Korku', slug: 'horror', emoji: '👻', gradient: 'from-gray-700 to-gray-900' },
-    { name: 'Romantik', slug: 'romance', emoji: '💕', gradient: 'from-pink-500 to-rose-500' },
-  ]
+  const displayName = profile?.name || user?.email?.split('@')[0] || 'film lover'
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Background Decorations */}
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
-        <div className="absolute top-60 right-20 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-40 left-1/3 w-96 h-96 bg-pink-500/10 rounded-full blur-3xl" />
-      </div>
-      {/* Hero Section - Enhanced */}
-      <section
-        ref={containerRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={resetTilt}
-        className="relative min-h-screen flex items-center justify-center overflow-hidden hero-3d pt-20"
-      >
-        {/* 3D Background Layer */}
-        <motion.div
-          className="absolute inset-0 tilt-container"
-          style={{ transform: `rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale(1.04)` }}
-          transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-        >
-          <div
-            className="parallax-layer depth-30 maze-bg"
-            style={{ backgroundImage: `url(${import.meta.env.BASE_URL || ''}brand/arka_plan.jpg)` }}
-          />
-        </motion.div>
-
-        <div className="relative z-10 text-center px-6 py-20">
-          {isAuthenticated && user ? (
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7 }}
-            >
-              {/* Welcome Badge */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 text-purple-300 mb-6"
-              >
-                <Sparkles className="w-4 h-4" />
-                <span className="font-medium">Welcome, {displayName}!</span>
-              </motion.div>
-
-              <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-white mb-6 leading-tight">
-                Continue where you left off{' '}
-                <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-                  Devam Et
-                </span>
-              </h1>
-              <p className="text-xl md:text-2xl text-gray-300 mb-10 max-w-2xl mx-auto leading-relaxed">
-                Discover trending movies, save favorites, and connect with the community.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Link 
-                    to="/movies" 
-                    className="btn bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-10 py-4 text-lg font-semibold rounded-xl shadow-lg shadow-purple-500/30"
-                  >
-                    <PlayCircle className="w-5 h-5" />
-                    Explore movies
-                  </Link>
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Link 
-                    to="/profile" 
-                    className="btn glass border border-white/20 text-white px-10 py-4 text-lg font-semibold rounded-xl"
-                  >
-                    <User className="w-5 h-5" />
-                    Profilim
-                  </Link>
-                </motion.div>
-              </div>
-
-              {/* Quick Stats */}
-              <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400">
-                <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                  <span>Current ratings</span>
-                </div>
-                <div className="w-1 h-1 rounded-full bg-gray-600" />
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-green-400" />
-                  <span>Trend Filmler</span>
-                </div>
-                <div className="w-1 h-1 rounded-full bg-gray-600" />
-                <div className="flex items-center gap-2">
-                  <Heart className="w-4 h-4 text-red-400" />
-                  <span>Personal lists</span>
-                </div>
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              {/* Hero Badge */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-full px-5 py-2 mb-6"
-              >
-                <Award className="w-4 h-4 text-purple-400" />
-                <span className="text-sm text-purple-300 font-medium">
-                  Yeni nesil film platformu
-                </span>
-              </motion.div>
-
-              <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-white mb-6 leading-tight">
-                For movie enthusiasts{' '}
-                <br className="hidden md:block" />
-                <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-                  A focused platform
-                </span>
-              </h1>
-              <p className="text-xl md:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto leading-relaxed">
-                Discover favorites from an extensive catalog, receive recommendations,
-                and share your experience with other movie enthusiasts.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Link 
-                    to="/register" 
-                    className="btn bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-10 py-4 text-lg font-semibold rounded-xl shadow-lg shadow-purple-500/30"
-                  >
-                    <UserPlus className="w-5 h-5" />
-                    Get started
-                  </Link>
-                </motion.div>
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Link 
-                    to="/movies" 
-                    className="btn glass border border-white/20 text-white px-10 py-4 text-lg font-semibold rounded-xl"
-                  >
-                    <Search className="w-5 h-5" />
-                    Explore movies
-                  </Link>
-                </motion.div>
-              </div>
-
-              {/* Feature Pills */}
-              <div className="flex flex-wrap items-center justify-center gap-4 text-sm">
-                <div className="flex items-center gap-2 text-gray-400">
-                  <Zap className="w-4 h-4 text-yellow-400" />
-                  <span>Instant access</span>
-                </div>
-                <div className="w-1 h-1 rounded-full bg-gray-600" />
-                <div className="flex items-center gap-2 text-gray-400">
-                  <Shield className="w-4 h-4 text-green-400" />
-                  <span>Secure infrastructure</span>
-                </div>
-                <div className="w-1 h-1 rounded-full bg-gray-600" />
-                <div className="flex items-center gap-2 text-gray-400">
-                  <Award className="w-4 h-4 text-blue-400" />
-                  <span>Free to use</span>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </div>
-
-        {/* Scroll Indicator */}
-        <motion.div
-          className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          <div className="w-6 h-10 border-2 border-white/30 rounded-full flex items-start justify-center p-2">
-            <div className="w-1.5 h-1.5 bg-white/50 rounded-full" />
-          </div>
-        </motion.div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-12 md:py-16 relative">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-            {stats.map((stat, index) => {
-              const Icon = stat.icon
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ y: -5 }}
-                  className="glass rounded-lg md:rounded-2xl p-3 md:p-6 text-center border border-white/5 hover:border-white/20 transition-all duration-300"
-                >
-                  <Icon className={`w-8 md:w-10 h-8 md:h-10 ${stat.color} mx-auto mb-2 md:mb-3`} />
-                  <div className="text-lg md:text-4xl font-extrabold text-white mb-1 line-clamp-2 break-words">
-                    {stat.value}
-                  </div>
-                  <div className="text-gray-400 text-xs md:text-sm font-medium line-clamp-2">
-                    {stat.label}
-                  </div>
-                </motion.div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Categories Showcase */}
-      <section className="py-20 relative">
-        <div className="container mx-auto px-4">
+    <div className="overflow-hidden bg-[#0d0e0c] text-[#f3efe6]">
+      <section className="relative border-b border-white/10">
+        <div className="absolute inset-0 pointer-events-none opacity-40 [background-image:linear-gradient(rgba(255,255,255,.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.035)_1px,transparent_1px)] [background-size:72px_72px]" />
+        <div className="relative mx-auto grid min-h-[calc(100svh-4.5rem)] max-w-[1440px] grid-cols-1 lg:grid-cols-12">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55 }}
+            className="flex flex-col justify-center px-6 py-20 sm:px-10 lg:col-span-8 lg:px-16 lg:py-28 xl:px-24"
           >
-            <div className="inline-block mb-4">
-              <span className="text-sm font-semibold text-purple-400 uppercase tracking-wider">
-                Kategoriler
-              </span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Her Zevke Uygun{' '}
-              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Catalog
-              </span>
-            </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Find movies across genres, from action-packed adventures to thoughtful dramas
+            <p className="ui-eyebrow mb-8">
+              {isAuthenticated ? `Welcome back, ${displayName}` : 'Ratemet / a personal cinema archive'}
             </p>
+
+            <h1 className="max-w-5xl font-display text-[clamp(3.6rem,8.6vw,9.5rem)] font-normal leading-[0.88] tracking-[-0.055em] text-[#f3efe6]">
+              {isAuthenticated ? (
+                <>Your film life,<br /><em className="font-normal text-[#e85d4a]">in one place.</em></>
+              ) : (
+                <>Watch less blindly.<br /><em className="font-normal text-[#e85d4a]">Remember more.</em></>
+              )}
+            </h1>
+
+            <p className="mt-9 max-w-2xl text-lg leading-8 text-[#aaa79f] sm:text-xl">
+              Discover films, keep a thoughtful record of what you watch, and exchange recommendations with people whose taste you trust.
+            </p>
+
+            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+              <Link to="/movies" className="ui-button-primary">
+                Explore the catalog <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link to={isAuthenticated ? '/profile/overview' : '/register'} className="ui-button-secondary">
+                {isAuthenticated ? 'Open your journal' : 'Create your journal'}
+              </Link>
+            </div>
           </motion.div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categories.map((category, index) => (
+          <aside className="relative flex flex-col justify-between border-t border-white/10 bg-[#151613]/90 px-6 py-10 sm:px-10 lg:col-span-4 lg:border-l lg:border-t-0 lg:px-12 lg:py-16">
+            <div>
+              <p className="ui-eyebrow">Issue 001 / The viewing record</p>
+              <p className="mt-10 max-w-sm font-display text-4xl leading-tight text-[#ded8cc] sm:text-5xl">
+                A quieter place for films that stay with you.
+              </p>
+            </div>
+
+            <div className="mt-16 space-y-0 border-t border-white/10">
+              {[
+                ['Catalog', 'Current movie data'],
+                ['Journal', 'Ratings and watch history'],
+                ['Community', 'Friends and recommendations'],
+              ].map(([label, value]) => (
+                <div key={label} className="grid grid-cols-[6rem_1fr] gap-4 border-b border-white/10 py-4 text-sm">
+                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#77756f]">{label}</span>
+                  <span className="text-[#c8c3b9]">{value}</span>
+                </div>
+              ))}
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section className="border-b border-white/10 bg-[#11120f]">
+        <div className="mx-auto max-w-[1440px] px-6 py-16 sm:px-10 lg:px-16 xl:px-24">
+          <div className="mb-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+            <div>
+              <p className="ui-eyebrow">Browse / by genre</p>
+              <h2 className="mt-4 font-display text-4xl tracking-tight text-[#f3efe6] sm:text-5xl">Start with a mood.</h2>
+            </div>
+            <Link to="/movies" className="inline-flex items-center gap-2 text-sm text-[#bbb6ac] transition hover:text-white">
+              View every film <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="grid border-l border-t border-white/10 sm:grid-cols-2 lg:grid-cols-3">
+            {genres.map((genre) => (
               <Link
-                key={index}
-                to={`/movies?genre=${category.slug}`}
-                className="group cursor-pointer no-underline"
+                key={genre.slug}
+                to={`/movies?genre=${genre.slug}`}
+                className="group flex min-h-32 items-end justify-between border-b border-r border-white/10 p-5 transition duration-300 hover:bg-[#e85d4a] hover:text-[#15110f] sm:min-h-40 sm:p-7"
               >
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                  viewport={{ once: true }}
-                  whileHover={{ scale: 1.05 }}
-                  className="h-full"
-                >
-                  <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${category.gradient} p-6 h-32 flex flex-col items-center justify-center shadow-lg hover:shadow-2xl transition-all duration-300`}>
-                    <div className="text-4xl mb-2 transform group-hover:scale-110 transition-transform duration-300">
-                      {category.emoji}
-                    </div>
-                    <div className="text-white font-semibold text-sm text-center">
-                      {category.name}
-                    </div>
-                  </div>
-                </motion.div>
+                <span className="font-display text-3xl sm:text-4xl">{genre.name}</span>
+                <span className="font-mono text-[10px] tracking-[0.16em] text-[#77756f] group-hover:text-[#4f211a]">{genre.number}</span>
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Features Section - Enhanced */}
-      <section className="py-24 bg-dark-100/50 relative">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <div className="inline-block mb-4">
-              <span className="text-sm font-semibold text-blue-400 uppercase tracking-wider">
-                Features
-              </span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Neden{' '}
-              <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                ratemet
-              </span>
-              ?
+      <section className="mx-auto max-w-[1440px] px-6 py-20 sm:px-10 lg:px-16 lg:py-28 xl:px-24">
+        <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
+          <div>
+            <p className="ui-eyebrow">How it works</p>
+            <h2 className="mt-5 max-w-md font-display text-5xl leading-[0.98] tracking-tight sm:text-6xl">
+              Built around the film, not the feed.
             </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              A focused movie experience built with modern technology and user-centered design
+            <p className="mt-7 max-w-md leading-7 text-[#96938c]">
+              Ratemet keeps the useful parts of a movie community and removes the visual noise that makes choosing harder.
             </p>
-          </motion.div>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => {
-              const Icon = feature.icon
+          <div className="border-t border-white/10">
+            {pillars.map((pillar) => {
+              const Icon = pillar.icon
               return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ y: -8 }}
-                  className="group relative glass rounded-2xl p-8 hover:border-white/20 transition-all duration-300 border border-white/5"
-                >
-                  {/* Gradient Background on Hover */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity duration-300`} />
-                  
-                  <div className={`relative w-14 h-14 bg-gradient-to-br ${feature.gradient} rounded-xl flex items-center justify-center mb-5 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                    <Icon className="w-7 h-7 text-white" />
+                <article key={pillar.number} className="grid gap-5 border-b border-white/10 py-8 sm:grid-cols-[3rem_1fr] sm:py-10">
+                  <Icon className="h-6 w-6 text-[#e85d4a]" strokeWidth={1.5} />
+                  <div>
+                    <p className="ui-eyebrow">{pillar.number}</p>
+                    <h3 className="mt-3 font-display text-3xl text-[#e8e3d9]">{pillar.title}</h3>
+                    <p className="mt-3 max-w-xl leading-7 text-[#96938c]">{pillar.description}</p>
                   </div>
-                  
-                  <h3 className="text-xl font-bold text-white mb-3">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-400 leading-relaxed">
-                    {feature.description}
-                  </p>
-                </motion.div>
+                </article>
               )
             })}
           </div>
         </div>
       </section>
 
-      {/* CTA Section - Enhanced */}
-      <section className="py-24 relative">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="relative overflow-hidden rounded-3xl"
-          >
-            {isAuthenticated && user ? (
-              <>
-                {/* Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-500 to-pink-500 opacity-90" />
-                
-                {/* Pattern Overlay */}
-                <div className="absolute inset-0 opacity-10" style={{
-                  backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
-                  backgroundSize: '40px 40px'
-                }} />
-                
-                {/* Content */}
-                <div className="relative px-8 py-16 md:py-20 text-center">
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    viewport={{ once: true }}
-                  >
-                    <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
-                      <TrendingUp className="w-4 h-4 text-white" />
-                      <span className="text-sm text-white font-medium">
-                        Yeni Filmler Eklendi
-                      </span>
-                    </div>
-                    
-                    <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-6">
-                      What would you like to watch today?
-                    </h2>
-                    <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto">
-                      Trending movies and personal recommendations are ready to explore.
-                    </p>
-                    
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Link 
-                        to="/movies" 
-                        className="btn bg-white text-purple-600 hover:bg-gray-100 px-12 py-4 text-lg font-bold rounded-xl shadow-xl inline-flex items-center gap-3"
-                      >
-                        <PlayCircle className="w-6 h-6" />
-                        Explore movies
-                      </Link>
-                    </motion.div>
-                    
-                    {/* Trust Indicators */}
-                    <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-white/80 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Star className="w-4 h-4 fill-white" />
-                        <span>Extensive movie catalog</span>
-                      </div>
-                      <div className="w-1 h-1 rounded-full bg-white/50" />
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        <span>Growing community</span>
-                      </div>
-                      <div className="w-1 h-1 rounded-full bg-white/50" />
-                      <div className="flex items-center gap-2">
-                        <Heart className="w-4 h-4" />
-                        <span>Fresh movie data</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-              </>
-            ) : (
-              <>
-                {/* Gradient Background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-blue-500 opacity-90" />
-                
-                {/* Pattern Overlay */}
-                <div className="absolute inset-0 opacity-10" style={{
-                  backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
-                  backgroundSize: '40px 40px'
-                }} />
-                
-                {/* Content */}
-                <div className="relative px-8 py-16 md:py-20 text-center">
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
-                    viewport={{ once: true }}
-                  >
-                    <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
-                      <Award className="w-4 h-4 text-white" />
-                      <span className="text-sm text-white font-medium">
-                        Free to use
-                      </span>
-                    </div>
-                    
-                    <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-6">
-                      Join the movie community
-                    </h2>
-                    <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto">
-                      An extensive movie catalog, recommendations, and social features are ready.
-                      Create an account and start exploring.
-                    </p>
-                    
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Link 
-                          to="/register" 
-                          className="btn bg-white text-purple-600 hover:bg-gray-100 px-10 py-4 text-lg font-bold rounded-xl shadow-xl inline-flex items-center gap-3"
-                        >
-                          <Sparkles className="w-5 h-5" />
-                          Create a free account
-                        </Link>
-                      </motion.div>
-                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                        <Link 
-                          to="/movies" 
-                          className="btn bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/20 px-10 py-4 text-lg font-bold rounded-xl inline-flex items-center gap-3"
-                        >
-                          <Film className="w-5 h-5" />
-                          Browse movies
-                        </Link>
-                      </motion.div>
-                    </div>
-                    
-                    {/* Trust Indicators */}
-                    <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-white/80 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4" />
-                        <span>Secure connection</span>
-                      </div>
-                      <div className="w-1 h-1 rounded-full bg-white/50" />
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        <span>Growing community</span>
-                      </div>
-                      <div className="w-1 h-1 rounded-full bg-white/50" />
-                      <div className="flex items-center gap-2">
-                        <Star className="w-4 h-4" />
-                        <span>Community ratings</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                </div>
-              </>
+      <section className="border-y border-white/10 bg-[#e7dfd1] text-[#181714]">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-10 px-6 py-16 sm:px-10 lg:flex-row lg:items-end lg:justify-between lg:px-16 lg:py-20 xl:px-24">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#7e776c]">Your next entry</p>
+            <h2 className="mt-5 max-w-3xl font-display text-5xl leading-[0.95] tracking-tight sm:text-7xl">
+              Find it. Watch it. Keep it.
+            </h2>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
+            <Link to="/movies" className="inline-flex min-h-12 items-center justify-center gap-2 bg-[#181714] px-6 text-sm font-semibold text-[#f3efe6] transition hover:bg-[#e85d4a]">
+              Browse films <Film className="h-4 w-4" />
+            </Link>
+            {!isAuthenticated && (
+              <Link to="/register" className="inline-flex min-h-12 items-center justify-center gap-2 border border-[#181714]/30 px-6 text-sm font-semibold transition hover:border-[#181714]">
+                Start a journal <Bookmark className="h-4 w-4" />
+              </Link>
             )}
-          </motion.div>
+          </div>
         </div>
       </section>
     </div>

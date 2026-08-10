@@ -5,13 +5,13 @@ import { Calendar, Film, Heart, Star, MapPin, ArrowLeft, UserPlus, UserMinus, Ch
 import { userService } from '../services/userService'
 import { useAuthStore } from '../store/newAuthStore'
 import RecommendationModal from '../components/RecommendationModal'
+import UserAvatar from '../components/UserAvatar'
 import toast from 'react-hot-toast'
 
 export default function PublicProfile() {
   const { username } = useParams()
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [privacyPublic, setPrivacyPublic] = useState(true)
   const [friendStatus, setFriendStatus] = useState('none')
   const [busy, setBusy] = useState(false)
   const { isAuthenticated, user } = useAuthStore()
@@ -24,8 +24,6 @@ export default function PublicProfile() {
       try {
         const data = await userService.getPublicProfile(username)
         if (mounted) setProfile(data)
-        // Capture privacy flag if server returns it
-        if (mounted && data && typeof data.isPublic === 'boolean') setPrivacyPublic(Boolean(data.isPublic))
       } finally {
         if (mounted) setLoading(false)
       }
@@ -65,7 +63,13 @@ export default function PublicProfile() {
     setBusy(true)
     try {
       const resp = await userService.respondFriendRequest({ fromUserId: profile.id, action })
-      if (resp?.status) setFriendStatus(resp.status)
+      if (resp?.status) {
+        setFriendStatus(resp.status)
+        if (action === 'accept') {
+          const refreshedProfile = await userService.getPublicProfile(username)
+          if (refreshedProfile) setProfile(refreshedProfile)
+        }
+      }
     } finally {
       setBusy(false)
     }
@@ -107,7 +111,7 @@ export default function PublicProfile() {
         <div className="mb-6">
           <Link to="/" className="btn btn-ghost">
             <ArrowLeft className="w-4 h-4" />
-            Geri
+            Back
           </Link>
         </div>
         <motion.div
@@ -128,10 +132,12 @@ export default function PublicProfile() {
             <div className="flex flex-col md:flex-row items-center gap-8">
               <div className="p-1 rounded-full bg-gradient-to-tr from-primary-500 to-pink-500">
                 <div className="rounded-full bg-dark-200 p-1">
-                  <img
-                    src={profile.avatar || `https://ui-avatars.com/api/?name=${profile.name || profile.username}&background=ef4444&color=fff&size=200`}
-                    alt={profile.name}
+                  <UserAvatar
+                    src={profile.avatar}
+                    name={profile.name}
+                    username={profile.username}
                     className="w-32 h-32 rounded-full object-cover"
+                    fallbackClassName="text-4xl"
                   />
                 </div>
               </div>
@@ -172,11 +178,11 @@ export default function PublicProfile() {
                       <div className="flex gap-2">
                         <button onClick={() => handleRespond('accept')} disabled={busy} className="btn btn-primary">
                           <Check className="w-4 h-4" />
-                          Kabul Et
+                          Accept
                         </button>
                         <button onClick={() => handleRespond('reject')} disabled={busy} className="btn btn-secondary">
                           <X className="w-4 h-4" />
-                          Reddet
+                          Reject
                         </button>
                       </div>
                     )}
@@ -202,31 +208,43 @@ export default function PublicProfile() {
           </div>
         </motion.div>
 
-        {/* Privacy gating: if profile is private and not friends/self, show only summary cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-6"
-        >
-          <div className="glass rounded-xl p-6 text-center">
-            <Film className="w-8 h-8 text-primary-500 mx-auto mb-2" />
-            <p className="text-3xl font-bold text-white mb-1">{profile.stats?.watchedMovies || 0}</p>
-            <p className="text-gray-400">Movies watched</p>
-          </div>
-          <div className="glass rounded-xl p-6 text-center">
-            <Star className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
-            <p className="text-3xl font-bold text-white mb-1">{profile.stats?.ratings || 0}</p>
-            <p className="text-gray-400">Puan Verildi</p>
-          </div>
-          <div className="glass rounded-xl p-6 text-center">
-            <Heart className="w-8 h-8 text-red-500 mx-auto mb-2" />
-            <p className="text-3xl font-bold text-white mb-1">{profile.stats?.favorites || 0}</p>
-            <p className="text-gray-400">Favori</p>
-          </div>
-        </motion.div>
+        {profile.canViewDetails ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="grid grid-cols-1 sm:grid-cols-3 gap-6"
+          >
+            <div className="glass rounded-xl p-6 text-center">
+              <Film className="w-8 h-8 text-primary-500 mx-auto mb-2" />
+              <p className="text-3xl font-bold text-white mb-1">{profile.stats?.watchedMovies || 0}</p>
+              <p className="text-gray-400">Movies watched</p>
+            </div>
+            <div className="glass rounded-xl p-6 text-center">
+              <Star className="w-8 h-8 text-yellow-500 mx-auto mb-2" />
+              <p className="text-3xl font-bold text-white mb-1">{profile.stats?.ratings || 0}</p>
+              <p className="text-gray-400">Ratings</p>
+            </div>
+            <div className="glass rounded-xl p-6 text-center">
+              <Heart className="w-8 h-8 text-red-500 mx-auto mb-2" />
+              <p className="text-3xl font-bold text-white mb-1">{profile.stats?.favorites || 0}</p>
+              <p className="text-gray-400">Favorites</p>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="ui-surface px-6 py-10 text-center"
+          >
+            <p className="font-display text-3xl text-white">This viewing record is private.</p>
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-white/50">
+              Profile details and activity become visible after the account owner accepts your friend request.
+            </p>
+          </motion.div>
+        )}
 
-        {/* In a future step: if privacyPublic || friendStatus === 'friends' || friendStatus === 'self', render detailed favorites/ratings/comments sections here */}
+        {/* Detailed favorites, ratings, and comments can be added here when the profile grants access. */}
       </div>
 
       {/* Recommendation Modal */}

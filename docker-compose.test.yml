@@ -1,0 +1,21 @@
+name: ratemet-test
+
+services:
+  db:
+    image: postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
+    environment:
+      POSTGRES_DB: ratemet
+      POSTGRES_USER: ratemet
+      POSTGRES_PASSWORD: integration-test-only
+    ports:
+      - "127.0.0.1:${RATEMET_TEST_DB_PORT:-55434}:5432"
+    tmpfs:
+      - /var/lib/postgresql/data:size=256m,mode=0700
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ratemet -d ratemet"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"

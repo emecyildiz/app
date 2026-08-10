@@ -83,7 +83,7 @@ const MovieDetail = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return 'Tarih yok'
-    return new Date(dateString).toLocaleDateString('tr-TR', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -98,8 +98,8 @@ const MovieDetail = () => {
   }
 
   const formatBudget = (budget) => {
-    if (!budget || budget === 0) return 'Bilinmiyor'
-    return new Intl.NumberFormat('tr-TR', {
+    if (!budget || budget === 0) return 'Unknown'
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
@@ -108,8 +108,8 @@ const MovieDetail = () => {
   }
 
   const formatRevenue = (revenue) => {
-    if (!revenue || revenue === 0) return 'Bilinmiyor'
-    return new Intl.NumberFormat('tr-TR', {
+    if (!revenue || revenue === 0) return 'Unknown'
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
@@ -148,7 +148,7 @@ const MovieDetail = () => {
         toast.success('Your rating was saved.')
         setShowRatingModal(false)
       } else {
-        toast.error(translateError(result.error) || 'Puan kaydedilemedi')
+        toast.error(translateError(result.error) || 'The rating could not be saved.')
       }
     } catch (error) {
       toast.error('Something went wrong.')
@@ -221,7 +221,7 @@ const MovieDetail = () => {
           className="absolute top-4 left-4 btn btn-secondary"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Geri
+          Back
         </Link>
 
         {/* Content Overlay */}
@@ -264,7 +264,7 @@ const MovieDetail = () => {
                     <span className="font-semibold">{vote_average.toFixed(1)}</span>
                   </div>
                   <span className="text-gray-300">
-                    {vote_count.toLocaleString('tr-TR')} oy
+                    {vote_count.toLocaleString('en-US')} votes
                   </span>
                 </div>
 
@@ -362,7 +362,7 @@ const MovieDetail = () => {
                         } else {
                           await userService.addFavorite(currentMovie)
                           addToFavorites(currentMovie)
-                          toast.success('Favorilere eklendi')
+                          toast.success('Added to favorites')
                         }
                       } catch (error) {
                         console.error('Favorite operation failed:', error)
@@ -376,7 +376,7 @@ const MovieDetail = () => {
                     }`}
                   >
                     <Heart className={`w-4 h-4 ${isMovieFavorited ? 'fill-current' : ''}`} />
-                    {isMovieFavorited ? 'Film Favorilerde' : 'Favorilere Ekle'}
+                    {isMovieFavorited ? 'In favorites' : 'Add to favorites'}
                   </button>
 
                   {/* Recommend Button */}
@@ -469,7 +469,7 @@ const MovieDetail = () => {
               animate={{ opacity: 1, x: 0 }}
               className="bg-dark-800 rounded-lg p-6"
             >
-              <h3 className="text-xl font-bold text-white mb-4">Film Bilgileri</h3>
+              <h3 className="text-xl font-bold text-white mb-4">Film details</h3>
               
               <div className="space-y-4">
                 {budget > 0 && (
@@ -535,7 +535,7 @@ const MovieDetail = () => {
             className="glass rounded-xl p-8 max-w-md w-full"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-2xl font-bold text-white mb-6">Film Puanla</h3>
+            <h3 className="text-2xl font-bold text-white mb-6">Rate this film</h3>
             
             <div className="space-y-6">
               {/* Rating Stars */}

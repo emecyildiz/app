@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { motion } from 'framer-motion'
 import { Lock, Mail, User, UserPlus } from 'lucide-react'
+import AuthShell from '../components/AuthShell'
 import { useAuthStore } from '../store/newAuthStore'
-import { APP_NAME } from '../config/appConfig'
 
 const Register = () => {
   const navigate = useNavigate()
@@ -24,56 +23,57 @@ const Register = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-        <Link to="/" className="flex items-center justify-center mb-8"><img src="/brand/ratemet-logo.svg" alt={APP_NAME} className="h-10 w-auto" /></Link>
-        <div className="glass rounded-2xl p-8">
-          <h1 className="text-3xl font-bold text-white text-center mb-2">Create your account</h1>
-          <p className="text-gray-400 text-center mb-8">Build your watchlist and share what you think.</p>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <Field label="Name" error={errors.name?.message} icon={<User className="w-5 h-5" />}>
-              <input autoComplete="name" {...register('name', { required: 'Name is required.', minLength: { value: 2, message: 'Name must contain at least 2 characters.' }, maxLength: { value: 120, message: 'Name must not exceed 120 characters.' } })} className="input pl-10" placeholder="Your name" />
-            </Field>
-            <Field label="Username" error={errors.username?.message} icon={<User className="w-5 h-5" />}>
-              <input autoComplete="username" {...register('username', { required: 'Username is required.', pattern: { value: /^[a-z0-9_]{3,32}$/, message: 'Use 3-32 lowercase letters, numbers, or underscores.' }, setValueAs: (value) => value?.trim().toLowerCase() })} className="input pl-10" placeholder="movie_fan" />
-            </Field>
-            <Field label="Email address" error={errors.email?.message} icon={<Mail className="w-5 h-5" />}>
-              <input type="email" autoComplete="email" {...register('email', { required: 'Email address is required.', pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: 'Enter a valid email address.' } })} className="input pl-10" placeholder="you@example.com" />
-            </Field>
-            <Field label="Password" error={errors.password?.message} icon={<Lock className="w-5 h-5" />}>
-              <input type={showPassword ? 'text' : 'password'} autoComplete="new-password" {...register('password', { required: 'Password is required.', minLength: { value: 10, message: 'Password must contain at least 10 characters.' }, maxLength: { value: 72, message: 'Password must not exceed 72 characters.' }, pattern: { value: /^(?=.*[A-Za-z])(?=.*\d).+$/, message: 'Password must contain at least one letter and one number.' } })} className="input pl-10 pr-20" placeholder="10+ characters" />
-              <button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 hover:text-white">{showPassword ? 'Hide' : 'Show'}</button>
-            </Field>
-            <Field label="Confirm password" error={errors.confirmPassword?.message} icon={<Lock className="w-5 h-5" />}>
-              <input type={showPassword ? 'text' : 'password'} autoComplete="new-password" {...register('confirmPassword', { required: 'Confirm your password.', validate: (value) => value === password || 'Passwords do not match.' })} className="input pl-10" placeholder="Repeat your password" />
-            </Field>
-
-            <label className="flex items-start text-sm text-gray-300">
-              <input type="checkbox" {...register('terms', { required: 'You must accept the terms and privacy policy.' })} className="w-4 h-4 mt-1 rounded border-gray-600 bg-dark-200 text-primary-500" />
-              <span className="ml-2">I accept the <Link to="/terms" className="text-primary-400">Terms of Service</Link> and <Link to="/privacy" className="text-primary-400">Privacy Policy</Link>.</span>
-            </label>
-            {errors.terms && <p className="text-sm text-red-400">{errors.terms.message}</p>}
-
-            <button type="submit" disabled={isLoading} className="w-full btn btn-primary py-3 text-lg font-semibold disabled:opacity-50">
-              {isLoading ? <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><UserPlus className="w-5 h-5" />Create account</>}
-            </button>
-          </form>
-          <p className="text-center text-gray-400 mt-8">Already have an account? <Link to="/login" className="text-primary-400 font-medium">Sign in</Link></p>
+    <AuthShell
+      eyebrow="Create an archive"
+      title="Start your viewing record."
+      description="Create a private account for ratings, watch history, favorites, and recommendations."
+      footer={<>Already have an account? <Link to="/login" className="font-semibold text-[#e85d4a] transition hover:text-[#f47b65]">Sign in</Link></>}
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field id="register-name" label="Name" error={errors.name?.message} icon={User}>
+            <input id="register-name" autoComplete="name" aria-invalid={Boolean(errors.name)} {...register('name', { required: 'Name is required.', minLength: { value: 2, message: 'Name must contain at least 2 characters.' }, maxLength: { value: 120, message: 'Name must not exceed 120 characters.' } })} className="input pl-11" placeholder="Your name" />
+          </Field>
+          <Field id="register-username" label="Username" error={errors.username?.message} icon={User}>
+            <input id="register-username" autoComplete="username" aria-invalid={Boolean(errors.username)} {...register('username', { required: 'Username is required.', pattern: { value: /^[a-z0-9_]{3,32}$/, message: 'Use 3-32 lowercase letters, numbers, or underscores.' }, setValueAs: (value) => value?.trim().toLowerCase() })} className="input pl-11" placeholder="movie_fan" />
+          </Field>
         </div>
-      </motion.div>
-    </div>
+
+        <Field id="register-email" label="Email address" error={errors.email?.message} icon={Mail}>
+          <input id="register-email" type="email" autoComplete="email" aria-invalid={Boolean(errors.email)} {...register('email', { required: 'Email address is required.', pattern: { value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, message: 'Enter a valid email address.' } })} className="input pl-11" placeholder="you@example.com" />
+        </Field>
+
+        <Field id="register-password" label="Password" error={errors.password?.message} icon={Lock}>
+          <input id="register-password" type={showPassword ? 'text' : 'password'} autoComplete="new-password" aria-invalid={Boolean(errors.password)} {...register('password', { required: 'Password is required.', minLength: { value: 10, message: 'Password must contain at least 10 characters.' }, maxLength: { value: 72, message: 'Password must not exceed 72 characters.' }, pattern: { value: /^(?=.*[A-Za-z])(?=.*\d).+$/, message: 'Password must contain at least one letter and one number.' } })} className="input pl-11 pr-20" placeholder="10-72 characters" />
+          <button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-4 top-1/2 -translate-y-1/2 font-mono text-[9px] uppercase tracking-[0.14em] text-[#77756f] transition hover:text-[#f3efe6]" aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? 'Hide' : 'Show'}</button>
+        </Field>
+
+        <Field id="register-confirm" label="Confirm password" error={errors.confirmPassword?.message} icon={Lock}>
+          <input id="register-confirm" type={showPassword ? 'text' : 'password'} autoComplete="new-password" aria-invalid={Boolean(errors.confirmPassword)} {...register('confirmPassword', { required: 'Confirm your password.', validate: (value) => value === password || 'Passwords do not match.' })} className="input pl-11" placeholder="Repeat your password" />
+        </Field>
+
+        <label className="flex items-start gap-3 border border-white/10 bg-white/[0.02] p-4 text-sm leading-6 text-[#aaa79f]">
+          <input type="checkbox" {...register('terms', { required: 'You must accept the terms and privacy notice.' })} className="mt-1 h-4 w-4 shrink-0 accent-[#e85d4a]" />
+          <span>I accept the <Link to="/terms" className="text-[#e85d4a]">Terms of Use</Link> and <Link to="/privacy" className="text-[#e85d4a]">Privacy Notice</Link>.</span>
+        </label>
+        {errors.terms && <p className="ui-form-error">{errors.terms.message}</p>}
+
+        <button type="submit" disabled={isLoading} className="ui-button-primary w-full">
+          {isLoading ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#17130f]/30 border-t-[#17130f]" /> : <><UserPlus className="h-4 w-4" /> Create account</>}
+        </button>
+      </form>
+    </AuthShell>
   )
 }
 
-const Field = ({ label, error, icon, children }) => (
+const Field = ({ id, label, error, icon: Icon, children }) => (
   <div>
-    <label className="block text-sm font-medium text-gray-300 mb-2">{label}</label>
+    <label htmlFor={id} className="ui-field-label">{label}</label>
     <div className="relative">
-      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">{icon}</span>
+      <Icon className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#77756f]" strokeWidth={1.6} />
       {children}
     </div>
-    {error && <p className="mt-1 text-sm text-red-400">{error}</p>}
+    {error && <p className="ui-form-error">{error}</p>}
   </div>
 )
 

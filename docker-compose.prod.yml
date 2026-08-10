@@ -1,8 +1,14 @@
 name: ratemet
 
+x-logging: &default-logging
+  driver: local
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:16-alpine@sha256:57c72fd2a128e416c7fcc499958864df5301e940bca0a56f58fddf30ffc07777
     environment:
       POSTGRES_DB: ratemet
       POSTGRES_USER: ratemet
@@ -15,8 +21,16 @@ services:
       timeout: 5s
       retries: 10
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 200
+    mem_limit: 1g
+    mem_reservation: 256m
+    cpus: 1.0
+    stop_grace_period: 60s
+    logging: *default-logging
     networks:
-      - ratemet-internal
+      - ratemet-db
 
   api:
     build:
@@ -47,31 +61,63 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 150
+    mem_limit: 768m
+    mem_reservation: 128m
+    cpus: 1.0
+    stop_grace_period: 30s
+    logging: *default-logging
     restart: unless-stopped
     networks:
-      ratemet-internal:
+      ratemet-db:
+      ratemet-web:
       ratemet-egress:
         gw_priority: 1
 
   ratemet-gateway:
     build:
       context: .
-    ports:
-      - "127.0.0.1:${RATEMET_DIAGNOSTIC_PORT:-8091}:8080"
     depends_on:
       api:
         condition: service_healthy
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+      - /data:size=16m,mode=0750,uid=10001,gid=10001
+      - /config:size=16m,mode=0750,uid=10001,gid=10001
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 100
+    mem_limit: 128m
+    mem_reservation: 32m
+    cpus: 0.50
+    stop_grace_period: 15s
+    logging: *default-logging
     restart: unless-stopped
     networks:
-      ratemet-internal:
-      emecworks-edge:
+      ratemet-web:
+      ratemet-edge:
 
 volumes:
   ratemet_postgres_data:
 
 networks:
-  ratemet-internal:
+  ratemet-db:
+    internal: true
+  ratemet-web:
     internal: true
   ratemet-egress:
-  emecworks-edge:
+  ratemet-edge:
+    name: ratemet-edge
     external: true

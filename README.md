@@ -59,15 +59,22 @@ See `backend/.env.example` for the full list. Never commit `.env` files or produ
 
 ```powershell
 npm run build
+docker compose -f docker-compose.test.yml up -d
+$env:DATABASE_URL='postgresql://ratemet:integration-test-only@127.0.0.1:55434/ratemet'
 Set-Location backend
+npm run db:migrate
+$env:TEST_DATABASE_URL=$env:DATABASE_URL
 npm test
+Set-Location ..
+docker compose -f docker-compose.test.yml down -v
+Set-Location backend
 npm audit --omit=dev
 ```
 
-The integration test uses the local PostgreSQL database and covers registration, login, session and CSRF handling, profile updates, favorites, ratings, watch history, comments, friendships, recommendations, logout, and password reset.
+The integration test truncates its target database. Always use the disposable database from `docker-compose.test.yml`; never point `TEST_DATABASE_URL` at development or production. The suite covers registration, login, session and CSRF handling, profile privacy, profile updates, favorites, ratings, watch history, comments, friendships, recommendations, logout, and password reset.
 
 ## Deployment direction
 
-Production deployment uses the repository's `docker-compose.prod.yml` with three isolated services: PostgreSQL, the Express API, and a Caddy-hosted frontend gateway. Only the gateway joins the shared `emecworks-edge` Docker network, under the alias `ratemet-gateway`; the portfolio stack remains independent.
+Production deployment uses the repository's `docker-compose.prod.yml` with three isolated services: PostgreSQL, the Express API, and a Caddy-hosted frontend gateway. The Ratemet gateway joins only the dedicated `ratemet-edge` network. The Cloudflare Tunnel container joins that network separately; the portfolio gateway remains on `emecworks-edge` and cannot directly reach Ratemet.
 
 See `deploy/README.md` and `env.production.example` for the VPS procedure, Cloudflare Tunnel route, secrets, backup, restore, and hosted-service retirement checklist. Do not remove the previous hosted data source until export/import verification and rollback testing are complete.
