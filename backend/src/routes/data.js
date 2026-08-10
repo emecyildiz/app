@@ -33,6 +33,30 @@ function pagination(input) {
   return { page, limit, offset: (page - 1) * limit };
 }
 
+function escapeLikePattern(value) {
+  return value.replace(/[\\%_]/g, (character) => `\\${character}`);
+}
+
+function serializeSocialLinks(value) {
+  if (value === undefined) return undefined;
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    const error = new Error('Social links must be an object.');
+    error.status = 400;
+    error.code = 'invalid_social_links';
+    throw error;
+  }
+
+  const serialized = JSON.stringify(value);
+  const invalidValue = Object.values(value).some((entry) => typeof entry !== 'string' || entry.length > 200);
+  if (serialized.length > 2000 || invalidValue) {
+    const error = new Error('Social links contain an invalid value.');
+    error.status = 400;
+    error.code = 'invalid_social_links';
+    throw error;
+  }
+  return serialized;
+}
+
 async function ensureMovie(db, input) {
   const id = positiveInteger(input?.id ?? input?.movieId, 'movieId');
   const title = String(input?.title || input?.movieTitle || `Movie #${id}`).trim().slice(0, 300);
@@ -77,21 +101,21 @@ router.post('/movies/ensure', requireSessionCsrf, async (req, res, next) => {
   }
 });
 
-router.get('/users/search', async (req, res, next) => {
+router.get('/users/search', requireSession, async (req, res, next) => {
   try {
     const search = String(req.query.q || '').trim();
     if (search.length < 2) return res.json([]);
     const limit = Math.min(20, Math.max(1, Number.parseInt(req.query.limit || '10', 10) || 10));
+    const pattern = `%${escapeLikePattern(search.slice(0, 100))}%`;
     const result = await query(
-      `SELECT p.id, p.username, p.name, p.avatar_url AS avatar, p.bio, p.location,
-              p.social_links, u.role
+      `SELECT p.id, p.username, p.name, p.avatar_url AS avatar, u.role
        FROM profiles p
        JOIN users u ON u.id = p.id
        WHERE u.status = 'ACTIVE'
-         AND (p.username ILIKE $1 OR p.name ILIKE $1)
+         AND (p.username ILIKE $1 ESCAPE '\\' OR p.name ILIKE $1 ESCAPE '\\')
        ORDER BY CASE WHEN lower(p.username::text) = lower($2) THEN 0 ELSE 1 END, p.username
        LIMIT $3`,
-      [`%${search}%`, search, limit],
+      [pattern, search, limit],
     );
     return res.json(result.rows);
   } catch (error) {
@@ -102,15 +126,42 @@ router.get('/users/search', async (req, res, next) => {
 router.get('/users/public/:identifier', async (req, res, next) => {
   try {
     const result = await query(
-      `SELECT p.id, p.username, p.name, p.bio, p.location,
-              p.avatar_url AS avatar, p.social_links, p.created_at, u.role,
-              COALESCE(p.social_links->>'privacy', 'public') <> 'private' AS "isPublic"
-       FROM profiles p
-       JOIN users u ON u.id = p.id
-       WHERE u.status = 'ACTIVE'
-         AND (lower(p.username::text) = lower($1) OR p.id::text = $1)
-       LIMIT 1`,
-      [String(req.params.identifier)],
+      `WITH target AS (
+         SELECT p.id, p.username, p.name, p.bio, p.location, p.avatar_url,
+                p.social_links, p.created_at, u.role,
+                COALESCE(p.social_links->>'privacy', 'public') <> 'private' AS is_public
+         FROM profiles p
+         JOIN users u ON u.id = p.id
+         WHERE u.status = 'ACTIVE'
+           AND (lower(p.username::text) = lower($1) OR p.id::text = $1)
+         LIMIT 1
+       ), visible AS (
+         SELECT target.*,
+                 COALESCE((target.is_public
+                   OR target.id = $2::uuid
+                   OR EXISTS (
+                     SELECT 1 FROM friendships f
+                     WHERE f.status = 'accepted'
+                       AND ((f.from_user_id = target.id AND f.to_user_id = $2::uuid)
+                         OR (f.from_user_id = $2::uuid AND f.to_user_id = target.id))
+                   )), false) AS can_view_details
+         FROM target
+       )
+       SELECT id, username, name, role,
+              is_public AS "isPublic",
+              can_view_details AS "canViewDetails",
+              CASE WHEN can_view_details THEN bio ELSE NULL END AS bio,
+              CASE WHEN can_view_details THEN location ELSE NULL END AS location,
+              CASE WHEN can_view_details THEN avatar_url ELSE NULL END AS avatar,
+              CASE WHEN can_view_details THEN social_links - 'privacy' ELSE '{}'::jsonb END AS "socialLinks",
+              CASE WHEN can_view_details THEN created_at ELSE NULL END AS "memberSince",
+              CASE WHEN can_view_details THEN json_build_object(
+                'watchedMovies', (SELECT count(*)::int FROM watched_movies WHERE user_id = visible.id),
+                'ratings', (SELECT count(*)::int FROM ratings WHERE user_id = visible.id),
+                'favorites', (SELECT count(*)::int FROM favorites WHERE user_id = visible.id)
+              ) ELSE NULL END AS stats
+       FROM visible`,
+      [String(req.params.identifier), req.user?.id || null],
     );
     if (result.rowCount === 0) return res.status(404).json({ error: 'profile_not_found' });
     return res.json(result.rows[0]);
@@ -757,7 +808,7 @@ router.put('/admin/users/:userId', requireRoles('ADMIN', 'MODERATOR'), requireSe
     const socialLinks = req.body?.socialLinks ?? req.body?.social_links;
     if (name !== undefined && (name.length < 2 || name.length > 120)) return res.status(400).json({ error: 'invalid_name' });
     if (username !== undefined && !/^[a-z0-9_]{3,32}$/.test(username)) return res.status(400).json({ error: 'invalid_username' });
-    if (email !== undefined && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'invalid_email' });
+    if (email !== undefined && (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) return res.status(400).json({ error: 'invalid_email' });
     if (bio !== undefined && bio.length > 1000) return res.status(400).json({ error: 'invalid_bio' });
     if (location !== undefined && location.length > 120) return res.status(400).json({ error: 'invalid_location' });
 
@@ -770,7 +821,7 @@ router.put('/admin/users/:userId', requireRoles('ADMIN', 'MODERATOR'), requireSe
            social_links = COALESCE($6::jsonb, social_links)
          WHERE id = $1
          RETURNING id, name, username, bio, location, avatar_url AS avatar, social_links, social_links AS "socialLinks"`,
-        [req.params.userId, name, username, bio, location, socialLinks === undefined ? undefined : JSON.stringify(socialLinks)],
+        [req.params.userId, name, username, bio, location, serializeSocialLinks(socialLinks)],
       );
     });
     return res.json({ success: true, user: result.rows[0] });

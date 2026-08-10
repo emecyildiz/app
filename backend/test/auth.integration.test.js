@@ -136,6 +136,46 @@ test('registration, login, session, CSRF rotation, and logout work together', as
   assert.equal(updatedSession.status, 200);
   assert.equal((await updatedSession.json()).user.username, 'updated_viewer');
 
+  const anonymousSearch = await request('/api/users/search?q=viewer');
+  assert.equal(anonymousSearch.status, 401);
+
+  const wildcardSearch = await request('/api/users/search?q=%25%25', {
+    headers: { Cookie: cookie },
+  });
+  assert.equal(wildcardSearch.status, 200);
+  assert.deepEqual(await wildcardSearch.json(), []);
+
+  const privateProfileUpdate = await request('/api/auth/profile', {
+    method: 'PATCH',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({ socialLinks: { letterboxd: 'updated-viewer', privacy: 'private' } }),
+  });
+  assert.equal(privateProfileUpdate.status, 200);
+
+  const privateAnonymousProfile = await request('/api/users/public/updated_viewer');
+  assert.equal(privateAnonymousProfile.status, 200);
+  const privateAnonymousBody = await privateAnonymousProfile.json();
+  assert.equal(privateAnonymousBody.isPublic, false);
+  assert.equal(privateAnonymousBody.canViewDetails, false);
+  assert.equal(privateAnonymousBody.bio, null);
+  assert.equal(privateAnonymousBody.stats, null);
+
+  const privateOwnerProfile = await request('/api/users/public/updated_viewer', {
+    headers: { Cookie: cookie },
+  });
+  assert.equal(privateOwnerProfile.status, 200);
+  const privateOwnerBody = await privateOwnerProfile.json();
+  assert.equal(privateOwnerBody.canViewDetails, true);
+  assert.equal(privateOwnerBody.bio, 'A short profile bio.');
+  assert.deepEqual(privateOwnerBody.stats, { watchedMovies: 0, ratings: 0, favorites: 0 });
+
+  const publicProfileRestore = await request('/api/auth/profile', {
+    method: 'PATCH',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({ socialLinks: { letterboxd: 'updated-viewer', privacy: 'public' } }),
+  });
+  assert.equal(publicProfileRestore.status, 200);
+
   const favorite = await request('/api/favorites', {
     method: 'POST',
     headers: { Cookie: cookie, 'x-csrf-token': csrfToken },

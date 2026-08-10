@@ -12,6 +12,7 @@ import { movieService } from '../services/movieService'
 import { tmdbService } from '../services/tmdbService'
 import recommendationService from '../services/recommendationService'
 import MovieCard from '../components/MovieCard'
+import UserAvatar from '../components/UserAvatar'
 
 const Profile = () => {
   const { user, profile, updateProfile, signOut, deleteAccount, isLoading } = useAuthStore()
@@ -532,10 +533,12 @@ const Profile = () => {
                   {/* Avatar with gradient ring */}
                   <div className="p-1 rounded-full bg-gradient-to-tr from-primary-500 to-pink-500">
                     <div className="rounded-full bg-dark-200 p-1">
-                      <img
-                        src={profile?.avatar || `https://ui-avatars.com/api/?name=${profile?.name}&background=ef4444&color=fff&size=200`}
-                        alt="Profil"
+                      <UserAvatar
+                        src={profile?.avatar}
+                        name={profile?.name}
+                        username={profile?.username}
                         className="w-40 h-40 rounded-full object-cover border-4 border-dark-300"
+                        fallbackClassName="text-5xl"
                       />
                     </div>
                   </div>
@@ -604,7 +607,7 @@ const Profile = () => {
                       className="btn btn-primary"
                     >
                       <Edit2 className="w-4 h-4" />
-                      Profili Edit
+                      Edit profile
                     </button>
                     <button onClick={signOut} className="btn btn-secondary">
                       <LogOut className="w-4 h-4" />
@@ -932,7 +935,7 @@ const Profile = () => {
                         {requests.map((r) => (
                           <li key={r.id} className="flex items-center justify-between py-3">
                             <div className="flex items-center gap-3">
-                              <img src={r.fromUser.avatar || `https://ui-avatars.com/api/?name=${r.fromUser.name || r.fromUser.username}&background=ef4444&color=fff`} alt={r.fromUser.name} className="w-8 h-8 rounded-full"/>
+                              <UserAvatar src={r.fromUser.avatar} name={r.fromUser.name} username={r.fromUser.username} className="w-8 h-8 rounded-full object-cover" fallbackClassName="text-xs" />
                               <div>
                                 <p className="text-white text-sm font-medium">{r.fromUser.name || r.fromUser.username}</p>
                                 <p className="text-gray-400 text-xs">@{r.fromUser.username}</p>
@@ -941,11 +944,11 @@ const Profile = () => {
                             <div className="flex gap-2">
                               <button disabled={friendsBusy} onClick={() => acceptRequest(r.id, r.fromUser.id)} className="btn btn-primary btn-sm">
                                 <Check className="w-4 h-4" />
-                                Kabul Et
+                                Accept
                               </button>
                               <button disabled={friendsBusy} onClick={() => rejectRequest(r.id, r.fromUser.id)} className="btn btn-secondary btn-sm">
                                 <X className="w-4 h-4" />
-                                Reddet
+                                Reject
                               </button>
                             </div>
                           </li>
@@ -965,7 +968,7 @@ const Profile = () => {
                         {friends.map((f) => (
                           <li key={f.id} className="flex items-center justify-between bg-white/5 rounded-lg p-3">
                             <a href={`/u/${encodeURIComponent(f.username || f.id)}`} className="flex items-center gap-3 hover:opacity-90">
-                              <img src={f.avatar || `https://ui-avatars.com/api/?name=${f.name || f.username}&background=ef4444&color=fff`} alt={f.name} className="w-8 h-8 rounded-full"/>
+                              <UserAvatar src={f.avatar} name={f.name} username={f.username} className="w-8 h-8 rounded-full object-cover" fallbackClassName="text-xs" />
                               <div>
                                 <p className="text-white text-sm font-medium">{f.name || f.username}</p>
                                 <p className="text-gray-400 text-xs">@{f.username}</p>
@@ -1248,7 +1251,7 @@ const Profile = () => {
             className="glass rounded-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-2xl font-bold text-white mb-6">Profili Edit</h3>
+            <h3 className="text-2xl font-bold text-white mb-6">Edit profile</h3>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1259,7 +1262,7 @@ const Profile = () => {
                   <input
                     type="text"
                     {...register('name', {
-                      required: 'Ad soyad gereklidir',
+                      required: 'Your full name is required.',
                       minLength: {
                         value: 3,
                         message: 'Your name must contain at least three characters.',
@@ -1331,7 +1334,7 @@ const Profile = () => {
               </div>
 
               <div className="space-y-4">
-                <h4 className="text-lg font-semibold text-white">Sosyal Medya</h4>
+                <h4 className="text-lg font-semibold text-white">Social media</h4>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
