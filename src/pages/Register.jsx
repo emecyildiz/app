@@ -31,11 +31,11 @@ const Register = () => {
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field id="register-name" label="Name" error={errors.name?.message} icon={User}>
-            <input id="register-name" autoComplete="name" aria-invalid={Boolean(errors.name)} {...register('name', { required: 'Name is required.', minLength: { value: 2, message: 'Name must contain at least 2 characters.' }, maxLength: { value: 120, message: 'Name must not exceed 120 characters.' } })} className="input pl-11" placeholder="Your name" />
+          <Field id="register-name" label="Display name" error={errors.name?.message} icon={User} hint="The name or alias shown on your profile.">
+            <input id="register-name" autoComplete="name" aria-invalid={Boolean(errors.name)} {...register('name', { required: 'Display name is required.', minLength: { value: 2, message: 'Display name must contain at least 2 characters.' }, maxLength: { value: 120, message: 'Display name must not exceed 120 characters.' } })} className="input pl-11" placeholder="Name shown on your profile" />
           </Field>
-          <Field id="register-username" label="Username" error={errors.username?.message} icon={User}>
-            <input id="register-username" autoComplete="username" aria-invalid={Boolean(errors.username)} {...register('username', { required: 'Username is required.', pattern: { value: /^[a-z0-9_]{3,32}$/, message: 'Use 3-32 lowercase letters, numbers, or underscores.' }, setValueAs: (value) => value?.trim().toLowerCase() })} className="input pl-11" placeholder="movie_fan" />
+          <Field id="register-username" label="Public username" error={errors.username?.message} icon={User} hint="Your unique public handle; this is not a surname.">
+            <input id="register-username" autoComplete="username" aria-invalid={Boolean(errors.username)} {...register('username', { required: 'Username is required.', pattern: { value: /^[a-z0-9_]{3,32}$/, message: 'Use 3-32 lowercase letters, numbers, or underscores.' }, setValueAs: (value) => value?.trim().toLowerCase() })} className="input pl-11" placeholder="your_username" />
           </Field>
         </div>
 
@@ -66,14 +66,14 @@ const Register = () => {
   )
 }
 
-const Field = ({ id, label, error, icon: Icon, children }) => (
+const Field = ({ id, label, error, hint, icon: Icon, children }) => (
   <div>
     <label htmlFor={id} className="ui-field-label">{label}</label>
     <div className="relative">
       <Icon className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#77756f]" strokeWidth={1.6} />
       {children}
     </div>
-    {error && <p className="ui-form-error">{error}</p>}
+    {error ? <p className="ui-form-error">{error}</p> : hint && <p className="mt-2 text-xs leading-5 text-[#77756f]">{hint}</p>}
   </div>
 )
 
