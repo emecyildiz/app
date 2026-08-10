@@ -9,14 +9,29 @@ async function sendEmail({ to, subject, html, text }) {
     throw error;
   }
 
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ from: EMAIL_FROM, to: [to], subject, html, text }),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
+  let response;
+
+  try {
+    response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ from: EMAIL_FROM, to: [to], subject, html, text }),
+      signal: controller.signal,
+    });
+  } catch (requestError) {
+    const error = new Error(requestError.name === 'AbortError'
+      ? 'Email provider request timed out.'
+      : 'Email provider request failed.');
+    error.code = 'email_delivery_failed';
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!response.ok) {
     const error = new Error(`Email provider returned HTTP ${response.status}.`);

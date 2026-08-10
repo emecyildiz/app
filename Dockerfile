@@ -11,9 +11,14 @@ RUN npm run build
 
 FROM caddy:2-alpine
 
+RUN addgroup -S -g 10001 ratemet \
+  && adduser -S -D -H -u 10001 -G ratemet ratemet \
+  && setcap -r /usr/bin/caddy
+
 COPY deploy/Caddyfile /etc/caddy/Caddyfile
 COPY --from=build /app/dist /srv
 
+USER 10001:10001
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

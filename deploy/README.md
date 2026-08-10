@@ -1,6 +1,6 @@
 # Ratemet VPS deployment
 
-This stack is independent from the portfolio stack. It only shares the external Docker network used by Cloudflare Tunnel. The portfolio repository does not need to be edited.
+This stack is isolated from the portfolio application and its gateway. Cloudflare Tunnel is the only container that joins both external edge networks, so its Compose definition must include `emecworks-edge` and `ratemet-edge`.
 
 ## One-time VPS preparation
 
@@ -18,11 +18,15 @@ This stack is independent from the portfolio stack. It only shares the external 
    sudo chmod 600 /etc/emecworks/ratemet.env
    ```
 
-4. Confirm that the shared tunnel network exists:
+4. Create the dedicated Ratemet tunnel network:
 
    ```bash
-   docker network inspect emecworks-edge >/dev/null 2>&1 || docker network create emecworks-edge
+   docker network inspect ratemet-edge >/dev/null 2>&1 || docker network create --internal ratemet-edge
    ```
+
+   The film gateway must not join `emecworks-edge`. The dedicated internal network
+   keeps the portfolio and Ratemet gateways from reaching one another directly and
+   prevents the Ratemet gateway from opening outbound Internet connections.
 
 ## Deploy or update
 
@@ -33,10 +37,11 @@ git pull --ff-only
 docker compose --env-file /etc/emecworks/ratemet.env -f docker-compose.prod.yml build --pull
 docker compose --env-file /etc/emecworks/ratemet.env -f docker-compose.prod.yml up -d
 docker compose --env-file /etc/emecworks/ratemet.env -f docker-compose.prod.yml ps
-curl --fail http://127.0.0.1:8091/health
+docker compose --env-file /etc/emecworks/ratemet.env -f docker-compose.prod.yml exec -T \
+  ratemet-gateway wget -qO- http://127.0.0.1:8080/health
 ```
 
-The API runs its idempotent SQL migrations before starting. PostgreSQL and the API are not published on a host port. The web gateway is exposed only on VPS loopback for diagnostics and on `emecworks-edge` for Cloudflare Tunnel.
+The API runs its idempotent SQL migrations before starting. PostgreSQL, the API, and the web gateway are not published on a host port. The database, API-to-gateway, outbound API, and tunnel paths use separate Docker networks. The web gateway is reachable only from Cloudflare Tunnel on the internal `ratemet-edge` network; diagnostics run inside the gateway container.
 
 ## Cloudflare Tunnel route
 
@@ -46,6 +51,10 @@ Create a published application route with:
 - Service URL: `http://ratemet-gateway:8080`
 
 Do not add Cloudflare Access authentication to this public application. The app has its own user accounts. Keep the VPS firewall closed to public ports other than those required by the existing host administration design.
+
+The existing `cloudflared` container must join both `emecworks-edge` and
+`ratemet-edge`. No portfolio service should join `ratemet-edge`, and no Ratemet
+service should join `emecworks-edge`.
 
 ## Backup and restore
 
