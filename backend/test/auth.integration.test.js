@@ -402,6 +402,77 @@ test('registration, login, session, CSRF rotation, and logout work together', as
   assert.equal(blocksBody.items[0].id, recipientId);
   assert.equal(blocksBody.items[0].username, 'recipient_user');
 
+  const blockerSearch = await request('/api/users/search?q=recipient', {
+    headers: { Cookie: cookie },
+  });
+  assert.equal(blockerSearch.status, 200);
+  assert.deepEqual(await blockerSearch.json(), []);
+
+  const blockedUserSearch = await request('/api/users/search?q=updated', {
+    headers: { Cookie: recipientCookie },
+  });
+  assert.equal(blockedUserSearch.status, 200);
+  assert.deepEqual(await blockedUserSearch.json(), []);
+
+  const blockerProfileLookup = await request('/api/users/public/recipient_user', {
+    headers: { Cookie: cookie },
+  });
+  assert.equal(blockerProfileLookup.status, 404);
+
+  const blockedProfileLookup = await request('/api/users/public/updated_viewer', {
+    headers: { Cookie: recipientCookie },
+  });
+  assert.equal(blockedProfileLookup.status, 404);
+
+  const blockerFriendStatus = await request(`/api/friends/status/${recipientId}`, {
+    headers: { Cookie: cookie },
+  });
+  assert.equal(blockerFriendStatus.status, 200);
+  assert.equal((await blockerFriendStatus.json()).status, 'blocked');
+
+  const blockedUserFriendStatus = await request(`/api/friends/status/${loginBody.user.id}`, {
+    headers: { Cookie: recipientCookie },
+  });
+  assert.equal(blockedUserFriendStatus.status, 200);
+  assert.equal((await blockedUserFriendStatus.json()).status, 'none');
+
+  const blockedFriendRequest = await request('/api/friends/request', {
+    method: 'POST',
+    headers: { Cookie: recipientCookie, 'x-csrf-token': recipientLoginBody.csrfToken },
+    body: JSON.stringify({ toUserId: loginBody.user.id }),
+  });
+  assert.equal(blockedFriendRequest.status, 403);
+  assert.equal((await blockedFriendRequest.json()).error, 'interaction_blocked');
+
+  const blockedRecommendation = await request('/api/recommendations', {
+    method: 'POST',
+    headers: { Cookie: recipientCookie, 'x-csrf-token': recipientLoginBody.csrfToken },
+    body: JSON.stringify({
+      toUserId: loginBody.user.id,
+      title: 'Blocked interaction',
+      movies: [{ id: 552, title: 'Another blocked movie' }],
+    }),
+  });
+  assert.equal(blockedRecommendation.status, 403);
+  assert.equal((await blockedRecommendation.json()).error, 'interaction_blocked');
+
+  const hiddenSentRecommendations = await request('/api/recommendations?type=sent', {
+    headers: { Cookie: cookie },
+  });
+  assert.equal(hiddenSentRecommendations.status, 200);
+  assert.equal((await hiddenSentRecommendations.json()).totalCount, 0);
+
+  const hiddenReceivedRecommendations = await request('/api/recommendations?type=received', {
+    headers: { Cookie: recipientCookie },
+  });
+  assert.equal(hiddenReceivedRecommendations.status, 200);
+  assert.equal((await hiddenReceivedRecommendations.json()).totalCount, 0);
+
+  const hiddenRecommendation = await request(`/api/recommendations/${secondRecommendationBody.recommendation.id}`, {
+    headers: { Cookie: cookie },
+  });
+  assert.equal(hiddenRecommendation.status, 404);
+
   const invalidReport = await request('/api/safety/reports', {
     method: 'POST',
     headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
@@ -447,6 +518,14 @@ test('registration, login, session, CSRF rotation, and logout work together', as
   });
   assert.equal(unblock.status, 200);
   assert.deepEqual(await unblock.json(), { success: true, removed: true });
+
+  const friendRequestAfterUnblock = await request('/api/friends/request', {
+    method: 'POST',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({ toUserId: recipientId }),
+  });
+  assert.equal(friendRequestAfterUnblock.status, 200);
+  assert.equal((await friendRequestAfterUnblock.json()).status, 'pending_outgoing');
 
   const rejectedLogout = await request('/api/auth/logout', {
     method: 'POST',

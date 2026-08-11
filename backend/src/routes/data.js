@@ -96,6 +96,11 @@ async function profileVisibility(targetUserId, viewerUserId) {
     `SELECT
        COALESCE(p.social_links->>'privacy', 'public') AS privacy,
        EXISTS (
+         SELECT 1 FROM user_blocks ub
+         WHERE (ub.blocker_user_id = $1 AND ub.blocked_user_id = $2)
+            OR (ub.blocker_user_id = $2 AND ub.blocked_user_id = $1)
+       ) AS blocked,
+       EXISTS (
          SELECT 1 FROM friendships f
          WHERE f.status = 'accepted'
            AND ((f.from_user_id = $1 AND f.to_user_id = $2)
@@ -106,7 +111,7 @@ async function profileVisibility(targetUserId, viewerUserId) {
     [targetUserId, viewerUserId || null],
   );
   if (result.rowCount === 0) return false;
-  return result.rows[0].privacy !== 'private' || result.rows[0].friends;
+  return !result.rows[0].blocked && (result.rows[0].privacy !== 'private' || result.rows[0].friends);
 }
 
 router.post('/movies/ensure', requireSessionCsrf, async (req, res, next) => {
@@ -130,9 +135,14 @@ router.get('/users/search', requireSession, async (req, res, next) => {
        JOIN users u ON u.id = p.id
        WHERE u.status = 'ACTIVE'
          AND (p.username ILIKE $1 ESCAPE '\\' OR p.name ILIKE $1 ESCAPE '\\')
+         AND NOT EXISTS (
+           SELECT 1 FROM user_blocks ub
+           WHERE (ub.blocker_user_id = $4 AND ub.blocked_user_id = p.id)
+              OR (ub.blocker_user_id = p.id AND ub.blocked_user_id = $4)
+         )
        ORDER BY CASE WHEN lower(p.username::text) = lower($2) THEN 0 ELSE 1 END, p.username
        LIMIT $3`,
-      [pattern, search, limit],
+      [pattern, search, limit, req.user.id],
     );
     return res.json(result.rows);
   } catch (error) {
@@ -151,6 +161,11 @@ router.get('/users/public/:identifier', async (req, res, next) => {
          JOIN users u ON u.id = p.id
          WHERE u.status = 'ACTIVE'
            AND (lower(p.username::text) = lower($1) OR p.id::text = $1)
+           AND ($2::uuid IS NULL OR NOT EXISTS (
+             SELECT 1 FROM user_blocks ub
+             WHERE (ub.blocker_user_id = $2::uuid AND ub.blocked_user_id = p.id)
+                OR (ub.blocker_user_id = p.id AND ub.blocked_user_id = $2::uuid)
+           ))
          LIMIT 1
        ), visible AS (
          SELECT target.*,
@@ -192,9 +207,14 @@ router.get('/users/privacy/:identifier', async (req, res, next) => {
     const result = await query(
       `SELECT COALESCE(p.social_links->>'privacy', 'public') <> 'private' AS "isPublic"
        FROM profiles p
-       WHERE lower(p.username::text) = lower($1) OR p.id::text = $1
+       WHERE (lower(p.username::text) = lower($1) OR p.id::text = $1)
+         AND ($2::uuid IS NULL OR NOT EXISTS (
+           SELECT 1 FROM user_blocks ub
+           WHERE (ub.blocker_user_id = $2::uuid AND ub.blocked_user_id = p.id)
+              OR (ub.blocker_user_id = p.id AND ub.blocked_user_id = $2::uuid)
+         ))
        LIMIT 1`,
-      [String(req.params.identifier)],
+      [String(req.params.identifier), req.user?.id || null],
     );
     if (result.rowCount === 0) return res.status(404).json({ error: 'profile_not_found' });
     return res.json(result.rows[0]);
@@ -502,6 +522,11 @@ router.get('/friends/search', requireSession, async (req, res, next) => {
          AND (f.from_user_id = $1 OR f.to_user_id = $1)
          AND u.status = 'ACTIVE'
          AND (p.username ILIKE $2 ESCAPE '\\' OR p.name ILIKE $2 ESCAPE '\\')
+         AND NOT EXISTS (
+           SELECT 1 FROM user_blocks ub
+           WHERE (ub.blocker_user_id = $1 AND ub.blocked_user_id = p.id)
+              OR (ub.blocker_user_id = p.id AND ub.blocked_user_id = $1)
+         )
        ORDER BY CASE WHEN lower(p.username::text) = lower($3) THEN 0 ELSE 1 END, p.username
        LIMIT $4`,
       [req.user.id, pattern, search, limit],
@@ -516,6 +541,16 @@ router.get('/friends/status/:otherUserId', requireSession, async (req, res, next
   try {
     if (req.params.otherUserId === req.user.id) return res.json({ status: 'self' });
     if (!isUuid(req.params.otherUserId)) return res.status(400).json({ error: 'invalid_user_identifier' });
+    const block = await query(
+      `SELECT blocker_user_id FROM user_blocks
+       WHERE (blocker_user_id = $1 AND blocked_user_id = $2)
+          OR (blocker_user_id = $2 AND blocked_user_id = $1)
+       LIMIT 1`,
+      [req.user.id, req.params.otherUserId],
+    );
+    if (block.rowCount > 0) {
+      return res.json({ status: block.rows[0].blocker_user_id === req.user.id ? 'blocked' : 'none' });
+    }
     const result = await query(
       `SELECT status, from_user_id, to_user_id FROM friendships
        WHERE (from_user_id = $1 AND to_user_id = $2) OR (from_user_id = $2 AND to_user_id = $1)
@@ -537,8 +572,18 @@ router.post('/friends/request', requireSessionCsrf, async (req, res, next) => {
   try {
     const toUserId = String(req.body?.toUserId || '');
     if (!isUuid(toUserId) || toUserId === req.user.id) return res.status(400).json({ error: 'invalid_friend_request' });
-    const target = await query("SELECT 1 FROM users WHERE id = $1 AND status = 'ACTIVE'", [toUserId]);
+    const target = await query(
+      `SELECT EXISTS (
+         SELECT 1 FROM user_blocks ub
+         WHERE (ub.blocker_user_id = $1 AND ub.blocked_user_id = $2)
+            OR (ub.blocker_user_id = $2 AND ub.blocked_user_id = $1)
+       ) AS blocked
+       FROM users u
+       WHERE u.id = $2 AND u.status = 'ACTIVE'`,
+      [req.user.id, toUserId],
+    );
     if (target.rowCount === 0) return res.status(404).json({ error: 'user_not_found' });
+    if (target.rows[0].blocked) return res.status(403).json({ error: 'interaction_blocked' });
     await query(
       `INSERT INTO friendships (from_user_id, to_user_id, status) VALUES ($1, $2, 'pending')
        ON CONFLICT (LEAST(from_user_id, to_user_id), GREATEST(from_user_id, to_user_id))
@@ -565,6 +610,11 @@ router.post('/friends/respond', requireSessionCsrf, async (req, res, next) => {
       `UPDATE friendships SET status = $4
        WHERE to_user_id = $1 AND status = 'pending'
          AND (($2::uuid IS NOT NULL AND id = $2::uuid) OR ($3::uuid IS NOT NULL AND from_user_id = $3::uuid))
+         AND NOT EXISTS (
+           SELECT 1 FROM user_blocks ub
+           WHERE (ub.blocker_user_id = friendships.from_user_id AND ub.blocked_user_id = friendships.to_user_id)
+              OR (ub.blocker_user_id = friendships.to_user_id AND ub.blocked_user_id = friendships.from_user_id)
+         )
        RETURNING id`,
       values,
     );
@@ -598,8 +648,13 @@ router.get('/friends/list/:userId?', requireSession, async (req, res, next) => {
        JOIN profiles p ON p.id = CASE WHEN f.from_user_id = $1 THEN f.to_user_id ELSE f.from_user_id END
        JOIN users u ON u.id = p.id
        WHERE f.status = 'accepted' AND (f.from_user_id = $1 OR f.to_user_id = $1) AND u.status = 'ACTIVE'
+         AND NOT EXISTS (
+           SELECT 1 FROM user_blocks ub
+           WHERE (ub.blocker_user_id = $2 AND ub.blocked_user_id = p.id)
+              OR (ub.blocker_user_id = p.id AND ub.blocked_user_id = $2)
+         )
        ORDER BY p.username`,
-      [targetUserId],
+      [targetUserId, req.user.id],
     );
     return res.json(result.rows);
   } catch (error) {
@@ -613,6 +668,11 @@ router.get('/friends/requests', requireSession, async (req, res, next) => {
       `SELECT f.id, f.from_user_id, f.created_at, p.username, p.name, p.avatar_url AS avatar
        FROM friendships f JOIN profiles p ON p.id = f.from_user_id
        WHERE f.to_user_id = $1 AND f.status = 'pending'
+         AND NOT EXISTS (
+           SELECT 1 FROM user_blocks ub
+           WHERE (ub.blocker_user_id = $1 AND ub.blocked_user_id = f.from_user_id)
+              OR (ub.blocker_user_id = f.from_user_id AND ub.blocked_user_id = $1)
+         )
        ORDER BY f.created_at DESC`,
       [req.user.id],
     );
@@ -651,6 +711,11 @@ router.post('/recommendations', requireSessionCsrf, recommendationLimiter, async
       const recipient = await client.query(
         `SELECT u.id,
                 EXISTS (
+                  SELECT 1 FROM user_blocks ub
+                  WHERE (ub.blocker_user_id = $1 AND ub.blocked_user_id = $2)
+                     OR (ub.blocker_user_id = $2 AND ub.blocked_user_id = $1)
+                ) AS blocked,
+                EXISTS (
                   SELECT 1 FROM friendships f
                   WHERE f.status = 'accepted'
                     AND ((f.from_user_id = $1 AND f.to_user_id = $2)
@@ -664,6 +729,12 @@ router.post('/recommendations', requireSessionCsrf, recommendationLimiter, async
         const error = new Error('Recipient not found.');
         error.status = 404;
         error.code = 'recipient_not_found';
+        throw error;
+      }
+      if (recipient.rows[0].blocked) {
+        const error = new Error('This interaction is not available.');
+        error.status = 403;
+        error.code = 'interaction_blocked';
         throw error;
       }
       if (!recipient.rows[0].friends) {
@@ -738,7 +809,12 @@ router.get('/recommendations', requireSession, async (req, res, next) => {
       `SELECT count(*)::int AS count
        FROM recommendations r
        WHERE r.${ownerColumn} = $1 AND r.${deletedColumn} = false
-         AND ($2::text IS NULL OR r.status = $2)`,
+         AND ($2::text IS NULL OR r.status = $2)
+         AND NOT EXISTS (
+           SELECT 1 FROM user_blocks ub
+           WHERE (ub.blocker_user_id = r.from_user_id AND ub.blocked_user_id = r.to_user_id)
+              OR (ub.blocker_user_id = r.to_user_id AND ub.blocked_user_id = r.from_user_id)
+         )`,
       [req.user.id, status],
     );
     const totalCount = countResult.rows[0].count;
@@ -765,6 +841,11 @@ router.get('/recommendations', requireSession, async (req, res, next) => {
        ) items ON true
        WHERE r.${ownerColumn} = $1 AND r.${deletedColumn} = false
          AND ($2::text IS NULL OR r.status = $2)
+         AND NOT EXISTS (
+           SELECT 1 FROM user_blocks ub
+           WHERE (ub.blocker_user_id = r.from_user_id AND ub.blocked_user_id = r.to_user_id)
+              OR (ub.blocker_user_id = r.to_user_id AND ub.blocked_user_id = r.from_user_id)
+         )
        ORDER BY r.created_at DESC
        LIMIT $3 OFFSET $4`,
       [req.user.id, status, limit, offset],
@@ -789,6 +870,11 @@ router.get('/recommendations/:id', requireSession, async (req, res, next) => {
          )) FILTER (WHERE ri.id IS NOT NULL), '[]'::json) AS items
        FROM recommendations r LEFT JOIN recommendation_items ri ON ri.recommendation_id = r.id
        WHERE r.id = $1 AND (r.from_user_id = $2 OR r.to_user_id = $2)
+         AND NOT EXISTS (
+           SELECT 1 FROM user_blocks ub
+           WHERE (ub.blocker_user_id = r.from_user_id AND ub.blocked_user_id = r.to_user_id)
+              OR (ub.blocker_user_id = r.to_user_id AND ub.blocked_user_id = r.from_user_id)
+         )
        GROUP BY r.id`,
       [req.params.id, req.user.id],
     );
@@ -806,6 +892,11 @@ router.post('/recommendations/:id/respond', requireSessionCsrf, async (req, res,
     const result = await query(
       `UPDATE recommendations SET status = $3
        WHERE id = $1 AND to_user_id = $2 AND status = 'pending'
+         AND NOT EXISTS (
+           SELECT 1 FROM user_blocks ub
+           WHERE (ub.blocker_user_id = recommendations.from_user_id AND ub.blocked_user_id = recommendations.to_user_id)
+              OR (ub.blocker_user_id = recommendations.to_user_id AND ub.blocked_user_id = recommendations.from_user_id)
+         )
        RETURNING *`,
       [req.params.id, req.user.id, status],
     );
