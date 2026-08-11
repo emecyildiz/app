@@ -303,12 +303,57 @@ test('registration, login, session, CSRF rotation, and logout work together', as
   });
   assert.equal(duplicateRecommendation.status, 409);
 
-  const sentRecommendations = await request('/api/recommendations?type=sent', { headers: { Cookie: cookie } });
+  const secondRecommendation = await request('/api/recommendations', {
+    method: 'POST',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({
+      toUserId: recipientId,
+      title: 'Another movie',
+      movies: [{ id: 551, title: 'The Poseidon Adventure', poster_path: '/second-poster.jpg' }],
+    }),
+  });
+  assert.equal(secondRecommendation.status, 201);
+  const secondRecommendationBody = await secondRecommendation.json();
+
+  const sentRecommendations = await request('/api/recommendations?type=sent&page=1&limit=1', { headers: { Cookie: cookie } });
   assert.equal(sentRecommendations.status, 200);
   const sentBody = await sentRecommendations.json();
-  assert.equal(sentBody.length, 1);
-  assert.equal(sentBody[0].items[0].movie_id, 550);
-  assert.equal(sentBody[0].items[0].movie_title, 'Fight Club');
+  assert.equal(sentBody.items.length, 1);
+  assert.equal(sentBody.currentPage, 1);
+  assert.equal(sentBody.totalPages, 2);
+  assert.equal(sentBody.totalCount, 2);
+  assert.equal(sentBody.items[0].items[0].movie_id, 551);
+  assert.equal(sentBody.items[0].items[0].movie_title, 'The Poseidon Adventure');
+  assert.equal(sentBody.items[0].to_user.username, 'recipient_user');
+
+  const secondSentPage = await request('/api/recommendations?type=sent&page=2&limit=1', { headers: { Cookie: cookie } });
+  assert.equal(secondSentPage.status, 200);
+  const secondSentBody = await secondSentPage.json();
+  assert.equal(secondSentBody.items[0].items[0].movie_id, 550);
+
+  const invalidRecommendationType = await request('/api/recommendations?type=unknown', { headers: { Cookie: cookie } });
+  assert.equal(invalidRecommendationType.status, 400);
+
+  const receivedRecommendations = await request('/api/recommendations?type=received&status=pending&page=1&limit=1', {
+    headers: { Cookie: recipientCookie },
+  });
+  assert.equal(receivedRecommendations.status, 200);
+  const receivedBody = await receivedRecommendations.json();
+  assert.equal(receivedBody.totalCount, 2);
+  assert.equal(receivedBody.items[0].from_user.username, 'updated_viewer');
+
+  const acceptedRecommendation = await request(`/api/recommendations/${secondRecommendationBody.recommendation.id}/respond`, {
+    method: 'POST',
+    headers: { Cookie: recipientCookie, 'x-csrf-token': recipientLoginBody.csrfToken },
+    body: JSON.stringify({ status: 'accepted' }),
+  });
+  assert.equal(acceptedRecommendation.status, 200);
+
+  const acceptedRecommendations = await request('/api/recommendations?type=received&status=accepted', {
+    headers: { Cookie: recipientCookie },
+  });
+  assert.equal(acceptedRecommendations.status, 200);
+  assert.equal((await acceptedRecommendations.json()).totalCount, 1);
 
   const rejectedLogout = await request('/api/auth/logout', {
     method: 'POST',

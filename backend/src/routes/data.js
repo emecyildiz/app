@@ -727,24 +727,54 @@ router.post('/recommendations', requireSessionCsrf, recommendationLimiter, async
 
 router.get('/recommendations', requireSession, async (req, res, next) => {
   try {
-    const type = req.query.type === 'sent' ? 'sent' : 'received';
+    const type = String(req.query.type || 'received');
+    if (!['received', 'sent'].includes(type)) return res.status(400).json({ error: 'invalid_recommendation_type' });
     const status = req.query.status ? String(req.query.status) : null;
     if (status && !['pending', 'accepted', 'rejected'].includes(status)) return res.status(400).json({ error: 'invalid_status' });
+    const { page, limit } = pagination(req.query);
     const ownerColumn = type === 'sent' ? 'from_user_id' : 'to_user_id';
     const deletedColumn = type === 'sent' ? 'deleted_by_sender' : 'deleted_by_recipient';
-    const result = await query(
-      `SELECT r.*,
-         COALESCE(json_agg(json_build_object(
-           'id', ri.id, 'movie_id', ri.movie_id, 'movie_title', ri.movie_title, 'poster_path', ri.poster_path
-         ) ORDER BY ri.created_at) FILTER (WHERE ri.id IS NOT NULL), '[]'::json) AS items
+    const countResult = await query(
+      `SELECT count(*)::int AS count
        FROM recommendations r
-       LEFT JOIN recommendation_items ri ON ri.recommendation_id = r.id
        WHERE r.${ownerColumn} = $1 AND r.${deletedColumn} = false
-         AND ($2::text IS NULL OR r.status = $2)
-       GROUP BY r.id ORDER BY r.created_at DESC`,
+         AND ($2::text IS NULL OR r.status = $2)`,
       [req.user.id, status],
     );
-    return res.json(result.rows);
+    const totalCount = countResult.rows[0].count;
+    const totalPages = totalCount === 0 ? 0 : Math.ceil(totalCount / limit);
+    const currentPage = totalPages === 0 ? 1 : Math.min(page, totalPages);
+    const offset = (currentPage - 1) * limit;
+    const result = await query(
+      `SELECT r.*,
+         json_build_object('id', sender.id, 'username', sender.username, 'name', sender.name, 'avatar', sender.avatar_url) AS from_user,
+         json_build_object('id', recipient.id, 'username', recipient.username, 'name', recipient.name, 'avatar', recipient.avatar_url) AS to_user,
+         COALESCE(items.items, '[]'::json) AS items
+       FROM recommendations r
+       JOIN profiles sender ON sender.id = r.from_user_id
+       JOIN profiles recipient ON recipient.id = r.to_user_id
+       LEFT JOIN LATERAL (
+         SELECT json_agg(json_build_object(
+           'id', ri.id,
+           'movie_id', ri.movie_id,
+           'movie_title', ri.movie_title,
+           'poster_path', ri.poster_path
+         ) ORDER BY ri.created_at) AS items
+         FROM recommendation_items ri
+         WHERE ri.recommendation_id = r.id
+       ) items ON true
+       WHERE r.${ownerColumn} = $1 AND r.${deletedColumn} = false
+         AND ($2::text IS NULL OR r.status = $2)
+       ORDER BY r.created_at DESC
+       LIMIT $3 OFFSET $4`,
+      [req.user.id, status, limit, offset],
+    );
+    return res.json({
+      items: result.rows,
+      currentPage,
+      totalPages,
+      totalCount,
+    });
   } catch (error) {
     return next(error);
   }

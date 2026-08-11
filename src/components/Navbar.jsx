@@ -58,12 +58,12 @@ const Navbar = () => {
 
       inFlight = true
       try {
-        const recommendations = await recommendationService.getRecommendations('received', 'pending')
+        const response = await recommendationService.getRecommendations('received', 'pending', 1, 10)
         if (!mounted) return
 
         const lastViewedAt = Number(localStorage.getItem('recs-last-viewed-at') || 0) || 0
-        const latestCreatedAt = Array.isArray(recommendations)
-          ? recommendations.reduce((latest, recommendation) => {
+        const latestCreatedAt = Array.isArray(response?.items)
+          ? response.items.reduce((latest, recommendation) => {
               const createdAt = recommendation?.created_at ? Date.parse(recommendation.created_at) : 0
               return Number.isFinite(createdAt) ? Math.max(latest, createdAt) : latest
             }, 0)

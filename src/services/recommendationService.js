@@ -9,8 +9,8 @@ class RecommendationService {
     })
   }
 
-  getRecommendations(type = 'received', status = null) {
-    return apiRequest('/api/recommendations', { params: { type, status } })
+  getRecommendations(type = 'received', status = null, page = 1, limit = 10) {
+    return apiRequest('/api/recommendations', { params: { type, status, page, limit } })
   }
 
   getRecommendationById(id) {

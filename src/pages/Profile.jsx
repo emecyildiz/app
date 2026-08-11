@@ -16,6 +16,21 @@ import UserAvatar from '../components/UserAvatar'
 import { ProfileIdentityCard, ProfileStats } from '../components/ProfileIdentityCard'
 import { EmptyState, WorkspacePanel, WorkspaceTabs } from '../components/WorkspaceUI'
 
+const recommendationStatus = {
+  pending: {
+    label: 'Awaiting response',
+    className: 'border-[#d8a34f]/35 bg-[#d8a34f]/10 text-[#e6bd78]',
+  },
+  accepted: {
+    label: 'Interested',
+    className: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300',
+  },
+  rejected: {
+    label: 'Passed',
+    className: 'border-white/15 bg-white/[0.04] text-[#918e86]',
+  },
+}
+
 const Profile = () => {
   const { user, profile, updateProfile, signOut, deleteAccount, isLoading } = useAuthStore()
   const location = useLocation()
@@ -222,6 +237,12 @@ const Profile = () => {
   const [receivedRecommendations, setReceivedRecommendations] = useState([])
   const [sentRecommendations, setSentRecommendations] = useState([])
   const [recommendationsLoading, setRecommendationsLoading] = useState(false)
+  const [receivedRecommendationsPage, setReceivedRecommendationsPage] = useState(1)
+  const [sentRecommendationsPage, setSentRecommendationsPage] = useState(1)
+  const [receivedRecommendationsTotalPages, setReceivedRecommendationsTotalPages] = useState(0)
+  const [sentRecommendationsTotalPages, setSentRecommendationsTotalPages] = useState(0)
+  const [recommendationActionId, setRecommendationActionId] = useState(null)
+  const [recommendationsRefreshKey, setRecommendationsRefreshKey] = useState(0)
 
   const toggleLocalRecommendationWatched = (recId, movieId, isWatched) => {
     setReceivedRecommendations(prev => prev.map(r => {
@@ -270,65 +291,31 @@ const Profile = () => {
       try {
         setRecommendationsLoading(true)
         const [received, sent, watchedSet] = await Promise.all([
-          recommendationService.getRecommendations('received'),
-          recommendationService.getRecommendations('sent'),
+          recommendationService.getRecommendations('received', null, receivedRecommendationsPage, 10),
+          recommendationService.getRecommendations('sent', null, sentRecommendationsPage, 10),
           movieService.getWatchedIds()
         ])
 
-        // Enrich with user display info (name, username, avatar)
-        const all = [...(received || []), ...(sent || [])]
-        const idSet = new Set()
-        all.forEach(r => {
-          if (r?.from_user_id) idSet.add(r.from_user_id)
-          if (r?.to_user_id) idSet.add(r.to_user_id)
-        })
-
-        let profileMap = {}
-        if (idSet.size > 0) {
-          try {
-            const ids = Array.from(idSet)
-            const results = await Promise.all(ids.map(id => userService.getPublicProfile(id)))
-            results.forEach(p => {
-              if (p && p.id) profileMap[p.id] = {
-                id: p.id,
-                name: p.name || null,
-                username: p.username || null,
-                avatar: p.avatar || null,
-              }
-            })
-          } catch (_) {}
-        }
-
-        // Fetch minimal movie info from TMDB for mini cards (title/poster)
-        const movieIdSet = new Set()
-        ;(received || []).forEach(r => (r.items || []).forEach(i => movieIdSet.add(Number(i.movie_id))))
-        ;(sent || []).forEach(r => (r.items || []).forEach(i => movieIdSet.add(Number(i.movie_id))))
-        let movieMap = {}
-        if (movieIdSet.size > 0) {
-          try {
-            const ids = Array.from(movieIdSet)
-            const details = await Promise.all(ids.map(id => tmdbService.getMovieDetails(id).catch(()=>null)))
-            details.forEach(d => {
-              if (d && d.id) movieMap[d.id] = { title: d.title || d.original_title || `#${d.id}`, poster_path: d.poster_path || null }
-            })
-          } catch (_) {}
-        }
-
         const hydrate = (rec) => ({
           ...rec,
-          from_user: profileMap[rec?.from_user_id] || null,
-          to_user: profileMap[rec?.to_user_id] || null,
           items: (rec.items || []).map(it => ({
             ...it,
             isWatched: watchedSet.has(Number(it.movie_id)),
-            poster_path: movieMap[Number(it.movie_id)]?.poster_path || null,
-            movie_title: movieMap[Number(it.movie_id)]?.title || `#${it.movie_id}`
+            movie_title: it.movie_title || `Movie #${it.movie_id}`
           }))
         })
 
         if (mounted) {
-          setReceivedRecommendations((received || []).map(hydrate))
-          setSentRecommendations((sent || []).map(hydrate))
+          setReceivedRecommendations((received?.items || []).map(hydrate))
+          setSentRecommendations((sent?.items || []).map(hydrate))
+          setReceivedRecommendationsTotalPages(received?.totalPages || 0)
+          setSentRecommendationsTotalPages(sent?.totalPages || 0)
+          if (received?.currentPage && received.currentPage !== receivedRecommendationsPage) {
+            setReceivedRecommendationsPage(received.currentPage)
+          }
+          if (sent?.currentPage && sent.currentPage !== sentRecommendationsPage) {
+            setSentRecommendationsPage(sent.currentPage)
+          }
         }
       } catch (error) {
         console.error('Error loading recommendations:', error)
@@ -339,7 +326,7 @@ const Profile = () => {
     }
     loadRecommendations()
     return () => { mounted = false }
-  }, [activeTab])
+  }, [activeTab, receivedRecommendationsPage, sentRecommendationsPage, recommendationsRefreshKey])
 
   // Refetch data when tab becomes visible (after switching tabs/browsers)
   useEffect(() => {
@@ -347,7 +334,7 @@ const Profile = () => {
       if (document.visibilityState === 'visible') {
         // Trigger refetch for active tab
         if (activeTab === 'recommendations') {
-          setRecommendationsLoading(true)
+          setRecommendationsRefreshKey((value) => value + 1)
         } else if (activeTab === 'ratings') {
           setRatingsLoading(true)
         } else if (activeTab === 'comments') {
@@ -507,6 +494,210 @@ const Profile = () => {
     } finally {
       setFriendsBusy(false)
     }
+  }
+
+  const respondToRecommendation = async (recommendationId, status) => {
+    setRecommendationActionId(`${recommendationId}:response`)
+    try {
+      const result = await recommendationService.respondToRecommendation(recommendationId, status)
+      if (result?.success) {
+        setReceivedRecommendations((current) => current.map((recommendation) => (
+          recommendation.id === recommendationId ? { ...recommendation, status } : recommendation
+        )))
+        toast.success(status === 'accepted' ? 'Marked as interesting.' : 'Recommendation passed.')
+      }
+    } catch (error) {
+      toast.error(error?.message || 'The recommendation could not be updated.')
+    } finally {
+      setRecommendationActionId(null)
+    }
+  }
+
+  const setRecommendationWatched = async (recommendationId, item, shouldBeWatched) => {
+    setRecommendationActionId(`${recommendationId}:${item.movie_id}`)
+    try {
+      const result = shouldBeWatched
+        ? await movieService.markAsWatched(item.movie_id, {
+            id: Number(item.movie_id),
+            title: item.movie_title,
+            poster_path: item.poster_path,
+          })
+        : await movieService.markAsUnwatched(item.movie_id)
+      if (result?.success) {
+        toggleLocalRecommendationWatched(recommendationId, item.movie_id, shouldBeWatched)
+        toast.success(shouldBeWatched ? 'Added to watched movies.' : 'Removed from watched movies.')
+      } else {
+        toast.error(result?.error || 'Watch history could not be updated.')
+      }
+    } finally {
+      setRecommendationActionId(null)
+    }
+  }
+
+  const hideRecommendation = async (recommendationId, type) => {
+    setRecommendationActionId(`${recommendationId}:delete`)
+    try {
+      const result = await recommendationService.deleteRecommendation(recommendationId)
+      if (result?.success) {
+        const isReceived = type === 'received'
+        const currentItems = isReceived ? receivedRecommendations : sentRecommendations
+        const currentPage = isReceived ? receivedRecommendationsPage : sentRecommendationsPage
+        if (currentItems.length === 1 && currentPage > 1) {
+          if (isReceived) setReceivedRecommendationsPage((page) => page - 1)
+          else setSentRecommendationsPage((page) => page - 1)
+        } else {
+          setRecommendationsRefreshKey((value) => value + 1)
+        }
+        toast.success(isReceived ? 'Recommendation removed from your inbox.' : 'Recommendation removed from sent history.')
+      }
+    } catch (error) {
+      toast.error(error?.message || 'The recommendation could not be removed.')
+    } finally {
+      setRecommendationActionId(null)
+    }
+  }
+
+  const renderRecommendationCard = (recommendation, type) => {
+    const isReceived = type === 'received'
+    const person = isReceived ? recommendation.from_user : recommendation.to_user
+    const status = recommendationStatus[recommendation.status] || recommendationStatus.pending
+    const deleteBusy = recommendationActionId === `${recommendation.id}:delete`
+    const responseBusy = recommendationActionId === `${recommendation.id}:response`
+
+    return (
+      <article key={recommendation.id} className="border border-white/10 bg-[#11120f]">
+        <header className="flex flex-col gap-4 border-b border-white/10 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <UserAvatar
+              src={person?.avatar}
+              name={person?.name}
+              username={person?.username}
+              className="h-10 w-10 shrink-0 rounded-full border border-white/10 object-cover"
+              fallbackClassName="text-xs"
+            />
+            <div className="min-w-0">
+              <p className="ui-eyebrow">{isReceived ? 'From' : 'To'}</p>
+              <p className="truncate text-sm font-medium text-[#f3efe6]">
+                {person?.name || person?.username || 'Unavailable member'}
+              </p>
+              {person?.username && <p className="truncate text-xs text-[#77756f]">@{person.username}</p>}
+            </div>
+          </div>
+          <span className={`w-fit border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] ${status.className}`}>
+            {status.label}
+          </span>
+        </header>
+
+        <div className="px-4 py-5 sm:px-5">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+            <div>
+              <h3 className="font-display text-xl text-[#f3efe6]">{recommendation.title}</h3>
+              {recommendation.note && <p className="mt-2 max-w-2xl text-sm leading-6 text-[#aaa79f]">{recommendation.note}</p>}
+            </div>
+            <time className="shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-[#66645f]" dateTime={recommendation.created_at}>
+              {new Date(recommendation.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+            </time>
+          </div>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {(recommendation.items || []).map((item) => {
+              const itemBusy = recommendationActionId === `${recommendation.id}:${item.movie_id}`
+              return (
+                <div key={item.id || item.movie_id} className="flex min-w-0 gap-3 border border-white/10 bg-black/20 p-3">
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/movies/${item.movie_id}`)}
+                    className="h-20 w-14 shrink-0 overflow-hidden bg-white/[0.04] text-[#77756f] transition hover:opacity-80"
+                    aria-label={`Open ${item.movie_title}`}
+                  >
+                    {item.poster_path ? (
+                      <img src={`https://image.tmdb.org/t/p/w154${item.poster_path}`} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <Film className="m-auto h-full w-5" strokeWidth={1.4} />
+                    )}
+                  </button>
+                  <div className="flex min-w-0 flex-1 flex-col justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/movies/${item.movie_id}`)}
+                      className="line-clamp-2 text-left text-sm font-medium leading-5 text-[#f3efe6] transition hover:text-[#e85d4a]"
+                    >
+                      {item.movie_title}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={itemBusy}
+                      onClick={() => setRecommendationWatched(recommendation.id, item, !item.isWatched)}
+                      className="w-fit border border-white/15 px-2.5 py-1.5 text-xs text-[#aaa79f] transition hover:border-[#e85d4a]/50 hover:text-[#f3efe6] disabled:cursor-wait disabled:opacity-50"
+                    >
+                      {itemBusy ? 'Updating…' : (item.isWatched ? 'Mark as unwatched' : 'Mark as watched')}
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <footer className="flex flex-col gap-3 border-t border-white/10 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div className="flex flex-wrap gap-2">
+            {isReceived && recommendation.status === 'pending' && (
+              <>
+                <button
+                  type="button"
+                  disabled={responseBusy}
+                  onClick={() => respondToRecommendation(recommendation.id, 'accepted')}
+                  className="btn btn-primary"
+                >
+                  <Check className="h-4 w-4" /> Interested
+                </button>
+                <button
+                  type="button"
+                  disabled={responseBusy}
+                  onClick={() => respondToRecommendation(recommendation.id, 'rejected')}
+                  className="btn btn-secondary"
+                >
+                  <X className="h-4 w-4" /> Pass
+                </button>
+              </>
+            )}
+          </div>
+          <button
+            type="button"
+            disabled={deleteBusy}
+            onClick={() => hideRecommendation(recommendation.id, type)}
+            className="w-fit text-xs text-[#77756f] underline decoration-white/20 underline-offset-4 transition hover:text-[#e85d4a] disabled:cursor-wait disabled:opacity-50"
+          >
+            {deleteBusy ? 'Removing…' : (isReceived ? 'Remove from inbox' : 'Remove from sent history')}
+          </button>
+        </footer>
+      </article>
+    )
+  }
+
+  const renderRecommendationPagination = (page, totalPages, setPage, label) => {
+    if (totalPages <= 1) return null
+    return (
+      <nav aria-label={`${label} pagination`} className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
+        <button
+          type="button"
+          disabled={page <= 1 || recommendationsLoading}
+          onClick={() => setPage((current) => Math.max(1, current - 1))}
+          className="btn btn-secondary disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Previous
+        </button>
+        <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#77756f]">Page {page} of {totalPages}</span>
+        <button
+          type="button"
+          disabled={page >= totalPages || recommendationsLoading}
+          onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
+          className="btn btn-secondary disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Next
+        </button>
+      </nav>
+    )
   }
 
   const handleDeleteAccount = async () => {
@@ -879,147 +1070,66 @@ const Profile = () => {
 
 
             {activeTab === 'recommendations' && (
-              <div>
-                <div className="space-y-8">
-                  {/* Gelen Recommendations (Watched / Unwatched) */}
-                  <div>
-                    <h2 className="text-2xl font-bold text-white mb-4">Gelen Recommendations</h2>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* Unwatched */}
-                      <div className="glass rounded-xl p-4">
-                        <h3 className="text-white font-semibold mb-3">Not watched</h3>
-                        {recommendationsLoading ? (
-                          <div className="text-center py-8">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
-                            <p className="text-gray-400 mt-2">Loading...</p>
-                          </div>
-                        ) : (
-                          <div className="space-y-3">
-                            {receivedRecommendations.flatMap((rec) => (
-                              (rec.items || []).filter(i => !i.isWatched).map((item) => (
-                                <div key={`${rec.id}-${item.movie_id}`} className="flex items-start gap-3 bg-white/5 rounded-lg p-3">
-                                  {/* Mini poster placeholder */}
-                                  <div className="w-10 h-14 rounded-md overflow-hidden bg-white/10">
-                                    <img src={`https://image.tmdb.org/t/p/w92${item.poster_path || ''}`} alt="" className="w-full h-full object-cover" onError={(e)=>{e.currentTarget.style.display='none'}} />
-                                  </div>
-                                  <div className="flex-1">
-                                    <div className="text-white text-sm font-medium">{item.movie_title || rec.title}</div>
-                                <div className="text-xs text-gray-400 mt-1">Kimden: {rec.from_user?.name || rec.from_user?.username || `@${rec.from_user_id}`}</div>
-                                    {rec.note && <div className="text-xs text-gray-400 mt-1">{rec.note}</div>}
-                                    <div className="text-[11px] text-gray-500 mt-1">{new Date(rec.created_at).toLocaleString('en-US')}</div>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      className="btn btn-primary btn-xs"
-                                      onClick={async ()=>{
-                                        const res = await movieService.markAsWatched(item.movie_id)
-                                        if (res?.success) toggleLocalRecommendationWatched(rec.id, item.movie_id, true)
-                                      }}
-                                    >Watched</button>
-                                    <button
-                                      className="btn btn-secondary btn-xs"
-                                      onClick={async ()=>{
-                                        const ok = await recommendationService.deleteRecommendation(rec.id)
-                                        if (ok?.success || ok) {
-                                          setReceivedRecommendations(prev => prev.filter(r => r.id !== rec.id))
-                                        }
-                                      }}
-                                    >Delete</button>
-                                  </div>
-                                </div>
-                              ))
-                            ))}
-                            {receivedRecommendations.every(r => (r.items || []).every(i => i.isWatched)) && (
-                              <p className="text-gray-400 text-center py-6">No unwatched recommendations</p>
-                            )}
-                          </div>
+              <div className="space-y-8">
+                <WorkspacePanel
+                  eyebrow="Your inbox"
+                  title="Received recommendations"
+                  description="Decide whether a suggestion interests you, and track each movie separately in your watch history."
+                >
+                  <div className="p-4 sm:p-6">
+                    {recommendationsLoading ? (
+                      <div className="flex min-h-48 items-center justify-center">
+                        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-[#e85d4a]" />
+                      </div>
+                    ) : receivedRecommendations.length === 0 ? (
+                      <EmptyState
+                        icon={Share2}
+                        title="No recommendations here"
+                        description="Recommendations from accepted friends will appear in this inbox."
+                      />
+                    ) : (
+                      <div className="space-y-4">
+                        {receivedRecommendations.map((recommendation) => renderRecommendationCard(recommendation, 'received'))}
+                        {renderRecommendationPagination(
+                          receivedRecommendationsPage,
+                          receivedRecommendationsTotalPages,
+                          setReceivedRecommendationsPage,
+                          'Received recommendations',
                         )}
                       </div>
-                      {/* Watched */}
-                      <div className="glass rounded-xl p-4">
-                        <h3 className="text-white font-semibold mb-3">Watched</h3>
-                        {recommendationsLoading ? (
-                          <div className="text-center py-8">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
-                            <p className="text-gray-400 mt-2">Loading...</p>
-                          </div>
-                        ) : (
-                          <div className="space-y-3">
-                            {receivedRecommendations.flatMap((rec) => (
-                              (rec.items || []).filter(i => i.isWatched).map((item) => (
-                                <div key={`${rec.id}-${item.movie_id}`} className="flex items-start gap-3 bg-white/5 rounded-lg p-3 opacity-80">
-                                  <div className="w-10 h-14 rounded-md overflow-hidden bg-white/10">
-                                    <img src={`https://image.tmdb.org/t/p/w92${item.poster_path || ''}`} alt="" className="w-full h-full object-cover" onError={(e)=>{e.currentTarget.style.display='none'}} />
-                                  </div>
-                                  <div className="flex-1">
-                                    <div className="text-white text-sm font-medium">{item.movie_title || rec.title}</div>
-                                    <div className="text-xs text-gray-400 mt-1">Kimden: {rec.from_user?.name || rec.from_user?.username || `@${rec.from_user_id}`}</div>
-                                    {rec.note && <div className="text-xs text-gray-400 mt-1">{rec.note}</div>}
-                                    <div className="text-[11px] text-gray-500 mt-1">{new Date(rec.created_at).toLocaleString('en-US')}</div>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      className="btn btn-secondary btn-xs"
-                                      onClick={async ()=>{
-                                        const res = await movieService.markAsUnwatched(item.movie_id)
-                                        if (res?.success) toggleLocalRecommendationWatched(rec.id, item.movie_id, false)
-                                      }}
-                                    >Not watched</button>
-                                    <button
-                                      className="btn btn-secondary btn-xs"
-                                      onClick={async ()=>{
-                                        const ok = await recommendationService.deleteRecommendation(rec.id)
-                                        if (ok?.success || ok) {
-                                          setReceivedRecommendations(prev => prev.filter(r => r.id !== rec.id))
-                                        }
-                                      }}
-                                    >Delete</button>
-                                  </div>
-                                </div>
-                              ))
-                            ))}
-                            {receivedRecommendations.every(r => (r.items || []).every(i => !i.isWatched)) && (
-                              <p className="text-gray-400 text-center py-6">No watched recommendations</p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    )}
                   </div>
+                </WorkspacePanel>
 
-                  {/* Sent recommendations. */}
-                  <div>
-                    <h2 className="text-2xl font-bold text-white mb-4">Sent recommendations</h2>
-                    <div className="glass rounded-xl p-4">
-                      {recommendationsLoading ? (
-                        <div className="text-center py-8">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
-                          <p className="text-gray-400 mt-2">Loading...</p>
-                        </div>
-                      ) : sentRecommendations.length === 0 ? (
-                        <p className="text-gray-400 text-center py-8">You have not sent any recommendations</p>
-                      ) : (
-                        <div className="space-y-3">
-                          {sentRecommendations.flatMap((rec) => (
-                            (rec.items || []).map((item) => (
-                              <div key={`${rec.id}-${item.movie_id}`} className="flex items-start gap-3 bg-white/5 rounded-lg p-3">
-                                <div className="w-10 h-14 rounded-md overflow-hidden bg-white/10">
-                                  <img src={`https://image.tmdb.org/t/p/w92${item.poster_path || ''}`} alt="" className="w-full h-full object-cover" onError={(e)=>{e.currentTarget.style.display='none'}} />
-                                </div>
-                                <div className="flex-1">
-                                  <div className="text-white text-sm font-medium">{item.movie_title || rec.title}</div>
-                                  <div className="text-xs text-gray-400 mt-1">To: {rec.to_user?.name || rec.to_user?.username || `@${rec.to_user_id}`}</div>
-                                  {rec.note && <div className="text-xs text-gray-400 mt-1">{rec.note}</div>}
-                                  <div className="text-[11px] text-gray-500 mt-1">{new Date(rec.created_at).toLocaleString('en-US')}</div>
-                                </div>
-                              </div>
-                            ))
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                <WorkspacePanel
+                  eyebrow="Delivery history"
+                  title="Sent recommendations"
+                  description="Review what you shared and whether the recipient marked it as interesting or passed."
+                >
+                  <div className="p-4 sm:p-6">
+                    {recommendationsLoading ? (
+                      <div className="flex min-h-48 items-center justify-center">
+                        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-[#e85d4a]" />
+                      </div>
+                    ) : sentRecommendations.length === 0 ? (
+                      <EmptyState
+                        icon={Share2}
+                        title="Nothing sent yet"
+                        description="Recommendations you send to accepted friends will remain available here."
+                      />
+                    ) : (
+                      <div className="space-y-4">
+                        {sentRecommendations.map((recommendation) => renderRecommendationCard(recommendation, 'sent'))}
+                        {renderRecommendationPagination(
+                          sentRecommendationsPage,
+                          sentRecommendationsTotalPages,
+                          setSentRecommendationsPage,
+                          'Sent recommendations',
+                        )}
+                      </div>
+                    )}
                   </div>
-                </div>
+                </WorkspacePanel>
               </div>
             )}
 
