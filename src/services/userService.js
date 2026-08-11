@@ -214,6 +214,34 @@ class UserService {
       return []
     }
   }
+
+  getBlockedUsers(page = 1, limit = 20) {
+    return apiRequest('/api/safety/blocks', { params: { page, limit } })
+  }
+
+  blockUser(userId) {
+    return apiRequest('/api/safety/blocks', {
+      method: 'POST',
+      body: { userId },
+      csrf: true,
+    })
+  }
+
+  unblockUser(userId) {
+    return apiRequest(`/api/safety/blocks/${userId}`, { method: 'DELETE', csrf: true })
+  }
+
+  getMyReports(page = 1, limit = 20) {
+    return apiRequest('/api/safety/reports', { params: { page, limit } })
+  }
+
+  reportUser(userId, category, details) {
+    return apiRequest('/api/safety/reports', {
+      method: 'POST',
+      body: { userId, category, details },
+      csrf: true,
+    })
+  }
 }
 
 export const userService = new UserService()

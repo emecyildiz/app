@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useNavigate, useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Film, Heart, Star, ArrowLeft, UserPlus, UserMinus, Check, X, Share2, LockKeyhole } from 'lucide-react'
+import { Ban, Film, Flag, Heart, Star, ArrowLeft, UserPlus, UserMinus, Check, X, Share2, LockKeyhole } from 'lucide-react'
 import { userService } from '../services/userService'
 import { useAuthStore } from '../store/newAuthStore'
 import RecommendationModal from '../components/RecommendationModal'
@@ -11,12 +11,17 @@ import toast from 'react-hot-toast'
 
 export default function PublicProfile() {
   const { username } = useParams()
+  const navigate = useNavigate()
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [friendStatus, setFriendStatus] = useState('none')
   const [busy, setBusy] = useState(false)
   const { isAuthenticated, user } = useAuthStore()
   const [showRecommendModal, setShowRecommendModal] = useState(false)
+  const [showReportModal, setShowReportModal] = useState(false)
+  const [reportCategory, setReportCategory] = useState('spam')
+  const [reportDetails, setReportDetails] = useState('')
+  const [reportBusy, setReportBusy] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -84,6 +89,46 @@ export default function PublicProfile() {
       if (ok) setFriendStatus('none')
     } finally {
       setBusy(false)
+    }
+  }
+
+  const handleBlock = async () => {
+    if (!profile) return
+    const confirmed = window.confirm(
+      `Block @${profile.username}? Existing friendship will be removed and both accounts will be unable to find or contact each other.`,
+    )
+    if (!confirmed) return
+    setBusy(true)
+    try {
+      await userService.blockUser(profile.id)
+      toast.success(`@${profile.username} has been blocked.`)
+      navigate('/profile/safety', { replace: true })
+    } catch (error) {
+      toast.error(error?.message || 'The account could not be blocked.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const handleReport = async (event) => {
+    event.preventDefault()
+    if (!profile || reportDetails.trim().length < 10) return
+    setReportBusy(true)
+    try {
+      await userService.reportUser(profile.id, reportCategory, reportDetails.trim())
+      toast.success('Your report has been submitted for review.')
+      setShowReportModal(false)
+      setReportCategory('spam')
+      setReportDetails('')
+    } catch (error) {
+      const messages = {
+        duplicate_recent_report: 'You already submitted a matching report recently.',
+        daily_report_limit_reached: 'Your daily report limit has been reached.',
+        too_many_reports: 'Too many reports were submitted. Please try again later.',
+      }
+      toast.error(messages[error?.code] || error?.message || 'The report could not be submitted.')
+    } finally {
+      setReportBusy(false)
     }
   }
 
@@ -164,6 +209,18 @@ export default function PublicProfile() {
                         </button>
                       </>
                     )}
+                    <button onClick={() => setShowReportModal(true)} disabled={busy} className="btn btn-secondary">
+                      <Flag className="w-4 h-4" />
+                      Report
+                    </button>
+                    <button
+                      onClick={handleBlock}
+                      disabled={busy}
+                      className="btn btn-secondary border-red-500/50 text-red-300 hover:bg-red-500/10 hover:text-red-200"
+                    >
+                      <Ban className="w-4 h-4" />
+                      Block
+                    </button>
                   </>
                 )}
                 {!isAuthenticated && (
@@ -223,6 +280,85 @@ export default function PublicProfile() {
             setShowRecommendModal(false)
           }}
         />
+      )}
+
+      {showReportModal && profile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="report-dialog-title"
+            className="ui-surface w-full max-w-lg p-6 sm:p-8"
+          >
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                <p className="ui-eyebrow text-[#e85d4a]">Safety report</p>
+                <h2 id="report-dialog-title" className="mt-2 font-display text-3xl text-[#f3efe6]">
+                  Report @{profile.username}
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-[#918e86]">
+                  Reports are visible only to the moderation team. Include concrete context without sharing passwords or other sensitive information.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowReportModal(false)}
+                disabled={reportBusy}
+                className="btn btn-secondary p-2"
+                aria-label="Close report dialog"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleReport} className="mt-6 space-y-5">
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-[#d8d2c7]">Reason</span>
+                <select
+                  value={reportCategory}
+                  onChange={(event) => setReportCategory(event.target.value)}
+                  className="input"
+                >
+                  <option value="spam">Spam</option>
+                  <option value="harassment">Harassment</option>
+                  <option value="inappropriate_content">Inappropriate content</option>
+                  <option value="impersonation">Impersonation</option>
+                  <option value="other">Other</option>
+                </select>
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-[#d8d2c7]">What happened?</span>
+                <textarea
+                  value={reportDetails}
+                  onChange={(event) => setReportDetails(event.target.value.slice(0, 2000))}
+                  minLength={10}
+                  maxLength={2000}
+                  rows={6}
+                  required
+                  className="input resize-y"
+                  placeholder="Describe the behavior and where you encountered it."
+                />
+                <span className="mt-2 block text-right font-mono text-[10px] text-[#77756f]">
+                  {reportDetails.length}/2000
+                </span>
+              </label>
+
+              <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                <button type="button" onClick={() => setShowReportModal(false)} disabled={reportBusy} className="btn btn-secondary">
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={reportBusy || reportDetails.trim().length < 10}
+                  className="btn btn-primary disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {reportBusy ? 'Submitting…' : 'Submit report'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   )

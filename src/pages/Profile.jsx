@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { User, Mail, Film, Star, Heart, Settings, LogOut, Edit2, Users, UserMinus, Check, X, MessageSquare, Share2, ArrowLeft } from 'lucide-react'
+import { User, Mail, Film, Star, Heart, Settings, LogOut, Edit2, Users, UserMinus, Check, X, MessageSquare, Share2, ArrowLeft, Ban, Flag, Shield } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 
@@ -31,6 +31,25 @@ const recommendationStatus = {
   },
 }
 
+const reportStatus = {
+  pending: {
+    label: 'Awaiting review',
+    className: 'border-[#d8a34f]/35 bg-[#d8a34f]/10 text-[#e6bd78]',
+  },
+  reviewing: {
+    label: 'Under review',
+    className: 'border-sky-400/30 bg-sky-400/10 text-sky-300',
+  },
+  resolved: {
+    label: 'Resolved',
+    className: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300',
+  },
+  dismissed: {
+    label: 'Dismissed',
+    className: 'border-white/15 bg-white/[0.04] text-[#918e86]',
+  },
+}
+
 const Profile = () => {
   const { user, profile, updateProfile, signOut, deleteAccount, isLoading } = useAuthStore()
   const location = useLocation()
@@ -45,6 +64,12 @@ const Profile = () => {
   const [friends, setFriends] = useState([])
   const [requests, setRequests] = useState([])
   const [friendsBusy, setFriendsBusy] = useState(false)
+
+  // Safety state
+  const [blockedUsers, setBlockedUsers] = useState([])
+  const [myReports, setMyReports] = useState([])
+  const [safetyLoading, setSafetyLoading] = useState(false)
+  const [safetyActionId, setSafetyActionId] = useState(null)
 
   // Movie ratings state
   const [ratedMovies, setRatedMovies] = useState([])
@@ -280,6 +305,7 @@ const Profile = () => {
     { id: 'comments', label: 'My comments', icon: MessageSquare },
     { id: 'recommendations', label: 'Recommendations', icon: Share2 },
     { id: 'friends', label: 'Friends', icon: Users },
+    { id: 'safety', label: 'Safety', icon: Shield },
     { id: 'settings', label: 'Settings', icon: Settings },
   ]
 
@@ -345,6 +371,30 @@ const Profile = () => {
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [activeTab])
+
+  useEffect(() => {
+    let mounted = true
+    const loadSafetyData = async () => {
+      if (activeTab !== 'safety') return
+      setSafetyLoading(true)
+      try {
+        const [blocks, reports] = await Promise.all([
+          userService.getBlockedUsers(1, 50),
+          userService.getMyReports(1, 20),
+        ])
+        if (mounted) {
+          setBlockedUsers(Array.isArray(blocks?.items) ? blocks.items : [])
+          setMyReports(Array.isArray(reports?.items) ? reports.items : [])
+        }
+      } catch (error) {
+        if (mounted) toast.error(error?.message || 'Safety information could not be loaded.')
+      } finally {
+        if (mounted) setSafetyLoading(false)
+      }
+    }
+    loadSafetyData()
+    return () => { mounted = false }
   }, [activeTab])
 
   useEffect(() => {
@@ -493,6 +543,24 @@ const Profile = () => {
       }
     } finally {
       setFriendsBusy(false)
+    }
+  }
+
+  const unblockUser = async (blockedUser) => {
+    setSafetyActionId(blockedUser.id)
+    try {
+      const result = await userService.unblockUser(blockedUser.id)
+      if (result?.removed) {
+        setBlockedUsers((current) => current.filter((item) => item.id !== blockedUser.id))
+        toast.success(`@${blockedUser.username} has been unblocked.`)
+      } else {
+        setBlockedUsers((current) => current.filter((item) => item.id !== blockedUser.id))
+        toast.success('The account was already unblocked.')
+      }
+    } catch (error) {
+      toast.error(error?.message || 'The account could not be unblocked.')
+    } finally {
+      setSafetyActionId(null)
     }
   }
 
@@ -1129,6 +1197,122 @@ const Profile = () => {
                       </div>
                     )}
                   </div>
+                </WorkspacePanel>
+              </div>
+            )}
+
+            {activeTab === 'safety' && (
+              <div className="mx-auto max-w-4xl space-y-8">
+                <WorkspacePanel
+                  eyebrow="Account controls"
+                  title="Blocked accounts"
+                  description="Blocked accounts cannot find your profile, send friend requests, or exchange recommendations with you. Unblocking does not restore an old friendship."
+                >
+                  {safetyLoading ? (
+                    <div className="flex min-h-48 items-center justify-center">
+                      <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-[#e85d4a]" />
+                    </div>
+                  ) : blockedUsers.length === 0 ? (
+                    <EmptyState
+                      icon={Ban}
+                      title="No blocked accounts"
+                      description="Accounts you block from a public profile will appear here."
+                    />
+                  ) : (
+                    <ul className="divide-y divide-white/10 px-5 sm:px-6">
+                      {blockedUsers.map((blockedUser) => (
+                        <li key={blockedUser.id} className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="flex min-w-0 items-center gap-3">
+                            <UserAvatar
+                              src={blockedUser.avatar}
+                              name={blockedUser.name}
+                              username={blockedUser.username}
+                              className="h-11 w-11 shrink-0 rounded-full border border-white/10 object-cover"
+                              fallbackClassName="text-xs"
+                            />
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium text-[#f3efe6]">
+                                {blockedUser.name || blockedUser.username}
+                              </p>
+                              <p className="truncate text-xs text-[#918e86]">@{blockedUser.username}</p>
+                              <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-[#66645f]">
+                                Blocked {new Date(blockedUser.blocked_at).toLocaleDateString('en-US', {
+                                  year: 'numeric', month: 'short', day: 'numeric',
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => unblockUser(blockedUser)}
+                            disabled={safetyActionId === blockedUser.id}
+                            className="btn btn-secondary shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <Shield className="h-4 w-4" />
+                            {safetyActionId === blockedUser.id ? 'Unblocking…' : 'Unblock'}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </WorkspacePanel>
+
+                <WorkspacePanel
+                  eyebrow="Moderation history"
+                  title="Your reports"
+                  description="Track the review state of reports you submitted. Internal moderation notes and actions remain private."
+                >
+                  {safetyLoading ? (
+                    <div className="flex min-h-48 items-center justify-center">
+                      <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/10 border-t-[#e85d4a]" />
+                    </div>
+                  ) : myReports.length === 0 ? (
+                    <EmptyState
+                      icon={Flag}
+                      title="No reports submitted"
+                      description="Reports you send from another member's public profile will appear here."
+                    />
+                  ) : (
+                    <ul className="divide-y divide-white/10 px-5 sm:px-6">
+                      {myReports.map((report) => {
+                        const status = reportStatus[report.status] || reportStatus.pending
+                        const reportedUser = report.reported_user || {}
+                        return (
+                          <li key={report.id} className="py-5">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                              <div className="flex min-w-0 items-center gap-3">
+                                <UserAvatar
+                                  src={reportedUser.avatar}
+                                  name={reportedUser.name}
+                                  username={reportedUser.username}
+                                  className="h-11 w-11 shrink-0 rounded-full border border-white/10 object-cover"
+                                  fallbackClassName="text-xs"
+                                />
+                                <div className="min-w-0">
+                                  <p className="truncate text-sm font-medium text-[#f3efe6]">
+                                    {reportedUser.name || reportedUser.username || 'Unavailable account'}
+                                  </p>
+                                  {reportedUser.username && <p className="truncate text-xs text-[#918e86]">@{reportedUser.username}</p>}
+                                </div>
+                              </div>
+                              <span className={`w-fit shrink-0 border px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.14em] ${status.className}`}>
+                                {status.label}
+                              </span>
+                            </div>
+                            <div className="mt-4 flex flex-col gap-1 border-l border-white/10 pl-4 text-xs text-[#918e86] sm:flex-row sm:items-center sm:gap-3">
+                              <span className="capitalize">{String(report.category || 'other').replaceAll('_', ' ')}</span>
+                              <span className="hidden text-[#55534f] sm:inline">/</span>
+                              <time dateTime={report.created_at}>
+                                Submitted {new Date(report.created_at).toLocaleDateString('en-US', {
+                                  year: 'numeric', month: 'short', day: 'numeric',
+                                })}
+                              </time>
+                            </div>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )}
                 </WorkspacePanel>
               </div>
             )}
