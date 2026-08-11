@@ -24,7 +24,6 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
     } else {
       setTitle((prev) => prev || 'Movie recommendation');
     }
-    // Preselect recipient when provided from parent (friend profile flow)
     if (toUserId && toUser) {
       setSelectedUser({ id: toUserId, ...toUser });
     }
@@ -38,11 +37,11 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
     }
 
     try {
-      const data = await userService.searchUsers(query, 10);
+      const data = await userService.searchFriends(query, 10);
       setSearchResults(data);
     } catch (error) {
       console.error('User search failed:', error);
-      toast.error('Users could not be searched.');
+      toast.error('Friends could not be searched.');
     }
   };
 
@@ -57,16 +56,15 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
       toast.error('Please enter a title.');
       return;
     }
-    // Validate movies in multi-select mode
-    let movieIds = [];
+    let movies = [];
     if (isMultiMovieMode) {
       if (selectedMovies.length === 0) {
         toast.error('Please select at least one movie.');
         return;
       }
-      movieIds = selectedMovies.map((m) => m.id);
+      movies = selectedMovies;
     } else {
-      movieIds = [movie.id];
+      movies = [movie];
     }
 
     setIsLoading(true);
@@ -75,14 +73,20 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
         recipientId,
         title,
         note,
-        movieIds
+        movies
       );
       toast.success('Recommendation sent.');
       onSuccess?.();
       onClose();
     } catch (error) {
       console.error('Recommendation failed:', error);
-      toast.error('The recommendation could not be sent.');
+      const errorMessages = {
+        recommendations_require_friendship: 'Recommendations can only be sent to accepted friends.',
+        duplicate_recent_recommendation: 'You already recommended one of these movies to this friend in the last 24 hours.',
+        daily_recommendation_limit_reached: 'You have reached the daily recommendation limit.',
+        too_many_recommendations: 'Too many recommendations were sent. Please wait a few minutes.',
+      };
+      toast.error(errorMessages[error?.code] || error?.message || 'The recommendation could not be sent.');
     } finally {
       setIsLoading(false);
     }
@@ -160,7 +164,7 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
                       type="text"
                       value={searchQuery}
                       onChange={(e) => handleSearch(e.target.value)}
-                      placeholder="Search users..."
+                      placeholder="Search your friends..."
                       className="input w-full"
                     />
                     {searchResults.length > 0 && (
@@ -225,7 +229,7 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
             {isMultiMovieMode && (
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Hangi filmler?
+                  Which films?
                 </label>
                 <div className="relative">
                   <input
@@ -272,14 +276,14 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
                     ))}
                   </div>
                 )}
-                <div className="mt-2 text-xs text-gray-400">You can select up to three movies..</div>
+                <div className="mt-2 text-xs text-gray-400">You can select up to three movies.</div>
               </div>
             )}
 
-            {/* Not */}
+            {/* Optional note */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                Not (Opsiyonel)
+                Note (optional)
               </label>
               <textarea
                 value={note}
@@ -290,7 +294,7 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
               />
             </div>
 
-            {/* Butonlar */}
+            {/* Actions */}
             <div className="flex justify-end space-x-2 pt-4">
               <button
                 type="button"

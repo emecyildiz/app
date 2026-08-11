@@ -1,5 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
 
 const { query, withTransaction } = require('../config/database');
 const { normalizeEmail, normalizeUsername, validateRegistration } = require('../auth/validation');
@@ -7,6 +8,15 @@ const { loadSession, requireSession, requireSessionCsrf } = require('../middlewa
 
 const router = express.Router();
 router.use(loadSession);
+
+const recommendationLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 5,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  keyGenerator: (req) => req.user.id,
+  message: { error: 'too_many_recommendations' },
+});
 
 function requireRoles(...roles) {
   return (req, res, next) => {
@@ -25,6 +35,10 @@ function positiveInteger(value, field = 'id') {
     throw error;
   }
   return parsed;
+}
+
+function isUuid(value) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ''));
 }
 
 function pagination(input) {
@@ -65,7 +79,10 @@ async function ensureMovie(db, input) {
     `INSERT INTO movies (id, tmdb_id, title, poster_path)
      VALUES ($1, $1, $2, $3)
      ON CONFLICT (id) DO UPDATE
-       SET title = EXCLUDED.title,
+       SET title = CASE
+             WHEN EXCLUDED.title = concat('Movie #', EXCLUDED.id::text) THEN movies.title
+             ELSE EXCLUDED.title
+           END,
            poster_path = COALESCE(EXCLUDED.poster_path, movies.poster_path)
      RETURNING id, tmdb_id, title, poster_path, created_at, updated_at`,
     [id, title || `Movie #${id}`, posterPath],
@@ -470,9 +487,35 @@ router.delete('/comments/:movieId', requireSessionCsrf, async (req, res, next) =
   }
 });
 
+router.get('/friends/search', requireSession, async (req, res, next) => {
+  try {
+    const search = String(req.query.q || '').trim();
+    if (search.length < 2) return res.json([]);
+    const limit = Math.min(20, Math.max(1, Number.parseInt(req.query.limit || '10', 10) || 10));
+    const pattern = `%${escapeLikePattern(search.slice(0, 100))}%`;
+    const result = await query(
+      `SELECT p.id, p.username, p.name, p.avatar_url AS avatar, u.role
+       FROM friendships f
+       JOIN profiles p ON p.id = CASE WHEN f.from_user_id = $1 THEN f.to_user_id ELSE f.from_user_id END
+       JOIN users u ON u.id = p.id
+       WHERE f.status = 'accepted'
+         AND (f.from_user_id = $1 OR f.to_user_id = $1)
+         AND u.status = 'ACTIVE'
+         AND (p.username ILIKE $2 ESCAPE '\\' OR p.name ILIKE $2 ESCAPE '\\')
+       ORDER BY CASE WHEN lower(p.username::text) = lower($3) THEN 0 ELSE 1 END, p.username
+       LIMIT $4`,
+      [req.user.id, pattern, search, limit],
+    );
+    return res.json(result.rows);
+  } catch (error) {
+    return next(error);
+  }
+});
+
 router.get('/friends/status/:otherUserId', requireSession, async (req, res, next) => {
   try {
     if (req.params.otherUserId === req.user.id) return res.json({ status: 'self' });
+    if (!isUuid(req.params.otherUserId)) return res.status(400).json({ error: 'invalid_user_identifier' });
     const result = await query(
       `SELECT status, from_user_id, to_user_id FROM friendships
        WHERE (from_user_id = $1 AND to_user_id = $2) OR (from_user_id = $2 AND to_user_id = $1)
@@ -482,8 +525,8 @@ router.get('/friends/status/:otherUserId', requireSession, async (req, res, next
     if (result.rowCount === 0) return res.json({ status: 'none' });
     const row = result.rows[0];
     const status = row.status === 'pending'
-      ? (row.from_user_id === req.user.id ? 'pending_sent' : 'pending_received')
-      : row.status;
+      ? (row.from_user_id === req.user.id ? 'pending_outgoing' : 'pending_incoming')
+      : (row.status === 'accepted' ? 'friends' : 'none');
     return res.json({ status });
   } catch (error) {
     return next(error);
@@ -493,7 +536,7 @@ router.get('/friends/status/:otherUserId', requireSession, async (req, res, next
 router.post('/friends/request', requireSessionCsrf, async (req, res, next) => {
   try {
     const toUserId = String(req.body?.toUserId || '');
-    if (!toUserId || toUserId === req.user.id) return res.status(400).json({ error: 'invalid_friend_request' });
+    if (!isUuid(toUserId) || toUserId === req.user.id) return res.status(400).json({ error: 'invalid_friend_request' });
     const target = await query("SELECT 1 FROM users WHERE id = $1 AND status = 'ACTIVE'", [toUserId]);
     if (target.rowCount === 0) return res.status(404).json({ error: 'user_not_found' });
     await query(
@@ -502,7 +545,7 @@ router.post('/friends/request', requireSessionCsrf, async (req, res, next) => {
        DO UPDATE SET from_user_id = EXCLUDED.from_user_id, to_user_id = EXCLUDED.to_user_id, status = 'pending'`,
       [req.user.id, toUserId],
     );
-    return res.json({ success: true, status: 'pending_sent' });
+    return res.json({ success: true, status: 'pending_outgoing' });
   } catch (error) {
     return next(error);
   }
@@ -512,7 +555,12 @@ router.post('/friends/respond', requireSessionCsrf, async (req, res, next) => {
   try {
     const action = req.body?.action;
     if (!['accept', 'reject'].includes(action)) return res.status(400).json({ error: 'invalid_friend_response' });
-    const values = [req.user.id, req.body?.requestId || null, req.body?.fromUserId || null, action === 'accept' ? 'accepted' : 'rejected'];
+    const requestId = req.body?.requestId || null;
+    const fromUserId = req.body?.fromUserId || null;
+    if ((!requestId && !fromUserId) || (requestId && !isUuid(requestId)) || (fromUserId && !isUuid(fromUserId))) {
+      return res.status(400).json({ error: 'invalid_friend_response' });
+    }
+    const values = [req.user.id, requestId, fromUserId, action === 'accept' ? 'accepted' : 'rejected'];
     const result = await query(
       `UPDATE friendships SET status = $4
        WHERE to_user_id = $1 AND status = 'pending'
@@ -521,7 +569,7 @@ router.post('/friends/respond', requireSessionCsrf, async (req, res, next) => {
       values,
     );
     if (result.rowCount === 0) return res.status(404).json({ error: 'friend_request_not_found' });
-    return res.json({ success: true, status: action === 'accept' ? 'accepted' : 'none' });
+    return res.json({ success: true, status: action === 'accept' ? 'friends' : 'none' });
   } catch (error) {
     return next(error);
   }
@@ -529,6 +577,7 @@ router.post('/friends/respond', requireSessionCsrf, async (req, res, next) => {
 
 router.delete('/friends/:otherUserId', requireSessionCsrf, async (req, res, next) => {
   try {
+    if (!isUuid(req.params.otherUserId)) return res.status(400).json({ error: 'invalid_user_identifier' });
     await query(
       'DELETE FROM friendships WHERE (from_user_id = $1 AND to_user_id = $2) OR (from_user_id = $2 AND to_user_id = $1)',
       [req.user.id, req.params.otherUserId],
@@ -573,32 +622,95 @@ router.get('/friends/requests', requireSession, async (req, res, next) => {
   }
 });
 
-router.post('/recommendations', requireSessionCsrf, async (req, res, next) => {
+router.post('/recommendations', requireSessionCsrf, recommendationLimiter, async (req, res, next) => {
   try {
     const toUserId = String(req.body?.toUserId || '');
     const title = String(req.body?.title || '').trim();
     const note = String(req.body?.note || '').trim();
-    const movieIds = [...new Set((Array.isArray(req.body?.movieIds) ? req.body.movieIds : []).map((id) => positiveInteger(id, 'movieId')))];
-    if (!toUserId || toUserId === req.user.id) return res.status(400).json({ error: 'invalid_recipient' });
-    if (!title || title.length > 200 || note.length > 2000 || movieIds.length < 1 || movieIds.length > 20) {
+    const rawMovies = Array.isArray(req.body?.movies)
+      ? req.body.movies
+      : (Array.isArray(req.body?.movieIds) ? req.body.movieIds.map((id) => ({ id })) : []);
+    const moviesById = new Map();
+    for (const entry of rawMovies) {
+      const movieId = positiveInteger(entry?.id ?? entry, 'movieId');
+      if (!moviesById.has(movieId)) {
+        moviesById.set(movieId, {
+          id: movieId,
+          title: String(entry?.title || entry?.original_title || `Movie #${movieId}`).trim().slice(0, 300),
+          posterPath: entry?.poster_path == null ? null : String(entry.poster_path).trim().slice(0, 500),
+        });
+      }
+    }
+    const movies = [...moviesById.values()];
+    if (!isUuid(toUserId) || toUserId === req.user.id) return res.status(400).json({ error: 'invalid_recipient' });
+    if (!title || title.length > 200 || note.length > 2000 || movies.length < 1 || movies.length > 3) {
       return res.status(400).json({ error: 'invalid_recommendation' });
     }
 
     const recommendation = await withTransaction(async (client) => {
-      const recipient = await client.query("SELECT 1 FROM users WHERE id = $1 AND status = 'ACTIVE'", [toUserId]);
+      const recipient = await client.query(
+        `SELECT u.id,
+                EXISTS (
+                  SELECT 1 FROM friendships f
+                  WHERE f.status = 'accepted'
+                    AND ((f.from_user_id = $1 AND f.to_user_id = $2)
+                      OR (f.from_user_id = $2 AND f.to_user_id = $1))
+                ) AS friends
+         FROM users u
+         WHERE u.id = $2 AND u.status = 'ACTIVE'`,
+        [req.user.id, toUserId],
+      );
       if (recipient.rowCount === 0) {
         const error = new Error('Recipient not found.');
         error.status = 404;
         error.code = 'recipient_not_found';
         throw error;
       }
+      if (!recipient.rows[0].friends) {
+        const error = new Error('Recommendations can only be sent to accepted friends.');
+        error.status = 403;
+        error.code = 'recommendations_require_friendship';
+        throw error;
+      }
+
+      const sentRecently = await client.query(
+        `SELECT count(*)::int AS count
+         FROM recommendations
+         WHERE from_user_id = $1 AND created_at > now() - interval '24 hours'`,
+        [req.user.id],
+      );
+      if (sentRecently.rows[0].count >= 20) {
+        const error = new Error('The daily recommendation limit has been reached.');
+        error.status = 429;
+        error.code = 'daily_recommendation_limit_reached';
+        throw error;
+      }
+
+      const duplicate = await client.query(
+        `SELECT 1
+         FROM recommendations r
+         JOIN recommendation_items ri ON ri.recommendation_id = r.id
+         WHERE r.from_user_id = $1
+           AND r.to_user_id = $2
+           AND r.created_at > now() - interval '24 hours'
+           AND ri.movie_id = ANY($3::bigint[])
+         LIMIT 1`,
+        [req.user.id, toUserId, movies.map((movie) => movie.id)],
+      );
+      if (duplicate.rowCount > 0) {
+        const error = new Error('One of these movies was already recommended to this friend recently.');
+        error.status = 409;
+        error.code = 'duplicate_recent_recommendation';
+        throw error;
+      }
+
       const result = await client.query(
         `INSERT INTO recommendations (from_user_id, to_user_id, title, note)
          VALUES ($1, $2, $3, $4) RETURNING *`,
         [req.user.id, toUserId, title, note || null],
       );
-      for (const movieId of movieIds) {
-        const movie = await ensureMovie(client, { id: movieId });
+      for (const movieInput of movies) {
+        const movie = await ensureMovie(client, movieInput);
         await client.query(
           `INSERT INTO recommendation_items (recommendation_id, movie_id, movie_title, poster_path)
            VALUES ($1, $2, $3, $4)`,

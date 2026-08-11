@@ -221,7 +221,6 @@ export default function PublicProfile() {
           toUser={{ avatar: profile.avatar, name: profile.name, username: profile.username }}
           onSuccess={() => {
             setShowRecommendModal(false)
-            toast.success('Recommendation sent.')
           }}
         />
       )}

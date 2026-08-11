@@ -1,11 +1,11 @@
 import { apiRequest } from './apiClient'
 
 class RecommendationService {
-  createRecommendation(toUserId, title, note, movieIds) {
+  createRecommendation(toUserId, title, note, movies) {
     return apiRequest('/api/recommendations', {
       method: 'POST',
       csrf: true,
-      body: { toUserId, title, note, movieIds },
+      body: { toUserId, title, note, movies },
     })
   }
 

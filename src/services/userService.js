@@ -88,6 +88,16 @@ class UserService {
     }
   }
 
+  async searchFriends(search, limit = 10) {
+    try {
+      const result = await apiRequest('/api/friends/search', { params: { q: search, limit } })
+      return Array.isArray(result) ? result : []
+    } catch (error) {
+      console.error('Unable to search friends:', error)
+      return []
+    }
+  }
+
   async getPublicProfile(identifier) {
     try {
       return await apiRequest(`/api/users/public/${encodeURIComponent(identifier)}`)

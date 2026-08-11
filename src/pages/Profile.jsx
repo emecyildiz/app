@@ -65,6 +65,10 @@ const Profile = () => {
     },
   })
 
+  useEffect(() => {
+    setValue('isPublic', (profile?.social_links?.privacy || 'public') !== 'private')
+  }, [profile?.social_links?.privacy, setValue])
+
   const onSubmit = async (data) => {
     try {
       const updates = {
@@ -86,6 +90,10 @@ const Profile = () => {
       console.error('Profile update error:', error)
       toast.error('Profile could not be updated: ' + (error?.message || 'Unknown error'))
     }
+  }
+
+  const savePrivacy = async () => {
+    await updateProfile({ isPublic: watch('isPublic') })
   }
 
   useEffect(() => {
@@ -1000,7 +1008,7 @@ const Profile = () => {
                                 </div>
                                 <div className="flex-1">
                                   <div className="text-white text-sm font-medium">{item.movie_title || rec.title}</div>
-                                  <div className="text-xs text-gray-400 mt-1">Kime: {rec.to_user?.name || rec.to_user?.username || `@${rec.to_user_id}`}</div>
+                                  <div className="text-xs text-gray-400 mt-1">To: {rec.to_user?.name || rec.to_user?.username || `@${rec.to_user_id}`}</div>
                                   {rec.note && <div className="text-xs text-gray-400 mt-1">{rec.note}</div>}
                                   <div className="text-[11px] text-gray-500 mt-1">{new Date(rec.created_at).toLocaleString('en-US')}</div>
                                 </div>
@@ -1020,30 +1028,19 @@ const Profile = () => {
                 <h2 className="text-2xl font-bold text-white mb-6">Account settings</h2>
                 <div className="space-y-6">
                   <div className="glass rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-white mb-4">Email notifications</h3>
-                    <div className="space-y-3">
-                      <label className="flex items-center justify-between">
-                        <span className="text-gray-300">Receive notifications about new movies</span>
-                        <input
-                          type="checkbox"
-                          className="w-5 h-5 rounded border-gray-600 bg-dark-200 text-primary-500 focus:ring-primary-500"
-                          defaultChecked
-                        />
-                      </label>
-                      <label className="flex items-center justify-between">
-                        <span className="text-gray-300">Weekly recommendations</span>
-                        <input
-                          type="checkbox"
-                          className="w-5 h-5 rounded border-gray-600 bg-dark-200 text-primary-500 focus:ring-primary-500"
-                          defaultChecked
-                        />
-                      </label>
-                    </div>
+                    <h3 className="text-lg font-semibold text-white mb-2">Account email</h3>
+                    <p className="text-white font-medium break-all">{user?.email}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-gray-400">
+                      This address is used for sign-in, verification, and account recovery. Email changes and optional notification subscriptions are not currently available.
+                    </p>
                   </div>
 
                   <div className="glass rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-white mb-4">Gizlilik</h3>
-                    <div className="space-y-3">
+                    <h3 className="text-lg font-semibold text-white mb-2">Privacy</h3>
+                    <p className="mb-4 text-sm leading-relaxed text-gray-400">
+                      Private profiles remain discoverable so people can send friend requests, but activity and profile details are visible only to accepted friends.
+                    </p>
+                    <div className="space-y-4">
                       <label className="flex items-center justify-between">
                         <span className="text-gray-300">Make my profile public</span>
                         <input
@@ -1052,6 +1049,14 @@ const Profile = () => {
                           className="w-5 h-5 rounded border-gray-600 bg-dark-200 text-primary-500 focus:ring-primary-500"
                         />
                       </label>
+                      <button
+                        type="button"
+                        onClick={savePrivacy}
+                        disabled={isLoading}
+                        className="btn btn-primary disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {isLoading ? 'Saving...' : 'Save privacy setting'}
+                      </button>
                     </div>
                   </div>
 

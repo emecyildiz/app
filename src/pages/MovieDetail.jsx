@@ -82,7 +82,7 @@ const MovieDetail = () => {
   }
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'Tarih yok'
+    if (!dateString) return 'Unknown'
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -94,7 +94,7 @@ const MovieDetail = () => {
     if (!minutes) return null
     const hours = Math.floor(minutes / 60)
     const mins = minutes % 60
-    return `${hours}s ${mins}dk`
+    return `${hours}h ${mins}m`
   }
 
   const formatBudget = (budget) => {
@@ -207,13 +207,15 @@ const MovieDetail = () => {
   return (
     <div className="min-h-screen pt-20">
       {/* Backdrop */}
-      <div className="relative h-96 md:h-[500px] overflow-hidden">
+      <div className="relative min-h-[760px] overflow-hidden md:h-[500px] md:min-h-0">
         <img
           src={backdropURL || posterURL}
           alt={title}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover scale-[1.02]"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-dark-900 via-dark-900/80 to-transparent" />
+        <div className="absolute inset-0 bg-black/55" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0d0e0c] via-[#0d0e0c]/75 to-[#0d0e0c]/25" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0d0e0c]/85 via-[#0d0e0c]/40 to-transparent" />
         
         {/* Back Button */}
         <Link
@@ -237,7 +239,7 @@ const MovieDetail = () => {
                 <img
                   src={posterURL}
                   alt={title}
-                  className="w-48 md:w-64 rounded-lg shadow-2xl"
+                  className="w-36 rounded-lg shadow-2xl md:w-64"
                 />
               </motion.div>
 
@@ -245,7 +247,7 @@ const MovieDetail = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex-1"
+                className="flex-1 rounded-2xl border border-white/10 bg-[#0d0e0c]/80 p-5 shadow-2xl backdrop-blur-md md:p-6"
               >
                 <h1 className="text-3xl md:text-5xl font-bold text-white mb-2">
                   {title}
@@ -259,17 +261,17 @@ const MovieDetail = () => {
 
                 {/* Rating */}
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="flex items-center gap-2 bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full">
+                  <div className="flex items-center gap-2 rounded-full border border-[#f4c95d]/30 bg-[#171914]/90 px-3 py-1 text-[#f4c95d]">
                     <Star className="w-4 h-4 fill-current" />
                     <span className="font-semibold">{vote_average.toFixed(1)}</span>
                   </div>
-                  <span className="text-gray-300">
+                  <span className="font-medium text-[#f2eee6]">
                     {vote_count.toLocaleString('en-US')} votes
                   </span>
                 </div>
 
                 {/* Meta Info */}
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-300 mb-4">
+                <div className="flex flex-wrap items-center gap-4 text-sm font-medium text-[#e8e3d9] mb-4">
                   {release_date && (
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
@@ -298,7 +300,7 @@ const MovieDetail = () => {
                     {genres.map(genre => (
                       <span
                         key={genre.id}
-                        className="bg-primary-500/20 text-primary-300 px-3 py-1 rounded-full text-sm"
+                        className="rounded-full border border-white/15 bg-black/45 px-3 py-1 text-sm font-medium text-white"
                       >
                         {genre.name}
                       </span>
@@ -411,7 +413,7 @@ const MovieDetail = () => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-8"
+                className="mb-8 rounded-2xl border border-white/10 bg-white/[0.035] p-6"
               >
                 <h2 className="text-2xl font-bold text-white mb-4">Overview</h2>
                 <p className="text-gray-300 leading-relaxed">{overview}</p>
@@ -425,7 +427,7 @@ const MovieDetail = () => {
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-8"
               >
-                <h2 className="text-2xl font-bold text-white mb-4">Oyuncular</h2>
+                <h2 className="text-2xl font-bold text-white mb-4">Cast</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {credits.cast.slice(0, 8).map(actor => (
                     <div key={actor.id} className="text-center">
@@ -452,7 +454,7 @@ const MovieDetail = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <h2 className="text-2xl font-bold text-white mb-4">Benzer Filmler</h2>
+                <h2 className="text-2xl font-bold text-white mb-4">Similar films</h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
                   {similarMovies.map(movie => (
                     <MovieCard key={movie.id} movie={movie} />
@@ -467,27 +469,27 @@ const MovieDetail = () => {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-dark-800 rounded-lg p-6"
+              className="rounded-2xl border border-white/10 bg-[#11120f] p-6 shadow-xl"
             >
               <h3 className="text-xl font-bold text-white mb-4">Film details</h3>
               
               <div className="space-y-4">
                 {budget > 0 && (
-                  <div>
+                  <div className="border-b border-white/10 pb-4">
                     <h4 className="text-gray-400 text-sm font-medium">Budget</h4>
-                    <p className="text-white">{formatBudget(budget)}</p>
+                    <p className="mt-1 font-semibold text-[#f7f3eb]">{formatBudget(budget)}</p>
                   </div>
                 )}
 
                 {revenue > 0 && (
-                  <div>
+                  <div className="border-b border-white/10 pb-4">
                     <h4 className="text-gray-400 text-sm font-medium">Revenue</h4>
-                    <p className="text-white">{formatRevenue(revenue)}</p>
+                    <p className="mt-1 font-semibold text-[#f7f3eb]">{formatRevenue(revenue)}</p>
                   </div>
                 )}
 
                 {credits?.crew && (
-                  <div>
+                  <div className="border-b border-white/10 pb-4">
                     <h4 className="text-gray-400 text-sm font-medium mb-2">Director</h4>
                     {credits.crew
                       .filter(person => person.job === 'Director')
@@ -502,7 +504,7 @@ const MovieDetail = () => {
 
                 {credits?.crew && (
                   <div>
-                    <h4 className="text-gray-400 text-sm font-medium mb-2">Senaryo</h4>
+                    <h4 className="text-gray-400 text-sm font-medium mb-2">Writers</h4>
                     {credits.crew
                       .filter(person => person.job === 'Screenplay' || person.job === 'Writer')
                       .slice(0, 3)
@@ -641,7 +643,6 @@ const MovieDetail = () => {
         movie={currentMovie}
         onSuccess={() => {
           setShowRecommendModal(false)
-          toast.success('Movie recommendation sent.')
         }}
       />
     </div>
