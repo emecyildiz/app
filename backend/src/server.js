@@ -7,6 +7,7 @@ const rateLimit = require('express-rate-limit');
 const { query } = require('./config/database');
 const authRouter = require('./routes/auth');
 const dataRouter = require('./routes/data');
+const safetyRouter = require('./routes/safety');
 const tmdbRouter = require('./routes/tmdb');
 
 const app = express();
@@ -77,6 +78,7 @@ app.get('/health', async (req, res, next) => {
 });
 
 app.use('/api/auth', authRouter);
+app.use('/api/safety', safetyRouter);
 app.use('/api', dataRouter);
 app.use('/api', tmdbRouter);
 app.use((req, res) => res.status(404).json({ error: 'not_found' }));

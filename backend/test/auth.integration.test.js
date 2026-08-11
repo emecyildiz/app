@@ -355,6 +355,99 @@ test('registration, login, session, CSRF rotation, and logout work together', as
   assert.equal(acceptedRecommendations.status, 200);
   assert.equal((await acceptedRecommendations.json()).totalCount, 1);
 
+  const invalidBlock = await request('/api/safety/blocks', {
+    method: 'POST',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({ userId: 'not-a-user-id' }),
+  });
+  assert.equal(invalidBlock.status, 400);
+
+  const selfBlock = await request('/api/safety/blocks', {
+    method: 'POST',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({ userId: loginBody.user.id }),
+  });
+  assert.equal(selfBlock.status, 400);
+
+  const block = await request('/api/safety/blocks', {
+    method: 'POST',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({ userId: recipientId }),
+  });
+  assert.equal(block.status, 201);
+  assert.deepEqual(await block.json(), { success: true, created: true });
+
+  const friendshipAfterBlock = await query(
+    `SELECT 1 FROM friendships
+     WHERE (from_user_id = $1 AND to_user_id = $2)
+        OR (from_user_id = $2 AND to_user_id = $1)`,
+    [loginBody.user.id, recipientId],
+  );
+  assert.equal(friendshipAfterBlock.rowCount, 0);
+
+  const repeatedBlock = await request('/api/safety/blocks', {
+    method: 'POST',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({ userId: recipientId }),
+  });
+  assert.equal(repeatedBlock.status, 200);
+  assert.deepEqual(await repeatedBlock.json(), { success: true, created: false });
+
+  const blocks = await request('/api/safety/blocks?page=1&limit=10', {
+    headers: { Cookie: cookie },
+  });
+  assert.equal(blocks.status, 200);
+  const blocksBody = await blocks.json();
+  assert.equal(blocksBody.totalCount, 1);
+  assert.equal(blocksBody.items[0].id, recipientId);
+  assert.equal(blocksBody.items[0].username, 'recipient_user');
+
+  const invalidReport = await request('/api/safety/reports', {
+    method: 'POST',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({ userId: recipientId, category: 'unknown', details: 'This report has enough detail.' }),
+  });
+  assert.equal(invalidReport.status, 400);
+
+  const report = await request('/api/safety/reports', {
+    method: 'POST',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({
+      userId: recipientId,
+      category: 'spam',
+      details: 'Repeated unsolicited messages were sent through the account.',
+    }),
+  });
+  assert.equal(report.status, 201);
+  const reportBody = await report.json();
+  assert.equal(reportBody.report.category, 'spam');
+  assert.equal(reportBody.report.status, 'pending');
+
+  const duplicateReport = await request('/api/safety/reports', {
+    method: 'POST',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({
+      userId: recipientId,
+      category: 'spam',
+      details: 'A duplicate report should be rejected even if its description changes.',
+    }),
+  });
+  assert.equal(duplicateReport.status, 409);
+
+  const reports = await request('/api/safety/reports', { headers: { Cookie: cookie } });
+  assert.equal(reports.status, 200);
+  const reportsBody = await reports.json();
+  assert.equal(reportsBody.totalCount, 1);
+  assert.equal(reportsBody.items[0].status, 'pending');
+  assert.equal(reportsBody.items[0].reported_user.id, recipientId);
+
+  const unblock = await request(`/api/safety/blocks/${recipientId}`, {
+    method: 'DELETE',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+  });
+  assert.equal(unblock.status, 200);
+  assert.deepEqual(await unblock.json(), { success: true, removed: true });
+
   const rejectedLogout = await request('/api/auth/logout', {
     method: 'POST',
     headers: { Cookie: cookie, 'x-csrf-token': 'invalid-token' },
