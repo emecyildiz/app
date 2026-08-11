@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import {
   ChartBarIcon,
   CogIcon,
+  FlagIcon,
   PencilIcon,
   ShieldCheckIcon,
   TrashIcon,
@@ -12,6 +13,7 @@ import toast from 'react-hot-toast'
 import { useAuthStore } from '../store/newAuthStore'
 import { userService } from '../services/userService'
 import { MetricStrip, WorkspacePage, WorkspacePanel, WorkspaceTabs } from '../components/WorkspaceUI'
+import ModerationReportsPanel from '../components/ModerationReportsPanel'
 
 export default function ModeratorDashboard() {
   const { user, profile } = useAuthStore()
@@ -107,6 +109,7 @@ export default function ModeratorDashboard() {
 
   const moderatorTabs = [
     { id: 'overview', label: 'Overview', icon: ChartBarIcon },
+    { id: 'reports', label: 'Reports', icon: FlagIcon },
     { id: 'users', label: 'Members', icon: UsersIcon },
     { id: 'profile', label: 'My profile', icon: CogIcon },
   ]
@@ -232,6 +235,8 @@ export default function ModeratorDashboard() {
           </div>
         </WorkspacePanel>
       )}
+
+      {activeTab === 'reports' && <ModerationReportsPanel />}
 
       {activeTab === 'profile' && (
         <WorkspacePanel

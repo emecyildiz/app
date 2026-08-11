@@ -6,12 +6,14 @@ import {
   UserPlusIcon, 
   CogIcon,
   ChartBarIcon,
+  FlagIcon,
   ShieldCheckIcon,
   UsersIcon,
   ArrowPathIcon
 } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
 import { MetricStrip, WorkspacePage, WorkspacePanel, WorkspaceTabs } from '../components/WorkspaceUI'
+import ModerationReportsPanel from '../components/ModerationReportsPanel'
 
 export default function AdminDashboard() {
   const authStore = useAuthStore()
@@ -244,6 +246,7 @@ export default function AdminDashboard() {
 
   const adminTabs = [
     { id: 'overview', label: 'Overview', icon: ChartBarIcon },
+    { id: 'reports', label: 'Reports', icon: FlagIcon },
     { id: 'users', label: 'Members', icon: UsersIcon },
     { id: 'moderators', label: 'Moderators', icon: ShieldCheckIcon },
     { id: 'settings', label: 'Operations', icon: CogIcon },
@@ -384,6 +387,8 @@ export default function AdminDashboard() {
                 </WorkspacePanel>
               </div>
             )}
+
+            {activeTab === 'reports' && <ModerationReportsPanel />}
 
             {activeTab === 'moderators' && (
               <div className="mt-8 space-y-6">

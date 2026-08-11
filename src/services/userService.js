@@ -33,6 +33,18 @@ class UserService {
     return apiRequest(`/api/admin/moderators/${userId}`, { method: 'DELETE', csrf: true })
   }
 
+  getModerationReports(status = 'pending', page = 1, limit = 20) {
+    return apiRequest('/api/safety/moderation/reports', { params: { status, page, limit } })
+  }
+
+  updateModerationReport(reportId, status, resolutionNote = '') {
+    return apiRequest(`/api/safety/moderation/reports/${reportId}`, {
+      method: 'PATCH',
+      body: { status, resolutionNote },
+      csrf: true,
+    })
+  }
+
   async getMyStats() {
     try {
       return await apiRequest('/api/users/stats')

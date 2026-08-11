@@ -512,6 +512,74 @@ test('registration, login, session, CSRF rotation, and logout work together', as
   assert.equal(reportsBody.items[0].status, 'pending');
   assert.equal(reportsBody.items[0].reported_user.id, recipientId);
 
+  const ordinaryModerationRequest = await request('/api/safety/moderation/reports', {
+    headers: { Cookie: cookie },
+  });
+  assert.equal(ordinaryModerationRequest.status, 403);
+
+  const moderatorRegistration = await request('/api/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({
+      email: 'moderator@example.com',
+      username: 'review_moderator',
+      name: 'Review Moderator',
+      password: 'SecurePass123',
+    }),
+  });
+  assert.equal(moderatorRegistration.status, 201);
+  const moderatorLogin = await request('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email: 'moderator@example.com', password: 'SecurePass123' }),
+  });
+  assert.equal(moderatorLogin.status, 200);
+  const moderatorLoginBody = await moderatorLogin.json();
+  const moderatorCookie = moderatorLogin.headers.get('set-cookie').split(';')[0];
+  await query("UPDATE users SET role = 'MODERATOR' WHERE email = 'moderator@example.com'");
+
+  const moderationReports = await request('/api/safety/moderation/reports?status=pending&page=1&limit=10', {
+    headers: { Cookie: moderatorCookie },
+  });
+  assert.equal(moderationReports.status, 200);
+  const moderationReportsBody = await moderationReports.json();
+  assert.equal(moderationReportsBody.totalCount, 1);
+  assert.equal(moderationReportsBody.counts.pending, 1);
+  assert.equal(moderationReportsBody.items[0].details, 'Repeated unsolicited messages were sent through the account.');
+  assert.equal(moderationReportsBody.items[0].reporter.id, loginBody.user.id);
+  assert.equal(moderationReportsBody.items[0].reported_user.id, recipientId);
+
+  const beginReview = await request(`/api/safety/moderation/reports/${reportBody.report.id}`, {
+    method: 'PATCH',
+    headers: { Cookie: moderatorCookie, 'x-csrf-token': moderatorLoginBody.csrfToken },
+    body: JSON.stringify({ status: 'reviewing' }),
+  });
+  assert.equal(beginReview.status, 200);
+  assert.equal((await beginReview.json()).report.status, 'reviewing');
+
+  const closeWithoutNote = await request(`/api/safety/moderation/reports/${reportBody.report.id}`, {
+    method: 'PATCH',
+    headers: { Cookie: moderatorCookie, 'x-csrf-token': moderatorLoginBody.csrfToken },
+    body: JSON.stringify({ status: 'resolved', resolutionNote: 'Too short' }),
+  });
+  assert.equal(closeWithoutNote.status, 400);
+  assert.equal((await closeWithoutNote.json()).error, 'resolution_note_required');
+
+  const resolveReport = await request(`/api/safety/moderation/reports/${reportBody.report.id}`, {
+    method: 'PATCH',
+    headers: { Cookie: moderatorCookie, 'x-csrf-token': moderatorLoginBody.csrfToken },
+    body: JSON.stringify({
+      status: 'resolved',
+      resolutionNote: 'The report was reviewed and the appropriate account action was recorded.',
+    }),
+  });
+  assert.equal(resolveReport.status, 200);
+  const resolvedReportBody = await resolveReport.json();
+  assert.equal(resolvedReportBody.report.status, 'resolved');
+  assert.ok(resolvedReportBody.report.reviewed_at);
+
+  const updatedUserReports = await request('/api/safety/reports', { headers: { Cookie: cookie } });
+  assert.equal(updatedUserReports.status, 200);
+  assert.equal((await updatedUserReports.json()).items[0].status, 'resolved');
+
   const unblock = await request(`/api/safety/blocks/${recipientId}`, {
     method: 'DELETE',
     headers: { Cookie: cookie, 'x-csrf-token': csrfToken },

@@ -14,6 +14,8 @@ const reportCategories = new Set([
   'impersonation',
   'other',
 ]);
+const moderationReportStatuses = new Set(['pending', 'reviewing', 'resolved', 'dismissed']);
+const actionableReportStatuses = new Set(['reviewing', 'resolved', 'dismissed']);
 
 const reportLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
@@ -40,6 +42,142 @@ function requestError(status, code, message) {
   error.code = code;
   return error;
 }
+
+function requireRoles(...roles) {
+  return (req, res, next) => {
+    if (!req.user || !req.session) return res.status(401).json({ error: 'authentication_required' });
+    if (!roles.includes(req.user.role)) return res.status(403).json({ error: 'forbidden' });
+    return next();
+  };
+}
+
+router.get('/moderation/reports', requireRoles('ADMIN', 'MODERATOR'), async (req, res, next) => {
+  try {
+    const { page, limit } = pagination(req.query);
+    const status = String(req.query.status || 'pending').trim().toLowerCase();
+    if (status !== 'all' && !moderationReportStatuses.has(status)) {
+      return res.status(400).json({ error: 'invalid_report_status' });
+    }
+
+    const visibilitySql = req.user.role === 'ADMIN' ? 'TRUE' : "reported_account.role = 'USER'";
+    const statusSql = status === 'all' ? 'TRUE' : 'ur.status = $1';
+    const values = status === 'all' ? [] : [status];
+    const countResult = await query(
+      `SELECT count(*)::int AS count
+       FROM user_reports ur
+       JOIN users reported_account ON reported_account.id = ur.reported_user_id
+       WHERE ${visibilitySql} AND ${statusSql}`,
+      values,
+    );
+    const totalCount = countResult.rows[0].count;
+    const totalPages = totalCount === 0 ? 0 : Math.ceil(totalCount / limit);
+    const currentPage = totalPages === 0 ? 1 : Math.min(page, totalPages);
+    const offset = (currentPage - 1) * limit;
+    const listValues = [...values, limit, offset];
+    const limitParameter = values.length + 1;
+    const offsetParameter = values.length + 2;
+
+    const [result, countsResult] = await Promise.all([
+      query(
+        `SELECT ur.id, ur.category, ur.details, ur.status, ur.resolution_note,
+                ur.created_at, ur.updated_at, ur.reviewed_at,
+                json_build_object(
+                  'id', reporter_profile.id,
+                  'username', reporter_profile.username,
+                  'name', reporter_profile.name,
+                  'avatar', reporter_profile.avatar_url,
+                  'role', reporter_account.role
+                ) AS reporter,
+                json_build_object(
+                  'id', reported_profile.id,
+                  'username', reported_profile.username,
+                  'name', reported_profile.name,
+                  'avatar', reported_profile.avatar_url,
+                  'role', reported_account.role,
+                  'status', reported_account.status
+                ) AS reported_user,
+                CASE WHEN reviewer_profile.id IS NULL THEN NULL ELSE json_build_object(
+                  'id', reviewer_profile.id,
+                  'username', reviewer_profile.username,
+                  'name', reviewer_profile.name
+                ) END AS reviewer
+         FROM user_reports ur
+         JOIN users reporter_account ON reporter_account.id = ur.reporter_user_id
+         JOIN profiles reporter_profile ON reporter_profile.id = ur.reporter_user_id
+         JOIN users reported_account ON reported_account.id = ur.reported_user_id
+         JOIN profiles reported_profile ON reported_profile.id = ur.reported_user_id
+         LEFT JOIN profiles reviewer_profile ON reviewer_profile.id = ur.reviewed_by
+         WHERE ${visibilitySql} AND ${statusSql}
+         ORDER BY
+           CASE ur.status WHEN 'pending' THEN 0 WHEN 'reviewing' THEN 1 ELSE 2 END,
+           ur.created_at ASC
+         LIMIT $${limitParameter} OFFSET $${offsetParameter}`,
+        listValues,
+      ),
+      query(
+        `SELECT ur.status, count(*)::int AS count
+         FROM user_reports ur
+         JOIN users reported_account ON reported_account.id = ur.reported_user_id
+         WHERE ${visibilitySql}
+         GROUP BY ur.status`,
+      ),
+    ]);
+
+    const counts = { pending: 0, reviewing: 0, resolved: 0, dismissed: 0 };
+    countsResult.rows.forEach((row) => { counts[row.status] = row.count; });
+    return res.json({ items: result.rows, counts, currentPage, totalPages, totalCount });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.patch('/moderation/reports/:reportId', requireRoles('ADMIN', 'MODERATOR'), requireSessionCsrf, async (req, res, next) => {
+  try {
+    if (!isUuid(req.params.reportId)) return res.status(400).json({ error: 'invalid_report_id' });
+    const status = String(req.body?.status || '').trim().toLowerCase();
+    const resolutionNote = String(req.body?.resolutionNote || '').trim();
+    if (!actionableReportStatuses.has(status)) return res.status(400).json({ error: 'invalid_report_status' });
+    if (resolutionNote.length > 2000) return res.status(400).json({ error: 'invalid_resolution_note' });
+    if ((status === 'resolved' || status === 'dismissed') && resolutionNote.length < 10) {
+      return res.status(400).json({ error: 'resolution_note_required' });
+    }
+
+    const report = await withTransaction(async (client) => {
+      const existing = await client.query(
+        `SELECT ur.reporter_user_id, ur.reported_user_id, reported_account.role AS reported_role
+         FROM user_reports ur
+         JOIN users reported_account ON reported_account.id = ur.reported_user_id
+         WHERE ur.id = $1
+         FOR UPDATE OF ur`,
+        [req.params.reportId],
+      );
+      if (existing.rowCount === 0) throw requestError(404, 'report_not_found', 'The report was not found.');
+      const current = existing.rows[0];
+      if (current.reporter_user_id === req.user.id || current.reported_user_id === req.user.id) {
+        throw requestError(409, 'report_conflict_of_interest', 'You cannot review a report involving your own account.');
+      }
+      if (req.user.role !== 'ADMIN' && current.reported_role !== 'USER') {
+        throw requestError(403, 'forbidden', 'Moderators may review only standard member accounts.');
+      }
+
+      const updated = await client.query(
+        `UPDATE user_reports
+         SET status = $2,
+             resolution_note = COALESCE(NULLIF($3, ''), resolution_note),
+             reviewed_by = $4,
+             reviewed_at = now()
+         WHERE id = $1
+         RETURNING id, category, status, resolution_note, reviewed_at, updated_at`,
+        [req.params.reportId, status, resolutionNote, req.user.id],
+      );
+      return updated.rows[0];
+    });
+
+    return res.json({ success: true, report });
+  } catch (error) {
+    return next(error);
+  }
+});
 
 router.get('/blocks', requireSession, async (req, res, next) => {
   try {
