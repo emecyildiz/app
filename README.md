@@ -1,3 +1,4 @@
+
 # Ratemet
 
 Ratemet is a self-hosted movie discovery and social catalog application. Users can browse TMDB data, rate and comment on movies, maintain favorites and watch history, connect with other users, and exchange recommendations.
@@ -78,3 +79,7 @@ The integration test truncates its target database. Always use the disposable da
 Production deployment uses the repository's `docker-compose.prod.yml` with three isolated services: PostgreSQL, the Express API, and a Caddy-hosted frontend gateway. The Ratemet gateway joins only the dedicated `ratemet-edge` network. The Cloudflare Tunnel container joins that network separately; the portfolio gateway remains on `emecworks-edge` and cannot directly reach Ratemet.
 
 See `deploy/README.md` and `env.production.example` for the VPS procedure, Cloudflare Tunnel route, secrets, backup, restore, and hosted-service retirement checklist. Do not remove the previous hosted data source until export/import verification and rollback testing are complete.
+
+<img width="1733" height="865" alt="Ekran görüntüsü 2026-08-11 233758" src="https://github.com/user-attachments/assets/6c6a4203-97c6-49d5-b395-c31593c0d150" />
+<img width="1651" height="892" alt="Ekran görüntüsü 2026-08-11 233732" src="https://github.com/user-attachments/assets/6d0e1e88-6e09-4cbb-ae96-232803ecc18a" />
+<img width="1845" height="869" alt="Ekran görüntüsü 2026-08-11 233713" src="https://github.com/user-attachments/assets/502d77d5-e347-4838-9845-fb3b574a0b6c" />
