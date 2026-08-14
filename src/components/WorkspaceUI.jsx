@@ -41,6 +41,7 @@ export function WorkspaceTabs({ items, active, onChange, label = 'Workspace sect
             >
               {Icon && <Icon className={`h-4 w-4 ${selected ? 'text-[#e85d4a]' : 'text-current'}`} />}
               <span>{item.label}</span>
+              {item.dot && <span className="h-2 w-2 rounded-full bg-[#e85d4a]" aria-label="New activity" />}
             </button>
           )
         })}

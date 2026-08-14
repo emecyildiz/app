@@ -221,7 +221,21 @@ class UserService {
   async listIncomingRequests() {
     try {
       const result = await apiRequest('/api/friends/requests')
-      return Array.isArray(result) ? result : []
+      if (!Array.isArray(result)) return []
+
+      return result.flatMap((request) => {
+        if (!request?.id || !request?.from_user_id) return []
+        return [{
+          id: request.id,
+          createdAt: request.created_at || null,
+          fromUser: {
+            id: request.from_user_id,
+            username: request.username || '',
+            name: request.name || '',
+            avatar: request.avatar || null,
+          },
+        }]
+      })
     } catch (error) {
       return []
     }

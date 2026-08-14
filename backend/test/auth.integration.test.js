@@ -264,6 +264,16 @@ test('registration, login, session, CSRF rotation, and logout work together', as
   const recipientLoginBody = await recipientLogin.json();
   const recipientCookie = recipientLogin.headers.get('set-cookie').split(';')[0];
 
+  const incomingFriendRequests = await request('/api/friends/requests', {
+    headers: { Cookie: recipientCookie },
+  });
+  assert.equal(incomingFriendRequests.status, 200);
+  const incomingFriendRequestBody = await incomingFriendRequests.json();
+  assert.equal(incomingFriendRequestBody.length, 1);
+  assert.equal(incomingFriendRequestBody[0].from_user_id, loginBody.user.id);
+  assert.equal(incomingFriendRequestBody[0].username, 'updated_viewer');
+  assert.ok(Object.hasOwn(incomingFriendRequestBody[0], 'avatar'));
+
   const acceptedFriendRequest = await request('/api/friends/respond', {
     method: 'POST',
     headers: { Cookie: recipientCookie, 'x-csrf-token': recipientLoginBody.csrfToken },
@@ -271,6 +281,14 @@ test('registration, login, session, CSRF rotation, and logout work together', as
   });
   assert.equal(acceptedFriendRequest.status, 200);
   assert.equal((await acceptedFriendRequest.json()).status, 'friends');
+
+  const repeatedAcceptedFriendRequest = await request('/api/friends/request', {
+    method: 'POST',
+    headers: { Cookie: cookie, 'x-csrf-token': csrfToken },
+    body: JSON.stringify({ toUserId: recipientId }),
+  });
+  assert.equal(repeatedAcceptedFriendRequest.status, 200);
+  assert.equal((await repeatedAcceptedFriendRequest.json()).status, 'friends');
 
   const friendStatus = await request(`/api/friends/status/${recipientId}`, { headers: { Cookie: cookie } });
   assert.equal(friendStatus.status, 200);

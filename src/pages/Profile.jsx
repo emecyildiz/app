@@ -15,6 +15,7 @@ import MovieCard from '../components/MovieCard'
 import UserAvatar from '../components/UserAvatar'
 import { ProfileIdentityCard, ProfileStats } from '../components/ProfileIdentityCard'
 import { EmptyState, WorkspacePanel, WorkspaceTabs } from '../components/WorkspaceUI'
+import { useSocialNotifications } from '../context/SocialNotificationsContext'
 
 const recommendationStatus = {
   pending: {
@@ -56,6 +57,12 @@ const Profile = () => {
   const navigate = useNavigate()
   const { section } = useParams()
   const { favorites, removeFromFavorites, getFavoritesCount, clearFavorites } = useFavoritesStore()
+  const {
+    hasNewRecommendation,
+    hasPendingFriendRequest,
+    markRecommendationsViewed,
+    refreshNotifications,
+  } = useSocialNotifications()
   const [activeTab, setActiveTab] = useState('overview')
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -303,8 +310,8 @@ const Profile = () => {
     { id: 'favorites', label: 'My favorites', icon: Heart },
     { id: 'ratings', label: 'My ratings', icon: Star },
     { id: 'comments', label: 'My comments', icon: MessageSquare },
-    { id: 'recommendations', label: 'Recommendations', icon: Share2 },
-    { id: 'friends', label: 'Friends', icon: Users },
+    { id: 'recommendations', label: 'Recommendations', icon: Share2, dot: hasNewRecommendation },
+    { id: 'friends', label: 'Friends', icon: Users, dot: hasPendingFriendRequest },
     { id: 'safety', label: 'Safety', icon: Shield },
     { id: 'settings', label: 'Settings', icon: Settings },
   ]
@@ -353,6 +360,10 @@ const Profile = () => {
     loadRecommendations()
     return () => { mounted = false }
   }, [activeTab, receivedRecommendationsPage, sentRecommendationsPage, recommendationsRefreshKey])
+
+  useEffect(() => {
+    if (activeTab === 'recommendations') markRecommendationsViewed()
+  }, [activeTab, markRecommendationsViewed])
 
   // Refetch data when tab becomes visible (after switching tabs/browsers)
   useEffect(() => {
@@ -515,6 +526,7 @@ const Profile = () => {
         ])
         setFriends(list || [])
         setRequests(reqs || [])
+        await refreshNotifications()
       }
     } finally {
       setFriendsBusy(false)
@@ -528,6 +540,7 @@ const Profile = () => {
       if (resp?.success || resp?.status === 'none') {
         const reqs = await userService.listIncomingRequests()
         setRequests(reqs || [])
+        await refreshNotifications()
       }
     } finally {
       setFriendsBusy(false)
@@ -1080,7 +1093,7 @@ const Profile = () => {
                       <p className="text-gray-400 text-center py-6">No pending requests</p>
                     ) : (
                       <ul className="divide-y divide-white/10">
-                        {requests.map((r) => (
+                        {requests.map((r) => r.fromUser?.id ? (
                           <li key={r.id} className="flex items-center justify-between py-3">
                             <div className="flex items-center gap-3">
                               <UserAvatar src={r.fromUser.avatar} name={r.fromUser.name} username={r.fromUser.username} className="w-8 h-8 rounded-full object-cover" fallbackClassName="text-xs" />
@@ -1100,7 +1113,7 @@ const Profile = () => {
                               </button>
                             </div>
                           </li>
-                        ))}
+                        ) : null)}
                       </ul>
                     )}
                   </div>

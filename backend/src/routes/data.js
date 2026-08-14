@@ -584,13 +584,25 @@ router.post('/friends/request', requireSessionCsrf, async (req, res, next) => {
     );
     if (target.rowCount === 0) return res.status(404).json({ error: 'user_not_found' });
     if (target.rows[0].blocked) return res.status(403).json({ error: 'interaction_blocked' });
-    await query(
+    const upsert = await query(
       `INSERT INTO friendships (from_user_id, to_user_id, status) VALUES ($1, $2, 'pending')
        ON CONFLICT (LEAST(from_user_id, to_user_id), GREATEST(from_user_id, to_user_id))
-       DO UPDATE SET from_user_id = EXCLUDED.from_user_id, to_user_id = EXCLUDED.to_user_id, status = 'pending'`,
+       DO UPDATE SET from_user_id = EXCLUDED.from_user_id, to_user_id = EXCLUDED.to_user_id, status = 'pending'
+       WHERE friendships.status = 'rejected'
+       RETURNING from_user_id, to_user_id, status`,
       [req.user.id, toUserId],
     );
-    return res.json({ success: true, status: 'pending_outgoing' });
+    const relationship = upsert.rows[0] || (await query(
+      `SELECT from_user_id, to_user_id, status
+       FROM friendships
+       WHERE (from_user_id = $1 AND to_user_id = $2) OR (from_user_id = $2 AND to_user_id = $1)
+       LIMIT 1`,
+      [req.user.id, toUserId],
+    )).rows[0];
+    const status = relationship.status === 'accepted'
+      ? 'friends'
+      : (relationship.from_user_id === req.user.id ? 'pending_outgoing' : 'pending_incoming');
+    return res.json({ success: true, status });
   } catch (error) {
     return next(error);
   }
@@ -666,7 +678,9 @@ router.get('/friends/requests', requireSession, async (req, res, next) => {
   try {
     const result = await query(
       `SELECT f.id, f.from_user_id, f.created_at, p.username, p.name, p.avatar_url AS avatar
-       FROM friendships f JOIN profiles p ON p.id = f.from_user_id
+       FROM friendships f
+       JOIN profiles p ON p.id = f.from_user_id
+       JOIN users u ON u.id = f.from_user_id AND u.status = 'ACTIVE'
        WHERE f.to_user_id = $1 AND f.status = 'pending'
          AND NOT EXISTS (
            SELECT 1 FROM user_blocks ub

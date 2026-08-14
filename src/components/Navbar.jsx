@@ -19,7 +19,7 @@ import {
   Users,
   X,
 } from 'lucide-react'
-import recommendationService from '../services/recommendationService'
+import { useSocialNotifications } from '../context/SocialNotificationsContext'
 import { userService } from '../services/userService'
 import { useAuthStore } from '../store/newAuthStore'
 import BrandMark from './BrandMark'
@@ -31,10 +31,15 @@ const Navbar = () => {
   const [results, setResults] = useState([])
   const [isSearching, setIsSearching] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
-  const [hasNewRecommendation, setHasNewRecommendation] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const { isAuthenticated, user, profile, signOut } = useAuthStore()
+  const {
+    hasNewRecommendation,
+    hasPendingFriendRequest,
+    hasProfileNotification,
+    markRecommendationsViewed,
+  } = useSocialNotifications()
 
   const hasSession = Boolean(isAuthenticated && profile && user)
   const isProfileRoute = location.pathname.startsWith('/profile')
@@ -47,50 +52,10 @@ const Navbar = () => {
   }, [])
 
   useEffect(() => {
-    let mounted = true
-    let inFlight = false
-
-    const loadPendingRecommendations = async () => {
-      if (!hasSession || inFlight) {
-        if (!hasSession && mounted) setHasNewRecommendation(false)
-        return
-      }
-
-      inFlight = true
-      try {
-        const response = await recommendationService.getRecommendations('received', 'pending', 1, 10)
-        if (!mounted) return
-
-        const lastViewedAt = Number(localStorage.getItem('recs-last-viewed-at') || 0) || 0
-        const latestCreatedAt = Array.isArray(response?.items)
-          ? response.items.reduce((latest, recommendation) => {
-              const createdAt = recommendation?.created_at ? Date.parse(recommendation.created_at) : 0
-              return Number.isFinite(createdAt) ? Math.max(latest, createdAt) : latest
-            }, 0)
-          : 0
-
-        setHasNewRecommendation(latestCreatedAt > lastViewedAt)
-      } catch {
-        if (mounted) setHasNewRecommendation(false)
-      } finally {
-        inFlight = false
-      }
-    }
-
-    loadPendingRecommendations()
-    const intervalId = window.setInterval(loadPendingRecommendations, 120000)
-    return () => {
-      mounted = false
-      window.clearInterval(intervalId)
-    }
-  }, [hasSession])
-
-  useEffect(() => {
     if (hasSession && location.pathname.startsWith('/profile/recommendations')) {
-      setHasNewRecommendation(false)
-      localStorage.setItem('recs-last-viewed-at', String(Date.now()))
+      markRecommendationsViewed()
     }
-  }, [hasSession, location.pathname])
+  }, [hasSession, location.pathname, markRecommendationsViewed])
 
   const handleSearchChange = (event) => {
     setQuery(event.target.value)
@@ -125,7 +90,7 @@ const Navbar = () => {
   const navLinks = [
     { path: '/movies', label: 'Films', icon: Film },
     { path: '/about', label: 'About', icon: Info },
-    ...(hasSession ? [{ path: '/profile/overview', label: 'Journal', icon: User }] : []),
+    ...(hasSession ? [{ path: '/profile/overview', label: 'Journal', icon: User, dot: hasProfileNotification }] : []),
     ...(hasSession && profile?.role === 'ADMIN' ? [{ path: '/admin', label: 'Admin', icon: Shield }] : []),
     ...(hasSession && profile?.role === 'MODERATOR' ? [{ path: '/moderator', label: 'Moderation', icon: Shield }] : []),
   ]
@@ -136,7 +101,7 @@ const Navbar = () => {
     { id: 'ratings', label: 'Ratings', icon: Star },
     { id: 'comments', label: 'Comments', icon: MessageSquare },
     { id: 'recommendations', label: 'Recommendations', icon: Share2, dot: hasNewRecommendation },
-    { id: 'friends', label: 'Friends', icon: Users },
+    { id: 'friends', label: 'Friends', icon: Users, dot: hasPendingFriendRequest },
     { id: 'settings', label: 'Settings', icon: Settings },
   ]
 
@@ -165,10 +130,11 @@ const Navbar = () => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`inline-flex min-h-10 items-center gap-2 border-b px-3 text-sm transition ${isActive ? 'border-[#e85d4a] text-[#f3efe6]' : 'border-transparent text-[#aaa79f] hover:text-[#f3efe6]'}`}
+                  className={`relative inline-flex min-h-10 items-center gap-2 border-b px-3 text-sm transition ${isActive ? 'border-[#e85d4a] text-[#f3efe6]' : 'border-transparent text-[#aaa79f] hover:text-[#f3efe6]'}`}
                 >
                   <Icon className="h-4 w-4" strokeWidth={1.6} />
                   {link.label}
+                  {link.dot && <span className="h-2 w-2 rounded-full bg-[#e85d4a]" aria-label="New activity" />}
                 </Link>
               )
             })}
