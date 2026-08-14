@@ -1,5 +1,17 @@
 import { apiRequest } from './apiClient'
 
+function compactMovie(movie, movieId) {
+  const id = Number(movieId ?? movie?.id ?? movie?.movie_id ?? movie?.tmdb_id)
+
+  return {
+    id,
+    title: String(movie?.title || movie?.original_title || `Movie #${id}`).trim().slice(0, 300),
+    posterPath: typeof movie?.poster_path === 'string'
+      ? movie.poster_path.trim().slice(0, 500)
+      : null,
+  }
+}
+
 class MovieService {
   async ensureMovieRow(movie) {
     if (!movie?.id) return null
@@ -19,7 +31,10 @@ class MovieService {
       await apiRequest(`/api/ratings/${movieId}/comment`, {
         method: 'PATCH',
         csrf: true,
-        body: { comment, movie: movie ? { ...movie, id: movieId } : { id: movieId } },
+        body: {
+          comment: String(comment || '').trim().slice(0, 2000),
+          movie: compactMovie(movie, movieId),
+        },
       })
       return { success: true }
     } catch (error) {
@@ -42,7 +57,12 @@ class MovieService {
       return await apiRequest('/api/ratings', {
         method: 'POST',
         csrf: true,
-        body: { movieId, rating, comment, movie: movie ? { ...movie, id: movieId } : { id: movieId } },
+        body: {
+          movieId,
+          rating,
+          comment: String(comment || '').trim().slice(0, 2000),
+          movie: compactMovie(movie, movieId),
+        },
       })
     } catch (error) {
       console.error('Unable to save rating:', error)
@@ -73,7 +93,7 @@ class MovieService {
       return await apiRequest('/api/watched', {
         method: 'POST',
         csrf: true,
-        body: { movieId, movie: movie ? { ...movie, id: movieId } : { id: movieId } },
+        body: { movieId, movie: compactMovie(movie, movieId) },
       })
     } catch (error) {
       return { success: false, error: error.message }
