@@ -85,6 +85,7 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
         duplicate_recent_recommendation: 'You already recommended one of these movies to this friend in the last 24 hours.',
         daily_recommendation_limit_reached: 'You have reached the daily recommendation limit.',
         too_many_recommendations: 'Too many recommendations were sent. Please wait a few minutes.',
+        payload_too_large: 'The recommendation contains too much data. Reload the page and try again.',
       };
       toast.error(errorMessages[error?.code] || error?.message || 'The recommendation could not be sent.');
     } finally {
@@ -222,6 +223,7 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
                 onChange={(e) => setTitle(e.target.value)}
                 className="input w-full"
                 placeholder="Recommendation title"
+                maxLength={200}
               />
             </div>
 
@@ -291,6 +293,7 @@ export default function RecommendationModal({ isOpen, onClose, movie, onSuccess,
                 className="input w-full"
                 rows="3"
                 placeholder="Add an optional note..."
+                maxLength={2000}
               />
             </div>
 

@@ -46,6 +46,13 @@ after(async () => {
 });
 
 test('registration, login, session, CSRF rotation, and logout work together', async () => {
+  const oversizedRequest = await request('/api/recommendations', {
+    method: 'POST',
+    body: JSON.stringify({ note: 'x'.repeat(70 * 1024) }),
+  });
+  assert.equal(oversizedRequest.status, 413);
+  assert.deepEqual(await oversizedRequest.json(), { error: 'payload_too_large' });
+
   const registration = await request('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify({

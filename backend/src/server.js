@@ -85,8 +85,11 @@ app.use((req, res) => res.status(404).json({ error: 'not_found' }));
 app.use((error, req, res, next) => {
   if (res.headersSent) return next(error);
   const status = Number.isInteger(error.status) && error.status >= 400 && error.status <= 599 ? error.status : 500;
+  const code = error.type === 'entity.too.large'
+    ? 'payload_too_large'
+    : (error.code || (status >= 500 ? 'internal_server_error' : 'request_failed'));
   if (status >= 500) console.error('Unhandled request error:', error.message);
-  return res.status(status).json({ error: error.code || (status >= 500 ? 'internal_server_error' : 'request_failed') });
+  return res.status(status).json({ error: code });
 });
 
 if (require.main === module) {
