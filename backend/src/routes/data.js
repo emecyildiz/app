@@ -231,12 +231,47 @@ router.get('/users/stats', requireSession, async (req, res, next) => {
          (SELECT count(*)::int FROM ratings WHERE user_id = $1) AS "ratingsCount",
          (SELECT count(*)::int FROM comments WHERE user_id = $1) AS "commentsCount",
          (SELECT count(*)::int FROM favorites WHERE user_id = $1) AS "favoritesCount",
+         (SELECT count(*)::int FROM friendships
+            WHERE status = 'accepted' AND (from_user_id = $1 OR to_user_id = $1)) AS "friendsCount",
          u.created_at AS "memberSince",
          floor(extract(epoch FROM (now() - u.created_at)) / 86400)::int AS "memberSinceDays"
        FROM users u WHERE u.id = $1`,
       [req.user.id],
     );
     return res.json(result.rows[0]);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+router.get('/users/recent-activity', requireSession, async (req, res, next) => {
+  try {
+    const result = await query(
+      `SELECT activity.type,
+              activity.occurred_at AS "occurredAt",
+              activity.rating,
+              json_build_object(
+                'id', m.id,
+                'tmdb_id', m.tmdb_id,
+                'title', m.title,
+                'poster_path', m.poster_path
+              ) AS movie
+       FROM (
+         SELECT 'rating'::text AS type, movie_id, updated_at AS occurred_at, rating
+         FROM ratings WHERE user_id = $1
+         UNION ALL
+         SELECT 'favorite'::text, movie_id, created_at, NULL::numeric
+         FROM favorites WHERE user_id = $1
+         UNION ALL
+         SELECT 'watched'::text, movie_id, created_at, NULL::numeric
+         FROM watched_movies WHERE user_id = $1
+       ) activity
+       JOIN movies m ON m.id = activity.movie_id
+       ORDER BY activity.occurred_at DESC
+       LIMIT 12`,
+      [req.user.id],
+    );
+    return res.json({ items: result.rows });
   } catch (error) {
     return next(error);
   }
@@ -311,7 +346,7 @@ router.post('/ratings', requireSessionCsrf, async (req, res, next) => {
         `INSERT INTO ratings (user_id, movie_id, rating, comment)
          VALUES ($1, $2, $3, $4)
          ON CONFLICT (user_id, movie_id) DO UPDATE
-           SET rating = EXCLUDED.rating, comment = EXCLUDED.comment
+           SET rating = EXCLUDED.rating, comment = EXCLUDED.comment, updated_at = now()
          RETURNING *`,
         [req.user.id, movie.id, rating, comment || null],
       );
@@ -333,7 +368,8 @@ router.patch('/ratings/:movieId/comment', requireSessionCsrf, async (req, res, n
       await client.query(
         `INSERT INTO ratings (user_id, movie_id, comment)
          VALUES ($1, $2, $3)
-         ON CONFLICT (user_id, movie_id) DO UPDATE SET comment = EXCLUDED.comment`,
+         ON CONFLICT (user_id, movie_id) DO UPDATE
+           SET comment = EXCLUDED.comment, updated_at = now()`,
         [req.user.id, movieId, comment || null],
       );
     });

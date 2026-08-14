@@ -89,6 +89,7 @@ const Profile = () => {
     ratings: 0, 
     comments: 0,
     favorites: 0, 
+    friends: 0,
     memberSince: user?.created_at || null, 
     memberSinceDays: 0 
   })
@@ -154,6 +155,7 @@ const Profile = () => {
             ratings: data.ratingsCount || 0,
             comments: data.commentsCount || 0,
             favorites: typeof data.favoritesCount === 'number' ? data.favoritesCount : getFavoritesCount(),
+            friends: data.friendsCount || 0,
             memberSince: data.memberSince || user?.created_at || null,
             memberSinceDays: data.memberSinceDays || 0,
           })
@@ -165,6 +167,25 @@ const Profile = () => {
     if (user) loadStats()
     return () => { mounted = false }
   }, [user])
+
+  const [recentActivity, setRecentActivity] = useState([])
+  const [recentActivityLoading, setRecentActivityLoading] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    const loadRecentActivity = async () => {
+      if (!user || activeTab !== 'overview') return
+      setRecentActivityLoading(true)
+      try {
+        const items = await userService.getRecentActivity()
+        if (mounted) setRecentActivity(Array.isArray(items) ? items : [])
+      } finally {
+        if (mounted) setRecentActivityLoading(false)
+      }
+    }
+    loadRecentActivity()
+    return () => { mounted = false }
+  }, [user, activeTab])
 
   // Sync state from URL once and validate section; avoid navigate loops
   useEffect(() => {
@@ -832,7 +853,7 @@ const Profile = () => {
                 { label: 'watched', value: stats.watchedMovies, icon: Film },
                 { label: 'ratings', value: stats.ratings, icon: Star },
                 { label: 'favorites', value: stats.favorites, icon: Heart },
-                { label: 'friends', value: friends.length, icon: Users },
+                { label: 'friends', value: stats.friends, icon: Users },
               ]} />
             </motion.div>
           </>
@@ -864,12 +885,56 @@ const Profile = () => {
                 description="Your latest ratings, favorites, and watched films will collect here."
                 className="mt-8"
               >
-                <EmptyState
-                  icon={Film}
-                  title="Nothing recorded yet."
-                  description="Explore the catalog and start rating or saving films to build your journal."
-                  action={<button onClick={() => navigate('/movies')} className="ui-button-primary">Browse films</button>}
-                />
+                {recentActivityLoading ? (
+                  <div className="flex min-h-52 items-center justify-center text-sm text-[#77756f]">Loading journal activity...</div>
+                ) : recentActivity.length > 0 ? (
+                  <div className="divide-y divide-white/10">
+                    {recentActivity.map((activity, index) => {
+                      const activityMeta = activity.type === 'rating'
+                        ? { icon: Star, label: `Rated ${activity.rating}/10` }
+                        : activity.type === 'favorite'
+                          ? { icon: Heart, label: 'Added to favorites' }
+                          : { icon: Film, label: 'Marked as watched' }
+                      const ActivityIcon = activityMeta.icon
+                      return (
+                        <button
+                          key={`${activity.type}-${activity.movie?.id}-${activity.occurredAt}-${index}`}
+                          type="button"
+                          onClick={() => navigate(`/movies/${activity.movie?.id}`)}
+                          className="flex w-full items-center gap-4 px-5 py-4 text-left transition hover:bg-white/[0.03] sm:px-6"
+                        >
+                          {activity.movie?.poster_path ? (
+                            <img
+                              src={`https://image.tmdb.org/t/p/w92${activity.movie.poster_path}`}
+                              alt=""
+                              className="h-16 w-11 shrink-0 rounded object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="flex h-16 w-11 shrink-0 items-center justify-center rounded bg-white/[0.05]">
+                              <Film className="h-5 w-5 text-[#77756f]" />
+                            </div>
+                          )}
+                          <ActivityIcon className="h-5 w-5 shrink-0 text-[#e85d4a]" strokeWidth={1.5} />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-medium text-[#f3efe6]">{activity.movie?.title || `Movie #${activity.movie?.id}`}</p>
+                            <p className="mt-1 text-xs text-[#918e86]">{activityMeta.label}</p>
+                          </div>
+                          <time className="hidden shrink-0 font-mono text-[10px] uppercase tracking-[0.12em] text-[#66645f] sm:block">
+                            {new Date(activity.occurredAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </time>
+                        </button>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <EmptyState
+                    icon={Film}
+                    title="Nothing recorded yet."
+                    description="Explore the catalog and start rating or saving films to build your journal."
+                    action={<button onClick={() => navigate('/movies')} className="ui-button-primary">Browse films</button>}
+                  />
+                )}
               </WorkspacePanel>
             )}
 

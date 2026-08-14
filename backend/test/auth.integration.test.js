@@ -224,6 +224,12 @@ test('registration, login, session, CSRF rotation, and logout work together', as
     { watchedMovies: 1, ratingsCount: 1, commentsCount: 1, favoritesCount: 1 },
   );
 
+  const recentActivity = await request('/api/users/recent-activity', { headers: { Cookie: cookie } });
+  assert.equal(recentActivity.status, 200);
+  const recentActivityBody = await recentActivity.json();
+  assert.deepEqual(new Set(recentActivityBody.items.map((item) => item.type)), new Set(['rating', 'favorite', 'watched']));
+  assert.ok(recentActivityBody.items.every((item) => item.movie.id === 550 && item.movie.title === 'Fight Club'));
+
   const recipientRegistration = await request('/api/auth/register', {
     method: 'POST',
     body: JSON.stringify({

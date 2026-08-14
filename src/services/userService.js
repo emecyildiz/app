@@ -54,6 +54,15 @@ class UserService {
     }
   }
 
+  async getRecentActivity() {
+    try {
+      return (await apiRequest('/api/users/recent-activity')).items || []
+    } catch (error) {
+      console.error('Unable to load recent journal activity:', error)
+      return []
+    }
+  }
+
   async addFavorite(movie) {
     const movieId = Number(typeof movie === 'number' ? movie : (movie?.id ?? movie?.movie_id ?? movie?.tmdb_id))
     if (!Number.isSafeInteger(movieId) || movieId <= 0) throw new Error('Invalid movie identifier.')
